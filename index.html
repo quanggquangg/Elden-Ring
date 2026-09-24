@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vòng Vàng Vỡ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,500&family=Cormorant+SC:wght@500;600;700&display=swap">
+<style>
+:root{
+  --ink:#0b0a08;
+  --panel:rgba(16,14,10,.94);
+  --gold:#d6b25e;
+  --gold-hi:#f2dc97;
+  --gold-dim:#8a7342;
+  --parch:#ece3cc;
+  --muted:#a89b7d;
+  --line:rgba(214,178,94,.3);
+  --blood:#a3201c;
+  --display:"Cormorant SC","Cormorant Garamond",Georgia,serif;
+  --ui:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--parch);overflow:hidden}
+body{font:15px/1.55 var(--ui);-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#app{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);overflow:hidden;background:var(--ink)}
+#game{display:block;width:100%;height:100%;cursor:crosshair}
+
+.overlay{position:absolute;inset:0;display:grid;place-items:center;overflow-y:auto;padding:24px 16px;box-sizing:border-box;
+  background:linear-gradient(rgba(8,7,5,.55),rgba(8,7,5,.82))}
+.overlay.title{background:
+  radial-gradient(ellipse 70% 55% at 50% -8%,rgba(226,186,96,.34),rgba(226,186,96,0) 70%),
+  linear-gradient(rgba(8,7,5,.35),rgba(8,7,5,.88) 70%)}
+.title-inner{width:100%;max-width:640px;text-align:center;display:grid;gap:18px;justify-items:center}
+.ring{width:118px;height:118px;color:var(--gold);filter:drop-shadow(0 0 14px rgba(226,186,96,.45))}
+.eyebrow{margin:0;font:600 12px/1.2 var(--ui);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+h1{margin:0;font:700 clamp(46px,10vw,104px)/.95 var(--display);letter-spacing:.04em;text-wrap:balance;
+  background:linear-gradient(180deg,#fff3c9 0%,var(--gold) 55%,#9b7b3c 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{margin:0;font:600 34px/1.1 var(--display);letter-spacing:.03em;color:var(--parch);text-wrap:balance}
+.lede{margin:0;max-width:52ch;color:var(--muted);font:500 italic 20px/1.45 "Cormorant Garamond",Georgia,serif;text-wrap:pretty}
+.actions{display:grid;gap:2px;justify-items:center;margin-top:6px}
+.mbtn{appearance:none;background:none;border:0;color:var(--parch);font:600 23px/1.2 var(--display);letter-spacing:.05em;
+  padding:10px 44px;cursor:pointer;position:relative}
+.mbtn:hover,.mbtn:focus-visible{color:var(--gold-hi);background:linear-gradient(90deg,rgba(214,178,94,0),rgba(214,178,94,.2),rgba(214,178,94,0))}
+.mbtn:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
+.mbtn.warn{color:#f0a58f}
+.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 22px;margin:8px 0 0;padding:14px 0 0;border-top:1px solid var(--line);width:100%;max-width:520px;text-align:left;font-size:13px;color:var(--muted)}
+.controls div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.controls dt{color:var(--parch)}
+.controls dd{margin:0;text-align:right}
+kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);border-radius:3px;color:var(--gold-hi);background:rgba(214,178,94,.07)}
+.fine{margin:4px 0 0;font-size:12px;color:var(--gold-dim);max-width:60ch}
+
+.panel{width:100%;max-width:560px;box-sizing:border-box;background:var(--panel);border-block:1px solid var(--line);
+  padding:26px clamp(16px,4vw,34px);display:grid;gap:16px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.panel header{display:grid;gap:6px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:600 14px/1 var(--ui);letter-spacing:.06em;padding:10px 12px;cursor:pointer;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--gold-hi);border-bottom-color:var(--gold)}
+.tab:focus-visible{outline:1px solid var(--gold)}
+.lvtop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lvtop div{display:grid;gap:2px}
+.k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lvtop b,.drv b{font:600 22px/1.1 var(--ui);font-variant-numeric:tabular-nums;color:var(--parch)}
+.lvtop b.short{color:#e08a76}
+.stats{list-style:none;margin:0;padding:0;display:grid}
+.stats li{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(214,178,94,.12)}
+.stats .nm{display:grid}
+.stats .nm span:first-child{font:600 20px/1.15 var(--display);color:var(--parch)}
+.stats .nm span:last-child{font-size:12px;color:var(--muted)}
+.stats .val{font:600 20px/1 var(--ui);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
+.plus{appearance:none;width:36px;height:36px;border:1px solid var(--gold-dim);background:rgba(214,178,94,.08);color:var(--gold-hi);font:600 20px/1 var(--ui);cursor:pointer}
+.plus:hover:not(:disabled),.plus:focus-visible{background:rgba(214,178,94,.22);outline:none;border-color:var(--gold)}
+.plus:disabled{opacity:.3;cursor:not-allowed}
+.drv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.drv div{display:grid;gap:2px}
+.drv dd{margin:0}
+.drv b{font-size:17px}
+.travel{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.travel button{width:100%;text-align:left;appearance:none;background:rgba(214,178,94,.05);border:1px solid rgba(214,178,94,.15);color:var(--parch);padding:12px 14px;font:600 19px/1.2 var(--display);cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.travel button:hover,.travel button:focus-visible{border-color:var(--gold);color:var(--gold-hi);outline:none}
+.travel small{font:500 12px/1.6 var(--ui);color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pbtn{appearance:none;border:1px solid var(--gold-dim);background:rgba(214,178,94,.08);color:var(--gold-hi);font:600 15px/1 var(--ui);letter-spacing:.04em;padding:12px 22px;cursor:pointer}
+.pbtn:hover,.pbtn:focus-visible{background:rgba(214,178,94,.2);border-color:var(--gold);outline:none}
+.pbtn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.pbtn.ghost:hover,.pbtn.ghost:focus-visible{color:var(--parch)}
+.endstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:center}
+.endstats b{display:block;font:600 24px/1.2 var(--ui);font-variant-numeric:tabular-nums}
+.center{text-align:center;justify-items:center}
+
+#touch{position:absolute;inset:0;pointer-events:none}
+#stickZone{position:absolute;left:0;bottom:0;width:48%;height:62%;pointer-events:auto}
+#stickBase{position:absolute;width:118px;height:118px;margin:-59px 0 0 -59px;border-radius:50%;border:1px solid rgba(214,178,94,.45);background:rgba(10,9,7,.3)}
+#knob{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:rgba(214,178,94,.35);border:1px solid rgba(242,220,151,.7)}
+.tb{position:absolute;pointer-events:auto;right:calc(var(--x) - var(--s)/2);bottom:calc(var(--y) - var(--s)/2);width:var(--s);height:var(--s);border-radius:50%;
+  border:1px solid rgba(214,178,94,.55);background:rgba(12,10,8,.5);color:var(--parch);font:600 13px/1 var(--ui);display:grid;place-items:center;padding:0;touch-action:none}
+.tb.big{font-size:15px;border-color:rgba(242,220,151,.8);background:rgba(40,32,18,.55)}
+.tb:active,.tb.on{background:rgba(214,178,94,.35)}
+#topBtns{position:absolute;right:12px;top:52px;display:flex;gap:8px;pointer-events:auto}
+#topBtns button{appearance:none;width:46px;height:34px;border:1px solid rgba(214,178,94,.45);background:rgba(12,10,8,.55);color:var(--parch);font:600 12px/1 var(--ui);padding:0}
+
+@media (max-width:520px){
+  .controls{grid-template-columns:1fr}
+  .lvtop b{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Màn chơi"></canvas>
+
+  <div id="touch" hidden>
+    <div id="stickZone"><div id="stickBase" hidden><div id="knob"></div></div></div>
+    <button class="tb big" data-act="light" style="--x:62px;--y:124px;--s:78px">Đánh</button>
+    <button class="tb" data-act="roll" style="--x:154px;--y:56px;--s:64px">Lăn</button>
+    <button class="tb" data-act="heavy" style="--x:50px;--y:214px;--s:56px">Mạnh</button>
+    <button class="tb" data-act="spell" style="--x:136px;--y:184px;--s:54px">Phép</button>
+    <button class="tb" data-act="flask" style="--x:222px;--y:118px;--s:52px">Bình</button>
+    <button class="tb" data-act="interact" style="--x:240px;--y:44px;--s:46px">Dùng</button>
+    <div id="topBtns">
+      <button data-act="lock">Khóa</button>
+      <button data-act="mount">Ngựa</button>
+      <button data-act="pause" aria-label="Tạm dừng">II</button>
+    </div>
+  </div>
+
+  <section id="title" class="overlay title">
+    <div class="title-inner">
+      <svg class="ring" viewBox="0 0 120 120" aria-hidden="true" fill="none" stroke="currentColor">
+        <path d="M60 14 A46 46 0 0 1 102 42" stroke-width="3"/>
+        <path d="M105 54 A46 46 0 0 1 78 102" stroke-width="3"/>
+        <path d="M66 106 A46 46 0 0 1 17 76" stroke-width="3"/>
+        <path d="M14 62 A46 46 0 0 1 49 15" stroke-width="3"/>
+        <path d="M60 30 A30 30 0 1 1 59.9 30" stroke-width="1.2" opacity=".6"/>
+        <path d="M60 4 V116 M26 36 L94 84" stroke-width="1" opacity=".55"/>
+      </svg>
+      <p class="eyebrow">Hành trình souls-like 2D</p>
+      <h1>Vòng Vàng Vỡ</h1>
+      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy băng qua Đồng Cỏ Sương Mờ, hạ gục kẻ canh cổng Varek và chạm tới Cây Vàng.</p>
+      <div class="actions">
+        <button id="btnContinue" class="mbtn" hidden>Tiếp tục</button>
+        <button id="btnNew" class="mbtn">Hành trình mới</button>
+      </div>
+      <dl class="controls">
+        <div><dt>Di chuyển</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd></div>
+        <div><dt>Chạy nhanh</dt><dd><kbd>Shift</kbd></dd></div>
+        <div><dt>Lăn né</dt><dd><kbd>Space</kbd></dd></div>
+        <div><dt>Đánh thường</dt><dd><kbd>J</kbd> / chuột trái</dd></div>
+        <div><dt>Đánh mạnh</dt><dd><kbd>K</kbd> / chuột phải</dd></div>
+        <div><dt>Phép Đá Sao</dt><dd><kbd>L</kbd> / <kbd>C</kbd></dd></div>
+        <div><dt>Uống Bình Máu</dt><dd><kbd>R</kbd></dd></div>
+        <div><dt>Tương tác</dt><dd><kbd>E</kbd></dd></div>
+        <div><dt>Khóa mục tiêu</dt><dd><kbd>Q</kbd></dd></div>
+        <div><dt>Gọi ngựa</dt><dd><kbd>F</kbd></dd></div>
+        <div><dt>Tạm dừng</dt><dd><kbd>Esc</kbd></dd></div>
+        <div><dt>Tắt/bật âm</dt><dd><kbd>M</kbd></dd></div>
+      </dl>
+      <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring. Không liên quan tới FromSoftware hay Bandai Namco.</p>
+    </div>
+  </section>
+
+  <section id="pause" class="overlay" hidden>
+    <div class="panel center">
+      <header><p class="eyebrow">Tạm dừng</p><h2>Hơi thở giữa trận</h2></header>
+      <dl class="controls">
+        <div><dt>Lăn né</dt><dd><kbd>Space</kbd></dd></div>
+        <div><dt>Đánh thường / mạnh</dt><dd><kbd>J</kbd> <kbd>K</kbd></dd></div>
+        <div><dt>Phép</dt><dd><kbd>L</kbd></dd></div>
+        <div><dt>Bình Máu</dt><dd><kbd>R</kbd></dd></div>
+        <div><dt>Tương tác</dt><dd><kbd>E</kbd></dd></div>
+        <div><dt>Khóa / Ngựa</dt><dd><kbd>Q</kbd> <kbd>F</kbd></dd></div>
+      </dl>
+      <div class="row">
+        <button id="btnResume" class="pbtn">Tiếp tục</button>
+        <button id="btnSound" class="pbtn">Âm thanh: bật</button>
+        <button id="btnQuit" class="pbtn ghost">Về màn hình chính</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="grace" class="overlay" hidden>
+    <div class="panel">
+      <header><p class="eyebrow" id="graceName">Ân Điển</p><h2>Nghỉ ngơi</h2></header>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tabLevel" aria-selected="true">Lên cấp</button>
+        <button class="tab" role="tab" id="tabTravel" aria-selected="false">Dịch chuyển</button>
+      </div>
+      <div id="paneLevel" style="display:grid;gap:14px">
+        <div class="lvtop">
+          <div><span class="k">Cấp</span><b id="lvNum">1</b></div>
+          <div><span class="k">Rune đang có</span><b id="lvRunes">0</b></div>
+          <div><span class="k">Cần để lên cấp</span><b id="lvCost">0</b></div>
+        </div>
+        <ul class="stats" id="statList"></ul>
+        <dl class="drv" id="derived"></dl>
+      </div>
+      <div id="paneTravel" hidden>
+        <ul class="travel" id="travelList"></ul>
+      </div>
+      <div class="row"><button id="btnLeave" class="pbtn">Rời đi</button></div>
+    </div>
+  </section>
+
+  <section id="ending" class="overlay title" hidden>
+    <div class="panel center">
+      <header><p class="eyebrow">Gốc Cây Vàng</p><h2>Ngươi đã chạm tới Cây Vàng</h2></header>
+      <p class="lede">Ánh vàng phủ lên đôi tay của Kẻ Nhạt Phai. Vòng Vàng vẫn còn vỡ, nhưng giờ nó đã có người để hàn gắn.</p>
+      <div class="endstats">
+        <div><span class="k">Cấp</span><b id="endLv">1</b></div>
+        <div><span class="k">Số lần chết</span><b id="endDeaths">0</b></div>
+        <div><span class="k">Thời gian</span><b id="endTime">0:00</b></div>
+      </div>
+      <div class="row"><button id="btnEndClose" class="pbtn">Tiếp tục khám phá</button></div>
+    </div>
+  </section>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
