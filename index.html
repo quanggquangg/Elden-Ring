@@ -81,7 +81,8 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 .travel{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .travel button{width:100%;text-align:left;appearance:none;background:rgba(214,178,94,.05);border:1px solid rgba(214,178,94,.15);color:var(--parch);padding:12px 14px;font:600 19px/1.2 var(--display);cursor:pointer;display:flex;justify-content:space-between;gap:10px}
 .travel button:hover,.travel button:focus-visible{border-color:var(--gold);color:var(--gold-hi);outline:none}
-.travel small{font:500 12px/1.6 var(--ui);color:var(--muted)}
+.travel small{font:500 12px/1.6 var(--ui);color:var(--muted);flex:none}
+.travel span small{display:block;line-height:1.4}
 .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .pbtn{appearance:none;border:1px solid var(--gold-dim);background:rgba(214,178,94,.08);color:var(--gold-hi);font:600 15px/1 var(--ui);letter-spacing:.04em;padding:12px 22px;cursor:pointer}
 .pbtn:hover,.pbtn:focus-visible{background:rgba(214,178,94,.2);border-color:var(--gold);outline:none}
@@ -99,7 +100,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
   border:1px solid rgba(214,178,94,.55);background:rgba(12,10,8,.5);color:var(--parch);font:600 13px/1 var(--ui);display:grid;place-items:center;padding:0;touch-action:none}
 .tb.big{font-size:15px;border-color:rgba(242,220,151,.8);background:rgba(40,32,18,.55)}
 .tb:active,.tb.on{background:rgba(214,178,94,.35)}
-#topBtns{position:absolute;right:12px;top:52px;display:flex;gap:8px;pointer-events:auto}
+#topBtns{position:absolute;right:12px;top:118px;display:flex;gap:8px;pointer-events:auto}
 #topBtns button{appearance:none;width:46px;height:34px;border:1px solid rgba(214,178,94,.45);background:rgba(12,10,8,.55);color:var(--parch);font:600 12px/1 var(--ui);padding:0}
 
 @media (max-width:520px){
@@ -121,9 +122,11 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
     <button class="tb" data-act="spell" style="--x:136px;--y:184px;--s:54px">Phép</button>
     <button class="tb" data-act="flask" style="--x:222px;--y:118px;--s:52px">Bình</button>
     <button class="tb" data-act="interact" style="--x:240px;--y:44px;--s:46px">Dùng</button>
+    <button class="tb" data-hold="guard" style="--x:128px;--y:262px;--s:54px">Đỡ</button>
     <div id="topBtns">
       <button data-act="lock">Khóa</button>
       <button data-act="mount">Ngựa</button>
+      <button data-act="eqnext">Vũ khí</button>
       <button data-act="pause" aria-label="Tạm dừng">II</button>
     </div>
   </div>
@@ -140,7 +143,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       </svg>
       <p class="eyebrow">Hành trình souls-like 2D</p>
       <h1>Vòng Vàng Vỡ</h1>
-      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy băng qua Đồng Cỏ Sương Mờ, hạ gục kẻ canh cổng Varek và chạm tới Cây Vàng.</p>
+      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy băng qua Đồng Cỏ Sương Mờ, hạ gục kẻ canh cổng Varek và chạm tới Cây Vàng. Nếu đủ can đảm, hãy đánh thức con rồng ngủ trong đầm lầy.</p>
       <div class="actions">
         <button id="btnContinue" class="mbtn" hidden>Tiếp tục</button>
         <button id="btnNew" class="mbtn">Hành trình mới</button>
@@ -152,6 +155,8 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <div><dt>Đánh thường</dt><dd><kbd>J</kbd> / chuột trái</dd></div>
         <div><dt>Đánh mạnh</dt><dd><kbd>K</kbd> / chuột phải</dd></div>
         <div><dt>Phép Đá Sao</dt><dd><kbd>C</kbd> / chuột giữa</dd></div>
+        <div><dt>Đỡ / phản đòn</dt><dd>giữ <kbd>X</kbd></dd></div>
+        <div><dt>Đổi vũ khí</dt><dd><kbd>1</kbd>–<kbd>4</kbd> / <kbd>T</kbd></dd></div>
         <div><dt>Uống Bình Máu</dt><dd><kbd>R</kbd></dd></div>
         <div><dt>Tương tác</dt><dd><kbd>E</kbd></dd></div>
         <div><dt>Khóa mục tiêu</dt><dd><kbd>Q</kbd></dd></div>
@@ -170,6 +175,8 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <div><dt>Lăn né</dt><dd><kbd>Space</kbd></dd></div>
         <div><dt>Đánh thường / mạnh</dt><dd><kbd>J</kbd> <kbd>K</kbd></dd></div>
         <div><dt>Phép</dt><dd><kbd>C</kbd> / chuột giữa</dd></div>
+        <div><dt>Đỡ / phản đòn</dt><dd>giữ <kbd>X</kbd></dd></div>
+        <div><dt>Đổi vũ khí</dt><dd><kbd>1</kbd>–<kbd>4</kbd></dd></div>
         <div><dt>Bình Máu</dt><dd><kbd>R</kbd></dd></div>
         <div><dt>Tương tác</dt><dd><kbd>E</kbd></dd></div>
         <div><dt>Khóa / Ngựa</dt><dd><kbd>Q</kbd> <kbd>F</kbd></dd></div>
@@ -187,6 +194,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       <header><p class="eyebrow" id="graceName">Ân Điển</p><h2>Nghỉ ngơi</h2></header>
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" id="tabLevel" aria-selected="true">Lên cấp</button>
+        <button class="tab" role="tab" id="tabGear" aria-selected="false">Trang bị</button>
         <button class="tab" role="tab" id="tabTravel" aria-selected="false">Dịch chuyển</button>
       </div>
       <div id="paneLevel" style="display:grid;gap:14px">
@@ -197,6 +205,9 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         </div>
         <ul class="stats" id="statList"></ul>
         <dl class="drv" id="derived"></dl>
+      </div>
+      <div id="paneGear" hidden>
+        <ul class="travel" id="gearList"></ul>
       </div>
       <div id="paneTravel" hidden>
         <ul class="travel" id="travelList"></ul>
