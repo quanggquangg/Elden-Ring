@@ -87,6 +87,11 @@ Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, gi
 - **Quái mạnh dần theo vùng đất** (giống Elden Ring, không tăng theo cấp người chơi): đồng cỏ +0%, tàn tích +10%, gần cổng Varek +10–20%, đầm lầy +25%, phía đông +35–50%, Cõi Vàng +55%. Quái ở vùng khó hơn cũng rơi nhiều rune hơn.
 - **Bình Máu:** bắt đầu với 3 bình, tối đa 8. Khi đã đủ, Hạt Vàng đổi thành rune.
 - **Thế giới mở:** 10 vùng, 9 Ân Điển, Hạt Vàng (thêm lượt Bình Máu), Đá Rèn Kiếm (cường hóa vũ khí), lời nhắn gợi ý trên mặt đất, và ngựa linh để đi nhanh.
+- **Hình ảnh:**
+  - Ánh sáng động: mỗi vùng có độ tối và tông màu riêng. Ân Điển, lò lửa, phép, cầu lửa, Cây Vàng, hồn ma và boss tỏa sáng, soi rõ vùng quanh chúng.
+  - Không khí theo vùng: sương mù trôi, tro bay ở vùng đông, đom đóm ở Rừng Linh Hồn và đầm lầy, lá vàng rơi quanh Cây Vàng.
+  - Chi tiết sống động: cỏ lay theo gió và rẽ ra khi bạn đi qua, tán cây đung đưa, mặt ao độc lấp lánh, tia nắng vàng gần Cây Vàng.
+  - Chỉnh **Đồ họa: cao/thấp** trong menu tạm dừng. Điện thoại mặc định dùng mức thấp.
 - **Tự động lưu** vào `localStorage` khi nghỉ ở Ân Điển, nhặt vật phẩm, chết hoặc hạ boss.
 
 ## Cấu trúc

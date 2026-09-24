@@ -27,6 +27,13 @@ const $ = id => document.getElementById(id);
 const canvas = $('game');
 const ctx = canvas.getContext('2d');
 let DPR = 1, CW = 800, CH = 600, ZOOM = 1, VIGNETTE = null;
+// Đồ họa thấp: bỏ cỏ động, sương mù, giảm độ phân giải lớp ánh sáng (mặc định bật trên điện thoại)
+let FX_LOW = (() => {
+  try { const v = localStorage.getItem('vvv-fx'); if (v) return v === 'low'; } catch (e) { /* bỏ qua */ }
+  try { return window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; }
+})();
+const lightCanvas = document.createElement('canvas'), lctx = lightCanvas.getContext('2d');
+let LSCALE = 0.25;
 function resize() {
   const r = canvas.getBoundingClientRect();
   CW = Math.max(1, r.width); CH = Math.max(1, r.height);
@@ -36,6 +43,9 @@ function resize() {
   VIGNETTE = ctx.createRadialGradient(CW / 2, CH / 2, Math.min(CW, CH) * 0.3, CW / 2, CH / 2, Math.max(CW, CH) * 0.78);
   VIGNETTE.addColorStop(0, 'rgba(6,5,3,0)');
   VIGNETTE.addColorStop(1, 'rgba(6,5,3,0.66)');
+  // lớp bóng tối chỉ gồm các dải chuyển mượt nên độ phân giải thấp vẫn đẹp mà nhẹ hơn nhiều
+  LSCALE = FX_LOW ? 0.18 : 0.25;
+  lightCanvas.width = Math.max(1, Math.ceil(canvas.width * LSCALE)); lightCanvas.height = Math.max(1, Math.ceil(canvas.height * LSCALE));
 }
 window.addEventListener('resize', resize);
 resize();
@@ -2193,6 +2203,8 @@ function updateParts(dt) {
     p.x += p.vx * dt; p.y += p.vy * dt;
     if (p.kind === 'spark' || p.kind === 'dot') { const f = Math.exp(-4 * dt); p.vx *= f; p.vy *= f; }
     else if (p.kind === 'fire') { const f = Math.exp(-1 * dt); p.vx *= f; p.vy *= f; }
+    else if (p.kind === 'firefly') { p.vx = clamp(p.vx + rand(-60, 60) * dt, -25, 25); p.vy = clamp(p.vy + rand(-60, 60) * dt, -25, 25); }
+    else if (p.kind === 'leaf') p.vx = Math.sin(p.life * 2 + p.seed) * 22;
     if (p.kind === 'mote') p.vx += Math.sin((p.life + p.x) * 3) * 6 * dt;
   }
 }
@@ -2374,6 +2386,7 @@ function ambient(dt) {
     addPart(px + Math.cos(a) * rx * k, py + Math.sin(a) * ry * k, 0, -8, 0.9, rand(2, 4), 'rgba(190,150,205,.8)');
   }
   if (Math.random() < dt * motes) addPart(x0 + Math.random() * vw, y0 + Math.random() * vh, rand(-6, 6), rand(-16, -5), rand(3, 6), rand(1, 2.2), '#f3d27a', 'mote');
+  weather(dt, x0, y0, vw, vh);
   for (const g of GRACES) if (Math.abs(g.x - cam.x) < vw && Math.abs(g.y - cam.y) < vh && Math.random() < dt * (S.discovered.includes(g.id) ? 8 : 3)) addPart(g.x + rand(-8, 8), g.y + rand(-4, 4), rand(-5, 5), rand(-40, -20), rand(0.8, 1.6), rand(1.2, 2.2), '#ffe7a3', 'mote');
 }
 function update(dt) {
@@ -2400,6 +2413,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   pollPad();
+  updateAmbient(dt);
   if (G.mode === 'play' || G.mode === 'dead') {
     if (G.hitStop > 0) G.hitStop -= dt; else update(dt);
     tick(dt);
@@ -3056,7 +3070,7 @@ function drawProjs() {
 }
 function drawParts() {
   for (const p of parts) {
-    if (!inView(p.x, p.y, 30)) continue;
+    if (!inView(p.x, p.y, p.kind === 'fog' ? p.size : 30)) continue;
     const k = p.life / p.max;
     if (p.kind === 'text') {
       ctx.globalAlpha = Math.min(1, k * 2);
@@ -3070,6 +3084,20 @@ function drawParts() {
       ctx.globalAlpha = k; ctx.fillStyle = p.color; const s = p.size * (0.5 + k * 0.5);
       ctx.beginPath(); ctx.moveTo(p.x, p.y - s); ctx.lineTo(p.x + s * 0.18, p.y); ctx.lineTo(p.x, p.y + s); ctx.lineTo(p.x - s * 0.18, p.y); ctx.closePath();
       ctx.moveTo(p.x - s, p.y); ctx.lineTo(p.x, p.y + s * 0.18); ctx.lineTo(p.x + s, p.y); ctx.lineTo(p.x, p.y - s * 0.18); ctx.closePath(); ctx.fill();
+    } else if (p.kind === 'fog') {
+      const a = Math.min(1, (p.max - p.life) / 2.5, p.life / 2.5) * p.alpha;
+      const gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+      gr.addColorStop(0, `rgba(${p.color},${a})`); gr.addColorStop(1, `rgba(${p.color},0)`);
+      ctx.globalAlpha = 1; ctx.fillStyle = gr; ctx.fillRect(p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+    } else if (p.kind === 'firefly') {
+      ctx.globalAlpha = (0.45 + 0.55 * Math.sin(G.clock * 5 + p.seed)) * Math.min(1, p.life, (p.max - p.life) * 2);
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU); ctx.fill();
+    } else if (p.kind === 'leaf') {
+      ctx.globalAlpha = Math.min(1, p.life);
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 3 + p.seed);
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, 3.4, 1.6, 0, 0, TAU); ctx.fill(); ctx.restore();
+    } else if (p.kind === 'ash') {
+      ctx.globalAlpha = Math.min(1, p.life) * 0.7; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size);
     } else if (p.kind === 'fire') {
       ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = k * 0.75;
       ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (1.5 - k * 0.6), 0, TAU); ctx.fill();
@@ -3091,7 +3119,8 @@ function drawCanopies() {
     else if (enemies.some(e => !e.dead && near(e.x, e.y, 0))) a = 0.6;
     ctx.globalAlpha = a;
     const size = spr.width * (o.cr / 52);
-    ctx.drawImage(spr, o.x - size / 2, o.y - size / 2 - 10, size, size);
+    const swx = Math.sin(G.clock * 1.1 + o.x * 0.013 + o.y * 0.007) * 2.2, swy = Math.cos(G.clock * 0.9 + o.x * 0.011) * 1.2;
+    ctx.drawImage(spr, o.x - size / 2 + swx, o.y - size / 2 - 10 + swy, size, size);
   }
   ctx.globalAlpha = 1;
   if (inView(TREE_POS.x, TREE_POS.y, 420)) {
@@ -3121,6 +3150,8 @@ function render() {
   const gx0 = clamp(Math.floor(x0), 0, W), gy0 = clamp(Math.floor(y0), 0, H), gx1 = clamp(Math.ceil(x0 + vw), 0, W), gy1 = clamp(Math.ceil(y0 + vh), 0, H);
   if (gx1 > gx0 && gy1 > gy0) ctx.drawImage(GROUND, gx0 / 2, gy0 / 2, (gx1 - gx0) / 2, (gy1 - gy0) / 2, gx0, gy0, gx1 - gx0, gy1 - gy0);
   drawDecals();
+  drawWater();
+  drawGrass();
   for (const o of OBST) if (o.kind === 'rock' && inView(o.x, o.y, 40)) drawRock(o);
   for (const c of CHESTS) if ((!c.req || c.req()) && inView(c.x, c.y, 40)) drawChest(c);
   drawPuzzles();
@@ -3150,7 +3181,12 @@ function render() {
     gr.addColorStop(0, '#07060b'); gr.addColorStop(1, 'rgba(7,6,11,0)');
     ctx.fillStyle = gr; ctx.fillRect(MAPW + 90, VIEW.y0 - 20, 150, VIEW.y1 - VIEW.y0 + 40);
   }
+  collectLights();
+  renderLighting(x0, y0);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const [, , , , tr, tg, tb, ta] = G.amb;
+  if (ta > 0.01 && !FX_LOW) { ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = `rgba(${tr | 0},${tg | 0},${tb | 0},${ta})`; ctx.fillRect(0, 0, CW, CH); ctx.globalCompositeOperation = 'source-over'; }
+  drawGodRays();
   const top = ctx.createLinearGradient(0, 0, 0, CH * 0.5);
   top.addColorStop(0, `rgba(255,205,110,${cam.y < 900 ? 0.14 : 0.06})`); top.addColorStop(1, 'rgba(255,205,110,0)');
   ctx.fillStyle = top; ctx.fillRect(0, 0, CW, CH * 0.5);
@@ -3160,6 +3196,193 @@ function render() {
   if (G.mode === 'map') drawMap();
   if (G.white > 0) { ctx.fillStyle = `rgba(255,246,220,${G.white})`; ctx.fillRect(0, 0, CW, CH); }
   if (G.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${G.fade})`; ctx.fillRect(0, 0, CW, CH); }
+}
+
+// ───────────────────────── ánh sáng, không khí và thời tiết ─────────────────────────
+// [độ tối, màu tối r,g,b, màu tông r,g,b, độ tông] cho từng vùng
+const AMB = {
+  'Nhà Nguyện Khởi Đầu': [0.22, 14, 12, 20, 255, 210, 150, 0.08],
+  'Đồng Cỏ Sương Mờ': [0.14, 12, 16, 28, 255, 225, 170, 0.07],
+  'Tàn Tích Phía Tây': [0.3, 14, 12, 22, 200, 180, 150, 0.08],
+  'Đấu Trường Cổng Varek': [0.3, 16, 12, 10, 255, 200, 120, 0.1],
+  'Đầm Lầy Tro Độc': [0.42, 24, 10, 32, 150, 80, 170, 0.2],
+  'Cao Nguyên Tro Đông': [0.3, 22, 16, 12, 210, 150, 90, 0.14],
+  'Pháo Đài Đá Xám': [0.4, 10, 12, 24, 110, 130, 190, 0.14],
+  'Rừng Linh Hồn': [0.55, 4, 20, 28, 80, 200, 190, 0.2],
+  'Đấu Trường Thử Thách': [0.24, 20, 14, 10, 230, 170, 110, 0.12],
+  'Gốc Cây Vàng': [0.02, 30, 20, 8, 255, 210, 110, 0.08],
+  'Cõi Vàng': [0.5, 10, 6, 2, 255, 200, 110, 0.16],
+};
+const AMB_DEFAULT = AMB['Đồng Cỏ Sương Mờ'];
+G.amb = AMB_DEFAULT.slice();
+function updateAmbient(dt) {
+  const tgt = AMB[G.region] || AMB_DEFAULT, k = 1 - Math.exp(-1.4 * dt);
+  for (let i = 0; i < 8; i++) G.amb[i] += (tgt[i] - G.amb[i]) * k;
+}
+const LIGHTS = [];
+function light(x, y, r, i, c) { if (r > 0 && LIGHTS.length < 110 && inView(x, y, r)) LIGHTS.push({ x, y, r, i, c }); }
+const PCOL = { glint: '170,200,255', orb: '140,170,255', porb: '190,170,255', horb: '255,225,140', fireball: '255,140,60', gwave: '255,220,130', spit: '160,220,90', dagger: '255,210,110' };
+function collectLights() {
+  LIGHTS.length = 0;
+  const t = G.clock;
+  if (G.mode !== 'title' && P.state !== 'dead') light(P.x, P.y, 170, 0.75, null);
+  for (const g of GRACES) light(g.x, g.y - 10, S.discovered.includes(g.id) ? 280 : 170, 0.95 + Math.sin(t * 2.4 + g.id) * 0.05, '255,214,120');
+  light(TREE_POS.x, TREE_POS.y, 820, 1, null); // cây đã tự phát sáng, chỉ cần xua bóng tối
+  if (P.x > MAPW) light(RC.x, RC.y, 460, 0.45, '255,210,110');
+  for (const b of BRAZIERS) if (S.fortOpen || G.braziers.includes(b.id)) light(b.x, b.y, 200 + Math.sin(t * 13 + b.x) * 12, 1, '255,150,60');
+  for (const q of projs) if (PCOL[q.kind]) light(q.x, q.y, q.kind === 'fireball' ? 130 : q.kind === 'gwave' ? 110 : q.kind === 'dagger' ? 50 : 80, 0.9, PCOL[q.kind]);
+  for (const a of aoes) {
+    if (a.kind === 'flash') light(a.x, a.y, a.r * 1.8, 1 - a.t / a.dur, a.col === 'fire' ? '255,140,60' : a.col === 'dust' ? null : '255,220,140');
+    else if (a.kind === 'delayed') light(a.x, a.y, a.r * 1.5, 0.3 + 0.5 * a.t / a.delay, '255,214,110');
+    else if (a.kind === 'ring') light(a.x, a.y, lerp(a.r0, a.r1, a.t / a.dur) + 40, 0.45 * (1 - a.t / a.dur), '255,222,140');
+    else if (a.kind === 'mark') light(a.x, a.y, a.r * 1.3, 0.25 + 0.3 * a.t / a.dur, '255,110,60');
+  }
+  let n = 0;
+  for (const p of parts) {
+    if (p.kind === 'fire' && (n++ % 5 === 0)) light(p.x, p.y, 70, 0.5 * p.life / p.max, '255,140,50');
+    else if (p.kind === 'firefly') light(p.x, p.y, 34, 0.5 * (0.45 + 0.55 * Math.sin(t * 5 + p.seed)), p.color === '#9ff5e6' ? '140,255,230' : '210,240,120');
+  }
+  if (S.lost) light(S.lost.x, S.lost.y, 110, 0.9, '150,255,180');
+  for (const it of ITEMS) if (!S.taken.includes(it.id)) light(it.x, it.y, 70, 0.7, '255,240,200');
+  for (const c of CHESTS) if (!S.chests.includes(c.id) && (!c.req || c.req())) light(c.x, c.y, 80, 0.6, '255,210,120');
+  for (const nt of NOTES) light(nt.x, nt.y, 50, 0.45, '255,150,60');
+  for (const st of STATUES) if (S.statues.includes(st.id)) light(st.x, st.y, 160, 0.9, '150,250,235');
+  if (!S.glade) light(BARRIER.x, BARRIER.y, 240, 0.7, '150,240,230');
+  for (const [px, py, rx, ry] of POOLS) light(px, py, Math.max(rx, ry) * 1.2, 0.3, '170,110,200');
+  for (const q of puddles) light(q.x, q.y, 70, 0.35 * Math.min(1, (q.life - q.t) / 1.2), '150,220,90');
+  for (const e of enemies) {
+    if (e.dead) continue;
+    if (e.T.ghost) light(e.x, e.y, e.T.miniboss ? 170 : 90, 0.6, '170,220,255');
+    if (e.state === 'atk' && e.atk && e.T.look && e.T.look.orb && e.t < e.atk.wind) light(e.x, e.y, 90, e.t / e.atk.wind, e.type === 'bomber' ? '255,140,60' : '140,170,255');
+    if (e.T.miniboss && !e.T.ghost) light(e.x, e.y, 120, 0.4, '150,170,230');
+  }
+  if (boss && !boss.dead && boss.state !== 'dormant') light(boss.x, boss.y - boss.z, boss.phase === 2 ? 230 : 120, 0.7, '255,210,110');
+  if (dragon && !dragon.dead) {
+    if (dragon.breathing || dragon.charge > 0) { const h = dragonHead(dragon); light(h.x, h.y, 210, 1, '255,150,60'); }
+    else light(dragon.x, dragon.y, 90, 0.25, '255,150,80');
+  }
+  if (fb && !fb.dead) {
+    light(fb.x, fb.y - fb.z, fb.phase === 2 ? 340 : 210, 1, '255,220,130');
+    if (fb.beaming) { const h = finalHead(fb); for (let i = 1; i <= 6; i++) light(h.x + Math.cos(fb.beamDir) * i * 75, h.y + Math.sin(fb.beamDir) * i * 75, 150, 0.9, '255,235,170'); }
+  }
+  if (P.state === 'cast' && P.t < 0.3) light(P.x + Math.cos(P.face) * 20, P.y + Math.sin(P.face) * 20, 120, 0.8, '170,200,255');
+  if (P.state === 'drink') light(P.x, P.y, 120, 0.6, '255,90,70');
+  if (P.mounted) light(P.x, P.y, 90, 0.4, '150,200,255');
+}
+function renderLighting(x0, y0) {
+  const a = G.amb[0], lw = lightCanvas.width, lh = lightCanvas.height, k = DPR * ZOOM * LSCALE;
+  if (a > 0.01) {
+    lctx.setTransform(1, 0, 0, 1, 0, 0);
+    lctx.globalCompositeOperation = 'source-over'; lctx.clearRect(0, 0, lw, lh);
+    lctx.fillStyle = `rgba(${G.amb[1] | 0},${G.amb[2] | 0},${G.amb[3] | 0},${a})`; lctx.fillRect(0, 0, lw, lh);
+    lctx.globalCompositeOperation = 'destination-out';
+    for (const l of LIGHTS) {
+      const sx = (l.x - x0) * k, sy = (l.y - y0) * k, rr = l.r * k, i = Math.min(1, Math.max(0, l.i));
+      const gr = lctx.createRadialGradient(sx, sy, 0, sx, sy, rr);
+      gr.addColorStop(0, `rgba(0,0,0,${i})`); gr.addColorStop(0.5, `rgba(0,0,0,${i * 0.55})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      lctx.fillStyle = gr; lctx.fillRect(sx - rr, sy - rr, rr * 2, rr * 2);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(lightCanvas, 0, 0, canvas.width, canvas.height);
+  }
+  // hào quang: cộng sáng quanh các nguồn sáng có màu
+  ctx.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, -x0 * DPR * ZOOM, -y0 * DPR * ZOOM);
+  ctx.globalCompositeOperation = 'lighter';
+  const boost = 0.55 + a;
+  for (const l of LIGHTS) {
+    if (!l.c) continue;
+    const rr = l.r * (FX_LOW ? 0.45 : 0.7), i = Math.min(1, Math.max(0, l.i));
+    const gr = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, rr);
+    gr.addColorStop(0, `rgba(${l.c},${0.22 * i * boost})`); gr.addColorStop(1, `rgba(${l.c},0)`);
+    ctx.fillStyle = gr; ctx.fillRect(l.x - rr, l.y - rr, rr * 2, rr * 2);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+function drawGodRays() {
+  const near = clamp((1100 - cam.y) / 700, 0, 1) * (P.x > MAPW ? 0 : 1);
+  if (near <= 0 || FX_LOW) return;
+  const t = G.clock;
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 5; i++) {
+    const x = CW * (0.1 + i * 0.2) + Math.sin(t * 0.2 + i * 1.7) * 40 - (cam.x - TREE_POS.x) * 0.15, w = 50 + i % 2 * 40;
+    const gr = ctx.createLinearGradient(0, 0, 0, CH);
+    gr.addColorStop(0, `rgba(255,220,140,${0.055 * near * (0.7 + 0.3 * Math.sin(t * 0.7 + i))})`); gr.addColorStop(1, 'rgba(255,220,140,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x, -10); ctx.lineTo(x + w, -10); ctx.lineTo(x + w + CH * 0.35, CH); ctx.lineTo(x + CH * 0.35, CH); ctx.closePath(); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+// thời tiết và sinh vật nhỏ theo vùng
+function weather(dt, x0, y0, vw, vh) {
+  const reg = G.mode === 'title' ? 'Đồng Cỏ Sương Mờ' : G.region;
+  let fog = 0, ff = 0;
+  for (const p of parts) { if (p.kind === 'fog') fog++; else if (p.kind === 'firefly') ff++; }
+  const fogCol = reg === 'Đầm Lầy Tro Độc' ? '190,150,210' : reg === 'Rừng Linh Hồn' ? '160,230,220' : reg === 'Cao Nguyên Tro Đông' ? '200,185,170' : '225,230,235';
+  const foggy = ['Đồng Cỏ Sương Mờ', 'Nhà Nguyện Khởi Đầu', 'Đầm Lầy Tro Độc', 'Rừng Linh Hồn', 'Tàn Tích Phía Tây'].includes(reg);
+  if (!FX_LOW && foggy && fog < 12 && Math.random() < dt * 1.3)
+    addPart(x0 - 150 + Math.random() * (vw + 150), y0 + Math.random() * vh, rand(6, 16), rand(-3, 3), rand(10, 16), rand(120, 240), fogCol, 'fog', { alpha: reg === 'Đồng Cỏ Sương Mờ' || reg === 'Nhà Nguyện Khởi Đầu' ? rand(0.05, 0.08) : rand(0.07, 0.11) });
+  if (['Cao Nguyên Tro Đông', 'Pháo Đài Đá Xám', 'Đấu Trường Thử Thách', 'Đấu Trường Cổng Varek'].includes(reg) && Math.random() < dt * (FX_LOW ? 8 : 22))
+    addPart(x0 + Math.random() * vw, y0 - 10, rand(5, 20), rand(18, 36), 7, rand(1, 2), Math.random() < 0.8 ? '#b8b0a4' : '#e09060', 'ash');
+  if ((reg === 'Rừng Linh Hồn' || reg === 'Đầm Lầy Tro Độc') && ff < 40 && Math.random() < dt * (reg === 'Rừng Linh Hồn' ? 10 : 4))
+    addPart(x0 + Math.random() * vw, y0 + Math.random() * vh, rand(-10, 10), rand(-10, 10), rand(4, 7), rand(1.4, 2.2), reg === 'Rừng Linh Hồn' ? '#9ff5e6' : '#d4f07a', 'firefly', { seed: rand(0, 10) });
+  if ((reg === 'Gốc Cây Vàng' || reg === 'Cõi Vàng') && Math.random() < dt * 7)
+    addPart(x0 + Math.random() * vw, y0 - 10, 0, rand(22, 38), rand(8, 12), 3, Math.random() < 0.5 ? '#f0cf72' : '#ffe39a', 'leaf', { seed: rand(0, 10) });
+}
+// cỏ lay theo gió, rẽ sang khi nhân vật đi qua
+const grassCache = new Map();
+const GRASS_PAL = {
+  meadow: ['#6f7d40', '#58652f', '#8a9448'], gold: ['#d8b862', '#c9a34a', '#f0d27a'], swamp: ['#4a4838', '#5a5040', '#3d3a2e'],
+  forest: ['#3f7a72', '#2f5f5a', '#5aa096'], east: ['#6a6448', '#57533c', '#7d7654'],
+};
+function grassAt(x, y) {
+  if (x > MAPW - 20 || y > H - 20) return null;
+  if (y < 380) return GRASS_PAL.gold;
+  if (y < 440 || inArena(x, y) || inRect(x, y, FORT, 20) || inRect(x, y, COLO.rect, 20) || (x > 370 && x < 1030 && y > 1600 && y < 2210) || (x > 1220 && x < 1580 && y > 3170)) return null;
+  if (nearRoad(x, y) < 44 || inPool(x, y) || dist(x, y, LAIR.x, LAIR.y) < 260) return null;
+  if (inRect(x, y, FOREST)) return GRASS_PAL.forest;
+  if (x > SWAMP.x && x < 2800 && y > SWAMP.y && y < SWAMP.y + SWAMP.h) return GRASS_PAL.swamp;
+  if (x > 2800) return GRASS_PAL.east;
+  return GRASS_PAL.meadow;
+}
+function drawGrass() {
+  if (FX_LOW) return;
+  const cell = 46, t = G.clock;
+  const gx0 = Math.floor(VIEW.x0 / cell), gx1 = Math.ceil(VIEW.x1 / cell), gy0 = Math.floor(VIEW.y0 / cell), gy1 = Math.ceil(VIEW.y1 / cell);
+  ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+  for (let gx = gx0; gx <= gx1; gx++) for (let gy = gy0; gy <= gy1; gy++) {
+    const key = gx * 100000 + gy;
+    let c = grassCache.get(key);
+    if (c === undefined) {
+      const h = Math.abs(Math.sin(gx * 127.1 + gy * 311.7) * 43758.5453) % 1;
+      const x = gx * cell + ((h * 7.31) % 1) * cell, y = gy * cell + ((h * 13.17) % 1) * cell;
+      c = h < 0.3 ? null : { x, y, pal: grassAt(x, y), h };
+      if (c && !c.pal) c = null;
+      grassCache.set(key, c);
+    }
+    if (!c) continue;
+    const sway = Math.sin(t * 1.8 + c.x * 0.02 + c.y * 0.013) * 3;
+    let bend = 0;
+    const dx = c.x - P.x, dy = c.y - P.y, d = Math.hypot(dx, dy);
+    if (d < 36 && G.mode !== 'title') bend = (dx >= 0 ? 1 : -1) * (36 - d) * 0.25;
+    for (let k = 0; k < 3; k++) {
+      const bx = c.x + k * 3 - 3;
+      ctx.strokeStyle = c.pal[k];
+      ctx.beginPath(); ctx.moveTo(bx, c.y); ctx.quadraticCurveTo(bx + sway * 0.4, c.y - 5, bx + sway + bend, c.y - 9 - k * 2 - c.h * 3); ctx.stroke();
+    }
+  }
+  ctx.lineCap = 'butt';
+}
+// mặt ao độc lấp lánh
+function drawWater() {
+  const t = G.clock;
+  for (const [px, py, rx, ry] of POOLS) {
+    if (!inView(px, py, rx + 10)) continue;
+    for (let i = 0; i < 2; i++) {
+      const ox = Math.sin(t * 0.6 + i * 2.1 + px) * rx * 0.35, oy = Math.cos(t * 0.5 + i * 1.3 + py) * ry * 0.3;
+      ctx.fillStyle = `rgba(225,190,240,${0.1 + 0.06 * Math.sin(t * 2 + i + px)})`;
+      ctx.beginPath(); ctx.ellipse(px + ox, py + oy, rx * 0.28, ry * 0.12, 0, 0, TAU); ctx.fill();
+    }
+    ctx.strokeStyle = `rgba(200,160,220,${0.18 + 0.08 * Math.sin(t * 1.5 + px)})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(px, py, rx * (0.85 + 0.05 * Math.sin(t + py)), ry * (0.85 + 0.05 * Math.sin(t + py)), 0, 0, TAU); ctx.stroke();
+  }
 }
 
 // ───────────────────────── HUD ─────────────────────────
@@ -3432,6 +3655,13 @@ function togglePause() {
 }
 function toggleMute() { muted = !muted; $('btnSound').textContent = 'Âm thanh: ' + (muted ? 'tắt' : 'bật'); toast(muted ? 'Đã tắt âm thanh' : 'Đã bật âm thanh'); }
 $('btnResume').onclick = togglePause;
+function updateFxBtn() { $('btnFx').textContent = 'Đồ họa: ' + (FX_LOW ? 'thấp' : 'cao'); }
+$('btnFx').onclick = () => {
+  FX_LOW = !FX_LOW;
+  try { localStorage.setItem('vvv-fx', FX_LOW ? 'low' : 'high'); } catch (e) { /* bỏ qua */ }
+  updateFxBtn(); resize();
+};
+updateFxBtn();
 $('btnSound').onclick = () => { audioInit(); toggleMute(); };
 $('btnQuit').onclick = () => {
   save(); UI.pause.hidden = true; setMode('title'); UI.title.hidden = false; G.bossFight = false;
