@@ -5,7 +5,8 @@ const keys = new Set();
 let buf = null, aimMode = 'keys';
 const mouse = { x: 0, y: 0, wx: 0, wy: 0, inside: false };
 const stick = { x: 0, y: 0 };
-const KEYMAP = { KeyJ: 'light', KeyK: 'heavy', KeyL: 'spell', KeyC: 'spell', KeyR: 'flask', KeyE: 'interact', KeyF: 'mount', KeyQ: 'lock', KeyG: 'map', Digit7: 'eq7', Digit8: 'eq8', ArrowRight: 'eqnext', ArrowLeft: 'eqprev', KeyT: 'eqnext', Digit1: 'eq1', Digit2: 'eq2', Digit3: 'eq3', Digit4: 'eq4', Digit5: 'eq5', Digit6: 'eq6' };
+const KEYMAP = { KeyJ: 'light', KeyK: 'heavy', KeyL: 'spell', KeyC: 'skill', KeyR: 'item', KeyE: 'interact', KeyF: 'mount', KeyQ: 'lock', KeyG: 'map', ArrowRight: 'eqnext', ArrowLeft: 'eqprev', KeyT: 'eqnext', ArrowUp: 'spellnext', ArrowDown: 'itemnext', KeyV: 'itemnext' };
+for (let i = 1; i <= 9; i++) KEYMAP['Digit' + i] = 'eq' + i;
 let touchGuard = false;
 let mouseGuard = false;
 const DASH_HOLD = 280; // giữ nút lăn lâu hơn mức này thì chạy nhanh, nhả sớm thì lăn (giống Elden Ring)
@@ -20,6 +21,8 @@ function act(a) {
   if (G.mode !== 'play') return;
   if (a === 'lock') { toggleLock(); return; }
   if (a.startsWith('eq')) { equipKey(a); return; }
+  if (a === 'spellnext') { cycleSpell(); return; }
+  if (a === 'itemnext') { cycleQuick(); return; }
   buf = { a, t: G.clock };
 }
 const peekBuf = () => (buf && G.clock - buf.t < 0.32 ? buf.a : null);
@@ -32,7 +35,7 @@ window.addEventListener('keydown', e => {
   keys.add(e.code);
   if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) { dodgeKey.down = true; dodgeKey.at = performance.now(); } return; }
   const a = KEYMAP[e.code];
-  if (a && !e.repeat) { if (e.code === 'KeyJ' || e.code === 'KeyK' || e.code === 'KeyL') aimMode = 'keys'; act(a); }
+  if (a && !e.repeat) { if (e.code === 'KeyJ' || e.code === 'KeyK' || e.code === 'KeyL' || e.code === 'KeyC') aimMode = 'keys'; act(a); }
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
 });
 window.addEventListener('keyup', e => {
@@ -51,10 +54,11 @@ canvas.addEventListener('mousedown', e => {
   const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; aimMode = 'mouse';
   if (G.ignoreClick) { G.ignoreClick = false; return; }
   if (G.mode !== 'play') return;
-  // Elden Ring: chuột trái đánh, Shift + trái đánh mạnh, chuột phải đỡ, Shift + phải dùng kỹ năng (phép), chuột giữa khóa mục tiêu
+  // Elden Ring: chuột trái đánh, Shift + trái đánh mạnh, chuột phải đỡ (tay trái cầm gậy / ấn thì niệm phép),
+  // Shift + phải dùng kỹ năng vũ khí, chuột giữa khóa mục tiêu
   if (e.button === 0) act(e.shiftKey ? 'heavy' : 'light');
   else if (e.button === 1) { e.preventDefault(); act('lock'); }
-  else if (e.button === 2) { if (e.shiftKey) act('spell'); else mouseGuard = true; }
+  else if (e.button === 2) { if (e.shiftKey) act('skill'); else { mouseGuard = true; if (catalyst()) act('spell'); } }
 });
 canvas.addEventListener('auxclick', e => e.preventDefault());
 function moveInput() {
@@ -70,7 +74,7 @@ function moveInput() {
 const PB = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 window.addEventListener('gamepadconnected', () => { audioInit(); toast('Đã kết nối tay cầm'); });
 function padMenuNav(dir) {
-  const ov = [UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
+  const ov = [UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
   if (!ov) return;
   const els = [...ov.querySelectorAll('button:not([disabled])')].filter(el => el.offsetParent !== null);
   if (!els.length) return;
@@ -90,7 +94,7 @@ function pollPad() {
   if (G.mode === 'play' || G.mode === 'dead') {
     if (down(PB.B)) { pad.dodgeDown = true; pad.dodgeAt = performance.now(); }
     if (up(PB.B) && pad.dodgeDown) { pad.dodgeDown = false; if (performance.now() - pad.dodgeAt < DASH_HOLD) act('roll'); }
-    const map = [[PB.RB, 'light'], [PB.RT, 'heavy'], [PB.LT, 'spell'], [PB.X, 'flask'], [PB.Y, 'interact'], [PB.A, 'mount'], [PB.R3, 'lock'], [PB.RIGHT, 'eqnext'], [PB.LEFT, 'eqprev'], [PB.BACK, 'map'], [PB.START, 'pause']];
+    const map = [[PB.RB, 'light'], [PB.RT, 'heavy'], [PB.LT, 'skill'], [PB.X, 'item'], [PB.Y, 'interact'], [PB.A, 'mount'], [PB.R3, 'lock'], [PB.RIGHT, 'eqnext'], [PB.LEFT, 'eqprev'], [PB.UP, 'spellnext'], [PB.DOWN, 'itemnext'], [PB.BACK, 'map'], [PB.START, 'pause']];
     for (const [i, a] of map) if (down(i)) { aimMode = 'keys'; act(a); }
     pad.guard = btn(PB.LB);
   } else {
@@ -130,7 +134,7 @@ stickZone.addEventListener('pointermove', e => {
 const endStick = e => { if (e.pointerId !== stickId) return; stickId = null; stick.x = 0; stick.y = 0; stickBase.hidden = true; };
 stickZone.addEventListener('pointerup', endStick); stickZone.addEventListener('pointercancel', endStick);
 touchUI.querySelectorAll('[data-hold]').forEach(b => {
-  b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audioInit(); touchGuard = true; b.classList.add('on'); });
+  b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audioInit(); touchGuard = true; b.classList.add('on'); if (G.mode === 'play' && catalyst()) act('spell'); });
   const off = () => { touchGuard = false; b.classList.remove('on'); };
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => b.addEventListener(ev, off));
   b.addEventListener('contextmenu', e => e.preventDefault());

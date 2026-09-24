@@ -1,6 +1,7 @@
 'use strict';
 // Vòng Vàng Vỡ — Đạn, vùng sát thương, tương tác thế giới, vòng lặp chính
 // ───────────────────────── đạn và vùng sát thương ─────────────────────────
+const PTRAIL = { glint: '#bcd6ff', orb: '#8fb0ff', fireball: '#ff8a3a', shard: '#cfefff', comet: '#bfe4ff', bolt: '#fff3a0', hwave: '#ffe39a', hbolt: '#fff0b0', cwave: '#bfe4ff', gwave: '#f3cf6e', parrow: null, arrow: null, knife: null, dagger: '#f3cf6e', spit: '#9fd05a', porb: '#b9a8ff', horb: '#ffe08a' };
 function updateProjs(dt) {
   for (let i = projs.length - 1; i >= 0; i--) {
     const q = projs[i];
@@ -9,15 +10,21 @@ function updateProjs(dt) {
       const a = Math.atan2(q.vy, q.vx), na = turn(a, Math.atan2(P.y - q.y, P.x - q.x), q.homing * dt), sp = Math.hypot(q.vx, q.vy);
       q.vx = Math.cos(na) * sp; q.vy = Math.sin(na) * sp;
     }
-    if (q.friendly && P.lock && !P.lock.dead) {
-      const a = Math.atan2(q.vy, q.vx), want = Math.atan2(P.lock.y - q.y, P.lock.x - q.x), na = turn(a, want, 2.6 * dt), sp = Math.hypot(q.vx, q.vy);
+    if (q.friendly && P.lock && !P.lock.dead && q.kind !== 'fireball') {
+      const a = Math.atan2(q.vy, q.vx), want = Math.atan2(P.lock.y - q.y, P.lock.x - q.x), na = turn(a, want, (q.kind === 'parrow' ? 1.4 : 2.6) * dt), sp = Math.hypot(q.vx, q.vy);
       q.vx = Math.cos(na) * sp; q.vy = Math.sin(na) * sp;
     }
     q.x += q.vx * dt; q.y += q.vy * dt;
-    if (Math.random() < 0.8) addPart(q.x, q.y, rand(-10, 10), rand(-10, 10), 0.3, q.kind === 'dagger' ? 2 : 3, q.kind === 'glint' ? '#bcd6ff' : q.kind === 'orb' ? '#8fb0ff' : q.kind === 'fireball' ? '#ff8a3a' : '#f3cf6e');
-    if (q.kind === 'gwave' && Math.random() < 0.6) addPart(q.x, q.y, rand(-20, 20), rand(-20, 20), 0.4, 3, '#ffe39a', 'mote');
+    const tc = PTRAIL[q.kind];
+    if (tc && Math.random() < 0.8) addPart(q.x, q.y, rand(-10, 10), rand(-10, 10), 0.3, q.kind === 'comet' ? 5 : q.kind === 'dagger' ? 2 : 3, tc);
+    if ((q.kind === 'gwave' || q.kind === 'hwave' || q.kind === 'cwave') && Math.random() < 0.6) addPart(q.x, q.y, rand(-20, 20), rand(-20, 20), 0.4, 3, q.kind === 'cwave' ? '#cfefff' : '#ffe39a', 'mote');
     if (q.kind === 'fireball') {
-      if (q.life <= 0 || dist(q.x, q.y, P.x, P.y) < q.r + P.r) {
+      if (q.friendly) {
+        if (q.life <= 0 || targets().some(e => (e.z || 0) < 40 && dist(q.x, q.y, e.x, e.y) < q.r + e.r)) {
+          friendlyBlast(q.x, q.y, q.boom, q.parts, q.poise); noise(0.3, 0.3, 300, 0.7); shake(4);
+          burst(q.x, q.y, 24, '#ff9a4a', 200, 4, 'dot', 0.6); projs.splice(i, 1);
+        }
+      } else if (q.life <= 0 || dist(q.x, q.y, P.x, P.y) < q.r + P.r) {
         aoeBlast(q.x, q.y, q.boom, q.dmg, 'fire'); noise(0.3, 0.3, 300, 0.7); shake(5);
         burst(q.x, q.y, 24, '#ff9a4a', 200, 4, 'dot', 0.6); projs.splice(i, 1);
       }
@@ -26,15 +33,18 @@ function updateProjs(dt) {
     let dead = q.life <= 0 || pointBlocked(q.x, q.y);
     if (!dead && q.friendly) {
       for (const e of targets()) {
-        if ((e.z || 0) > 30) continue;
-        if (dist(q.x, q.y, e.x, e.y) < q.r + e.r) { hitEnemy(e, q.dmg, 18, q.x - q.vx * 0.05, q.y - q.vy * 0.05, 'spell'); dead = true; break; }
+        if ((e.z || 0) > 30 || (q.hits && q.hits.has(e))) continue;
+        if (dist(q.x, q.y, e.x, e.y) < q.r + e.r) {
+          hitEnemy(e, q.parts, q.poise || 18, q.x - q.vx * 0.05, q.y - q.vy * 0.05, q.akind || 'spell');
+          if (q.pierce) q.hits.add(e); else { dead = true; break; }
+        }
       }
     } else if (!dead && dist(q.x, q.y, P.x, P.y) < q.r + P.r) {
-      if (hurtPlayer(q.dmg, q.x - q.vx * 0.05, q.y - q.vy * 0.05, false, null, 'proj')) dead = true;
+      if (hurtPlayer(q.dmg, q.x - q.vx * 0.05, q.y - q.vy * 0.05, q.kind === 'comet', null, 'proj', q.dt || 'phys')) dead = true;
     }
     if (dead) {
       if (q.puddle) puddles.push({ x: q.x, y: q.y, r: 42, t: 0, life: 6 });
-      burst(q.x, q.y, 8, q.kind === 'dagger' ? '#f3cf6e' : q.kind === 'spit' ? '#9fd05a' : '#bcd6ff', 90, 2.5, 'dot', 0.35); projs.splice(i, 1);
+      burst(q.x, q.y, q.kind === 'comet' ? 20 : 8, q.kind === 'dagger' ? '#f3cf6e' : q.kind === 'spit' ? '#9fd05a' : q.kind === 'parrow' || q.kind === 'knife' ? '#d8d0bc' : tc || '#bcd6ff', 90, 2.5, 'dot', 0.35); projs.splice(i, 1);
     }
   }
 }
@@ -44,12 +54,18 @@ function updateAoes(dt) {
     a.t += dt;
     if (a.kind === 'ring') {
       const cur = lerp(a.r0, a.r1, a.t / a.dur);
-      if (!a.hit && Math.abs(dist(a.x, a.y, P.x, P.y) - cur) < 16 + P.r && hurtPlayer(a.dmg, a.x, a.y, false, null, 'aoe')) a.hit = true;
+      if (a.dmg > 0 && !a.hit && Math.abs(dist(a.x, a.y, P.x, P.y) - cur) < 16 + P.r && hurtPlayer(a.dmg, a.x, a.y, false, null, 'aoe')) a.hit = true;
+      if (a.t >= a.dur) aoes.splice(i, 1);
+    } else if (a.kind === 'pring') {
+      const cur = lerp(a.r0, a.r1, a.t / a.dur);
+      for (const e of targets()) if (!a.hits.has(e) && Math.abs(dist(a.x, a.y, e.x, e.y) - cur) < 16 + e.r) { a.hits.add(e); hitEnemy(e, a.parts, 20, a.x, a.y, 'spell'); }
       if (a.t >= a.dur) aoes.splice(i, 1);
     } else if (a.kind === 'delayed') {
       if (a.t >= a.delay) {
-        aoeBlast(a.x, a.y, a.r, a.dmg); noise(0.25, 0.2, 400, 0.8); shake(4);
-        for (let k = 0; k < 10; k++) addPart(a.x + rand(-a.r * 0.6, a.r * 0.6), a.y + rand(-a.r * 0.6, a.r * 0.6), 0, rand(-120, -60), 0.5, rand(2, 4), '#ffe39a', 'mote');
+        if (a.friendly) friendlyBlast(a.x, a.y, a.r, a.parts, a.poise); else aoeBlast(a.x, a.y, a.r, a.dmg);
+        noise(0.25, 0.2, 400, 0.8); shake(4);
+        const col = a.col === 'magic' ? '#bfe4ff' : '#ffe39a';
+        for (let k = 0; k < 10; k++) addPart(a.x + rand(-a.r * 0.6, a.r * 0.6), a.y + rand(-a.r * 0.6, a.r * 0.6), 0, rand(-120, -60), 0.5, rand(2, 4), col, 'mote');
         aoes.splice(i, 1);
       }
     } else if (a.t >= (a.dur || 0)) aoes.splice(i, 1);
@@ -82,8 +98,16 @@ const nearNote = () => NOTES.find(n => dist(P.x, P.y, n.x, n.y) < 46);
 function interact() {
   const g = nearGrace();
   if (g) { restAtGrace(g); return; }
+  const n = nearNpc();
+  if (n) { openShop(n.id); return; }
+  const lv = nearLever();
+  if (lv) { pullLever(lv); return; }
+  const dr = nearDoor();
+  if (dr) { if (dr.kind === 'exit' && G.dfight) { toast('Không thể rời đi giữa trận'); return; } useDoor(dr); return; }
   const c = nearChest();
   if (c) { openChest(c); return; }
+  const l = nearLoot();
+  if (l) { pickLoot(l); return; }
   const b = nearBrazier();
   if (b) { lightBrazier(b); return; }
   const st = nearStatue();
@@ -98,8 +122,8 @@ function interact() {
   }
   const it = nearItem();
   if (it) { takeItem(it); return; }
-  const n = nearNote();
-  if (n) { subtitle('“' + n.text + '”', 5.5); SFX.glint(); }
+  const nt = nearNote();
+  if (nt) { subtitle('“' + nt.text + '”', 5.5); SFX.glint(); }
 }
 function lightBrazier(b) {
   G.braziers.push(b.id); SFX.fire(0.5);
@@ -153,7 +177,7 @@ function startColo() {
   SFX.roar(); shake(6); spawnWave(1);
 }
 function updateColo(dt) {
-  if (!G.colo.active || enemies.some(e => e.challenge && !e.dead)) return;
+  if (!G.colo.active || enemies.some(e => e.challenge && !e.dead && !e.room)) return;
   G.colo.cool += dt;
   if (G.colo.cool < 2.2) return;
   G.colo.cool = 0;
@@ -164,39 +188,14 @@ function updateColo(dt) {
 }
 function openChest(c) {
   S.chests.push(c.id); c.openAt = G.clock;
-  noise(0.5, 0.2, 400, 0.8); SFX.pickup();
+  noise(0.5, 0.2, 400, 0.8);
   burst(c.x, c.y - 6, 24, '#ffe7a3', 110, 3, 'mote', 1.1);
-  const L = c.loot, got = [];
-  let wpn = null;
-  if (L.weapon) {
-    if (S.weapons.includes(L.weapon)) got.push('+400 rune'), gainRunes(400, c.x, c.y);
-    else { S.weapons.push(L.weapon); wpn = WEAPONS[L.weapon]; }
-  }
-  if (L.runes) { gainRunes(L.runes, c.x, c.y); got.push('+' + L.runes + ' rune'); }
-  if (L.stone) { S.weaponLv += L.stone; got.push('Đá Rèn Kiếm (vũ khí +' + S.weaponLv + ')'); }
-  if (L.seed) {
-    if (S.flaskMax < FLASK_CAP) { S.flaskMax++; P.flasks++; got.push('Hạt Vàng (Bình Máu ' + S.flaskMax + ')'); }
-    else { gainRunes(300, c.x, c.y); got.push('+300 rune (Bình Máu đã tối đa)'); }
-  }
-  if (wpn) banner('item', wpn.name, wpn.desc + (G.touch ? ' · bấm Vũ khí để đổi' : ' · ← → để đổi vũ khí'), 4.2);
-  else banner('item', 'Rương báu', got.join(' · '), 3.6);
-  save();
+  grant(c.loot, c.x, c.y);
 }
 function takeItem(it) {
-  S.taken.push(it.id); SFX.pickup();
+  S.taken.push(it.id);
   burst(it.x, it.y, 20, '#fff1c2', 90, 3, 'dot', 0.7);
-  if (it.kind === 'seed') {
-    if (S.flaskMax < FLASK_CAP) { S.flaskMax++; P.flasks++; banner('item', 'Hạt Vàng', 'Số lần dùng Bình Máu tăng lên ' + S.flaskMax); }
-    else { gainRunes(300, it.x, it.y); banner('item', 'Hạt Vàng', 'Bình Máu đã tối đa (' + FLASK_CAP + ') · đổi thành 300 rune'); }
-  }
-  else if (it.kind === 'runes') { gainRunes(it.amount, it.x, it.y); banner('item', 'Túi Rune', '+' + it.amount + ' rune'); }
-  else if (it.kind === 'stone') { S.weaponLv++; banner('item', 'Đá Rèn Kiếm', 'Vũ khí được cường hóa lên +' + S.weaponLv); }
-  else {
-    if (!S.weapons.includes(it.w)) S.weapons.push(it.w);
-    const Wp = WEAPONS[it.w];
-    banner('item', Wp.name, Wp.desc + (G.touch ? ' · bấm Vũ khí để đổi' : ' · ← → để đổi vũ khí'), 4.2);
-  }
-  save();
+  grant(it.loot, it.x, it.y);
 }
 function restAtGrace(g) {
   S.lastGrace = g.id; P.mounted = false; P.lock = null; P.state = 'idle'; P.atk = null;
@@ -211,24 +210,31 @@ function worldChecks(dt) {
       S.discovered.push(g.id); banner('grace', 'ĐÃ TÌM THẤY ÂN ĐIỂN', g.name); SFX.grace(); save();
     }
   }
-  const key = G.touch ? '' : 'E';
+  const key = G.touch ? '' : 'E', gp = gatePrompt();
+  let nd;
   if (nearGrace()) G.prompt = { key, text: 'Nghỉ ngơi tại Ân Điển' };
+  else if ((nd = nearNpc())) G.prompt = { key, text: 'Nói chuyện với ' + nd.name };
+  else if ((nd = nearLever())) G.prompt = { key, text: 'Kéo cần gạt' };
+  else if ((nd = nearDoor())) G.prompt = { key, text: (nd.kind === 'enter' ? 'Vào ' : 'Rời khỏi ') + nd.dg.name };
   else if (nearChest()) G.prompt = { key, text: 'Mở rương' };
+  else if (nearLoot()) G.prompt = { key, text: 'Nhặt vật phẩm' };
   else if (nearBrazier()) G.prompt = { key, text: 'Thắp lửa' };
   else if (nearStatue()) G.prompt = { key, text: 'Đánh thức tượng đá' };
   else if (nearFlag()) G.prompt = { key, text: 'Bắt đầu thử thách' };
   else if (nearStele()) G.prompt = { key, text: 'Đọc Bia Bản Đồ' };
   else if (nearItem()) G.prompt = { key, text: 'Nhặt vật phẩm' };
+  else if (gp) G.prompt = { key: '', text: gp };
   else if (nearNote()) G.prompt = { key, text: 'Đọc lời nhắn' };
   else G.prompt = null;
   if (S.lost && dist(P.x, P.y, S.lost.x, S.lost.y) < 40) {
     gainRunes(S.lost.amount, S.lost.x, S.lost.y); SFX.pickup(); toast('Đã thu hồi ' + S.lost.amount.toLocaleString('vi-VN') + ' rune');
     S.lost = null; save();
   }
-  if (boss && !S.bossDead && !G.bossFight && inArena(P.x, P.y) && P.y < ARENA.y + ARENA.h - 16) startBossFight();
-  if (S.bossDead && !S.finalDead && !G.finalFight && dist(P.x, P.y, TREE_POS.x, TREE_POS.y) < 150) enterRealm();
-  if (S.finalDead && dist(P.x, P.y, TREE_POS.x, TREE_POS.y) < 150 && !G.endingShown) { G.endingShown = true; S.treeReached = true; save(); later(0.6, openEnding); }
-  const reg = REGIONS.find(r => r.test(P.x, P.y)).name;
+  if (boss && !boss.dead && !G.bossFight && inRect(P.x, P.y, boss.A) && P.y > boss.A.y + 20 && P.y < boss.A.y + boss.A.h - 16) startBossFight();
+  checkBossRooms();
+  if (S.boss2Dead && !S.finalDead && !G.finalFight && dist(P.x, P.y, TREE_POS.x, TREE_POS.y) < 120) enterRealm();
+  if (S.finalDead && dist(P.x, P.y, TREE_POS.x, TREE_POS.y) < 160 && !G.endingShown) { G.endingShown = true; S.treeReached = true; save(); later(0.6, openEnding); }
+  const reg = regionAt(P.x, P.y);
   if (reg !== G.region) { G.region = reg; G.regionT = 0; }
 }
 
@@ -244,13 +250,14 @@ function updateCam(dt) {
   clampCam();
 }
 function clampCam() {
-  const hw = CW / ZOOM / 2, hh = CH / ZOOM / 2, maxW = P.x > MAPW && G.mode !== 'title' ? W : MAPW;
-  cam.x = maxW > hw * 2 ? clamp(cam.x, hw, maxW - hw) : maxW / 2;
-  cam.y = H > hh * 2 ? clamp(cam.y, hh, H - hh) : H / 2;
+  const hw = CW / ZOOM / 2, hh = CH / ZOOM / 2, A = G.mode !== 'title' && P.x > 4800 ? areaAt(P.x, P.y) : null;
+  const x0 = A ? A.x : WX0, x1 = A ? A.x + A.w : MAPW, y0 = A ? A.y : WY0, y1 = A ? A.y + A.h : H;
+  cam.x = x1 - x0 > hw * 2 ? clamp(cam.x, x0 + hw, x1 - hw) : (x0 + x1) / 2;
+  cam.y = y1 - y0 > hh * 2 ? clamp(cam.y, y0 + hh, y1 - hh) : (y0 + y1) / 2;
 }
 function ambient(dt) {
   const vw = CW / ZOOM, vh = CH / ZOOM, x0 = cam.x - vw / 2, y0 = cam.y - vh / 2;
-  const motes = cam.y < 700 ? 22 : 7;
+  const motes = cam.y < 380 && cam.x < 4800 ? 22 : 7;
   for (const [px, py, rx, ry] of POOLS) {
     if (Math.abs(px - cam.x) > vw / 2 + rx || Math.abs(py - cam.y) > vh / 2 + ry || Math.random() > dt * 3) continue;
     const a = rand(0, TAU), k = Math.sqrt(Math.random());
@@ -265,7 +272,7 @@ function update(dt) {
   G.expT = (G.expT || 0) + dt;
   if (G.expT > 0.25 && P.state !== 'dead') { G.expT = 0; explore(P.x, P.y, 380); }
   mouse.wx = cam.x + (mouse.x - CW / 2) / ZOOM; mouse.wy = cam.y + (mouse.y - CH / 2) / ZOOM;
-  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateParts(dt);
+  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateTraps(dt); updateLoot(dt); updateParts(dt);
   updateCam(dt); worldChecks(dt); ambient(dt);
   for (let i = G.timers.length - 1; i >= 0; i--) { const tm = G.timers[i]; tm.t -= dt; if (tm.t <= 0) { G.timers.splice(i, 1); tm.fn(); } }
   if (G.mode === 'dead') { G.deathT += dt; if (G.deathT > 4.6) { G.mode = 'play'; respawnAt(S.lastGrace); } }

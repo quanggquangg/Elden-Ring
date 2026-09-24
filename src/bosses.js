@@ -6,7 +6,7 @@ const BOSS_MOVES = {
   combo: () => [sw(0.55, 0.14, 0.12, 50, 100, 2.2, 260, 1), sw(0.95, 0.14, 0.12, 48, 100, 2.2, 260, -1), sw(0.42, 0.16, 0.85, 60, 112, 2.6, 330, 1)],
   combo2: () => [sw(0.5, 0.13, 0.1, 52, 100, 2.2, 260, 1), sw(1.05, 0.13, 0.1, 50, 100, 2.2, 280, -1), sw(0.35, 0.13, 0.1, 50, 100, 2.2, 260, 1), sw(0.7, 0.16, 0.9, 66, 118, 2.8, 360, -1)],
   leap: () => [{ k: 'leap', wind: 0.5, air: 0.72, rec: 0.85, dmg: 72, r: 115 }],
-  daggers: () => [{ k: 'throw', wind: 0.5, rec: 0.55, n: boss.phase === 2 ? 5 : 3, spread: 0.22 }],
+  daggers: () => [{ k: 'throw', wind: 0.5, rec: 0.55, n: boss.phase === 2 || boss.v === 2 ? 5 : 3, spread: 0.22 }],
   hop: () => [{ k: 'hop', dur: 0.4 }, { k: 'throw', wind: 0.3, rec: 0.6, n: 3, spread: 0.22 }],
   hammer: () => [{ k: 'hammer', wind: 1.05, rec: 1.0 }],
   rain: () => [{ k: 'rain', dur: 1.7, rec: 0.5 }],
@@ -19,11 +19,12 @@ function addRing(x, y, r0, r1, dur, dmg) { aoes.push({ kind: 'ring', x, y, r0, r
 function addDelayed(x, y, r, delay, dmg) { aoes.push({ kind: 'delayed', x, y, r, delay, dmg, t: 0 }); }
 function addMark(x, y, r, dur) { aoes.push({ kind: 'mark', x, y, r, dur, t: 0 }); }
 function bossChoose(d) {
-  const b = boss, p2 = b.phase === 2, opts = [];
+  const b = boss, p2 = b.phase === 2 || b.v === 2, opts = [];
   if (d < 160) { opts.push(['combo', p2 ? 2 : 4], ['hop', 1]); if (p2) opts.push(['combo2', 3], ['hammer', 2.5]); }
   else if (d < 420) { opts.push(['leap', 3], ['daggers', 2]); if (p2) opts.push(['rain', 2]); if (p2 && d < 230) opts.push(['hammer', 1]); }
   else { opts.push(['leap', 2], ['daggers', 1]); if (p2) opts.push(['rain', 1]); }
   let total = 0;
+  if (b.v === 2 && b.phase === 2) opts.push(['rain', 1.5], ['combo2', 1.5]);
   for (const o of opts) { if (o[0] === b.lastMove) o[1] *= 0.35; total += o[1]; }
   let r = Math.random() * total, k = opts[0][0];
   for (const o of opts) { r -= o[1]; if (r <= 0) { k = o[0]; break; } }
@@ -35,7 +36,7 @@ function bossAtk(dt, ang) {
   const t = A.t, cross = x => pt < x && t >= x;
   const done = () => {
     A.i++; A.t = 0; A.hit = false; A.flag = 0; A.acc = 0;
-    if (A.i >= A.steps.length) { b.state = 'chase'; b.t = 0; b.atk = null; b.cd = b.phase === 2 ? rand(0.25, 0.8) : rand(0.6, 1.3); }
+    if (A.i >= A.steps.length) { b.state = 'chase'; b.t = 0; b.atk = null; b.cd = b.v === 2 && b.phase === 2 ? rand(0.15, 0.55) : b.phase === 2 || b.v === 2 ? rand(0.25, 0.8) : rand(0.6, 1.3); }
   };
   switch (s.k) {
     case 'swing':
@@ -50,8 +51,8 @@ function bossAtk(dt, ang) {
       else if (t < s.wind + s.air) {
         if (!A.flag) {
           A.flag = 1; A.sx = b.x; A.sy = b.y;
-          A.tx = clamp(P.x + P.mvx * 0.35, ARENA.x + 40, ARENA.x + ARENA.w - 40);
-          A.ty = clamp(P.y + P.mvy * 0.35, ARENA.y + 40, ARENA.y + ARENA.h - 40);
+          A.tx = clamp(P.x + P.mvx * 0.35, b.A.x + 40, b.A.x + b.A.w - 40);
+          A.ty = clamp(P.y + P.mvy * 0.35, b.A.y + 40, b.A.y + b.A.h - 40);
           addMark(A.tx, A.ty, s.r, s.air); SFX.heavy();
         }
         const k = (t - s.wind) / s.air, ez = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
@@ -62,7 +63,7 @@ function bossAtk(dt, ang) {
           A.flag = 2; b.z = 0; b.x = A.tx; b.y = A.ty;
           aoeBlast(b.x, b.y, s.r, s.dmg); SFX.boom(); shake(14);
           burst(b.x, b.y, 40, 'rgba(150,130,95,.7)', 220, 6, 'dot', 0.8);
-          if (b.phase === 2) addRing(b.x, b.y, s.r, s.r + 150, 0.45, 30);
+          if (b.phase === 2 || b.v === 2) addRing(b.x, b.y, s.r, s.r + 150, 0.45, 30);
         }
         if (t >= s.wind + s.air + s.rec) done();
       }
@@ -105,7 +106,8 @@ function bossAtk(dt, ang) {
     case 'rain':
       b.face = turn(b.face, ang, 3 * dt);
       A.acc += dt;
-      while (A.acc > 0.24 && t < s.dur) { A.acc -= 0.24; addDelayed(P.x + rand(-45, 45), P.y + rand(-45, 45), 52, 0.9, 40); }
+      const every = b.v === 2 && b.phase === 2 ? 0.17 : 0.24;
+      while (A.acc > every && t < s.dur) { A.acc -= every; addDelayed(P.x + rand(-45, 45), P.y + rand(-45, 45), 52, 0.9, 40); }
       if (t >= s.dur + s.rec) done();
       break;
   }
@@ -130,7 +132,7 @@ function updateBoss(dt) {
     case 'chase': {
       if (b.phase === 1 && b.hp <= b.maxHp * 0.5) { b.state = 'phase'; b.t = 0; b.invuln = 2.1; b.fx = false; break; }
       b.face = turn(b.face, ang, 5 * dt);
-      const spd = b.phase === 2 ? 125 : 105;
+      const spd = (b.phase === 2 ? 125 : 105) * (b.v === 2 ? 1.15 : 1);
       if (d > 95) { b.x += Math.cos(ang) * spd * dt; b.y += Math.sin(ang) * spd * dt; }
       else { const a = ang + Math.PI / 2; b.x += Math.cos(a) * 40 * dt; b.y += Math.sin(a) * 40 * dt; }
       if (b.cd <= 0 && P.state !== 'dead') bossChoose(d);
@@ -139,7 +141,7 @@ function updateBoss(dt) {
     case 'phase':
       if (!b.fx && b.t > 0.7) {
         b.fx = true; SFX.roar(); addRing(b.x, b.y, 30, 260, 0.6, 35); shake(14);
-        subtitle('“Quỳ xuống! Ánh vàng này không dành cho kẻ nhạt phai!”');
+        subtitle(b.v === 2 ? '“Ta là Vua Ẩn Mặt... kẻ đã giữ Kinh Thành này suốt ngàn năm!”' : '“Quỳ xuống! Ánh vàng này không dành cho kẻ nhạt phai!”');
         burst(b.x, b.y, 60, '#f3cf6e', 240, 4, 'dot', 1.1);
       }
       if (b.t > 2) { b.phase = 2; b.state = 'chase'; b.t = 0; b.cd = 0.3; }
@@ -148,8 +150,8 @@ function updateBoss(dt) {
     case 'stagger': if (b.t > b.stagDur) { b.state = 'chase'; b.t = 0; b.cd = 0.3; } break;
     case 'broken': b.z = 0; if (b.t > 2.6) { b.state = 'chase'; b.t = 0; b.cd = 0.2; b.poiseAcc = 0; } break;
   }
-  b.x = clamp(b.x, ARENA.x + b.r, ARENA.x + ARENA.w - b.r); b.y = clamp(b.y, ARENA.y + b.r, ARENA.y + ARENA.h - b.r);
-  if (b.phase === 2 && Math.random() < dt * 14) addPart(b.x + rand(-26, 26), b.y + rand(-20, 20), rand(-8, 8), rand(-50, -20), rand(0.6, 1.1), rand(1.5, 3), '#f3cf6e', 'mote');
+  b.x = clamp(b.x, b.A.x + b.r, b.A.x + b.A.w - b.r); b.y = clamp(b.y, b.A.y + b.r, b.A.y + b.A.h - b.r);
+  if ((b.phase === 2 || b.v === 2) && Math.random() < dt * 14) addPart(b.x + rand(-26, 26), b.y + rand(-20, 20), rand(-8, 8), rand(-50, -20), rand(0.6, 1.1), rand(1.5, 3), '#f3cf6e', 'mote');
   if (b.z < 5 && P.state !== 'dead') {
     const dx = P.x - b.x, dy = P.y - b.y, rr = b.r + P.r, d2 = dx * dx + dy * dy;
     if (d2 < rr * rr && d2 > 1e-6) { const dd = Math.sqrt(d2); P.x = b.x + dx / dd * rr; P.y = b.y + dy / dd * rr; collide(P, false); }
@@ -159,22 +161,32 @@ function startBossFight() {
   G.bossFight = true; boss.state = 'intro'; boss.t = 0;
   if (P.mounted) P.mounted = false;
   SFX.roar(); shake(8);
-  subtitle('“Kẻ nhạt phai... ngươi không xứng đáng chạm tới Cây Vàng.”');
+  subtitle(boss.v === 2 ? '“Lại là ngươi... Lần này ta sẽ không nương tay nữa.”' : '“Kẻ nhạt phai... ngươi không xứng đáng chạm tới Cây Vàng.”');
 }
 function bossDefeated() {
-  S.bossDead = true; G.bossFight = false;
-  gainRunes(2500, boss.x, boss.y);
-  if (!S.weapons.includes('varek')) { S.weapons.push('varek'); later(9.2, () => { banner('item', WEAPONS.varek.name, WEAPONS.varek.desc + (G.touch ? ' · bấm Vũ khí để đổi' : ' · ← → để đổi vũ khí'), 4.2); SFX.pickup(); }); }
+  const b = boss;
+  G.bossFight = false;
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.6); SFX.felled();
-  burst(boss.x, boss.y, 80, '#f3cf6e', 280, 5, 'dot', 1.6);
-  subtitle('“Ánh vàng... đã chọn... ngươi...”', 3.6);
-  later(4.4, () => subtitle('Cánh cổng phía bắc đã mở. Cây Vàng đang chờ.', 4.5));
+  burst(b.x, b.y, 80, '#f3cf6e', 280, 5, 'dot', 1.6);
+  if (b.v === 1) {
+    S.bossDead = true;
+    gainRunes(2500, b.x, b.y);
+    later(9.2, () => grant({ weapon: 'varek', pouch: 1 }, b.x, b.y));
+    subtitle('“Ánh vàng... đã chọn... ngươi...”', 3.6);
+    later(4.4, () => subtitle('Cánh cổng phía bắc đã mở. Cao Nguyên Hoàng Kim ở phía trước.', 4.5));
+  } else {
+    S.boss2Dead = true;
+    gainRunes(20000, b.x, b.y);
+    later(5, () => grant({ items: { somber2: 2 }, tal: 'guard' }, b.x, b.y));
+    subtitle('“Kẻ nhạt phai... hãy thắp lên... ngọn lửa cuối cùng...”', 4);
+    later(9.5, () => subtitle('Lối lên Cây Vàng đã mở.', 4));
+  }
   save();
 }
 
 // ───────────────────────── rồng: Ignarth ─────────────────────────
 function makeDragon() {
-  return { isDragon: true, noParry: true, name: 'Ignarth, Rồng Tro Cổ Đại', x: LAIR.x, y: LAIR.y, r: 40, hp: 2000, maxHp: 2000, ghost: 2000,
+  return { isDragon: true, noParry: true, name: 'Ignarth, Rồng Tro Cổ Đại', x: LAIR.x, y: LAIR.y, r: 40, hp: 2200, maxHp: 2200, ghost: 2200, res: { fire: 0.4 },
     face: Math.PI * 0.8, state: 'sleep', t: 0, cd: 1, vx: 0, vy: 0, poise: 260, poiseAcc: 0, lastHit: 9, hurtFlash: 0, atk: null, dead: false,
     z: 0, elite: true, invuln: 0, anim: 0, stagDur: 1, bleed: 0, bleedMax: 220, lastMove: '', spin: 0, charge: 0, breathing: false, breathDir: 0, flying: false };
 }
@@ -350,18 +362,18 @@ function updateDragon(dt) {
 }
 function dragonDefeated() {
   S.dragonDead = true; G.dragonFight = false;
-  gainRunes(4000, dragon.x, dragon.y);
-  if (!S.weapons.includes('greatsword')) S.weapons.push('greatsword');
+  gainRunes(5000, dragon.x, dragon.y);
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.2); SFX.felled();
   burst(dragon.x, dragon.y, 90, '#ff9a4a', 300, 5, 'dot', 1.6);
-  later(4.4, () => { banner('item', WEAPONS.greatsword.name, WEAPONS.greatsword.desc + (G.touch ? '' : ' · ← → để đổi vũ khí')); SFX.pickup(); });
+  const dx = dragon.x, dy = dragon.y;
+  later(4.4, () => grant({ gr: 'swamp', weapon: 'greatsword' }, dx, dy));
   save();
 }
 
 // ───────────────────────── trận cuối: Aurel (phase 1) và Thú Vàng (phase 2) ─────────────────────────
 function makeFinal() {
-  const hp = 2400;
-  return { isFinal: true, name: 'Aurel, Vị Vua Tro Tàn', x: RC.x, y: RC.y - 170, r: 26, hp, maxHp: hp, ghost: hp, face: Math.PI / 2, state: 'intro', t: 0, cd: 1.2,
+  const hp = 3400;
+  return { isFinal: true, res: { holy: 0.6 }, name: 'Aurel, Vị Vua Tro Tàn', x: RC.x, y: RC.y - 170, r: 26, hp, maxHp: hp, ghost: hp, face: Math.PI / 2, state: 'intro', t: 0, cd: 1.2,
     vx: 0, vy: 0, poise: 240, poiseAcc: 0, lastHit: 9, hurtFlash: 0, phase: 1, atk: null, dead: false, z: 0, elite: true, invuln: 0, anim: 0, stagDur: 0.8,
     lastMove: '', bleedMax: 240, beamDir: 0, beaming: false, charge: 0, fx: false,
     look: { body: '#8a6a2a', trim: '#f0d27a', head: '#6a5020', cloak: '#b8952f', weapon: 'club', wlen: 46, wcol: '#ffe08a', scale: 1.8, glow: true } };
@@ -550,7 +562,7 @@ function updateFinal(dt) {
       if (!f.fx && f.t > 1.8) {
         f.fx = true; SFX.roar(); shake(18); G.white = 0.85;
         burst(f.x, f.y, 90, '#fff1c2', 320, 5, 'dot', 1.4);
-        const hp = 3000;
+        const hp = 4400;
         Object.assign(f, { phase: 2, name: 'Thú Vàng, Hiện Thân Vòng Vàng', r: 44, hp, maxHp: hp, ghost: hp, poise: 330, poiseAcc: 0, noParry: true, bleed: 0, bleedMax: 320 });
         subtitle('“Vòng Vàng tự phán xét kẻ nhạt phai.”', 4);
       }
@@ -568,7 +580,7 @@ function updateFinal(dt) {
   }
 }
 function enterRealm() {
-  if (S.discovered.includes(8)) S.lastGrace = 8;
+  S.lastGrace = S.discovered.includes(21) ? 21 : 20;
   P.x = RC.x; P.y = RC.y + 260; P.vx = P.vy = 0; P.mounted = false; P.lock = null; P.state = 'idle'; P.atk = null;
   fb = makeFinal(); G.finalFight = true; projs.length = 0; aoes.length = 0;
   cam.x = P.x; cam.y = P.y; clampCam(); G.white = 1;
@@ -589,7 +601,7 @@ function finalDefeated() {
   save();
   later(5.2, () => {
     if (P.state === 'dead') return;
-    P.x = TREE_POS.x; P.y = TREE_POS.y + 140; P.vx = P.vy = 0; fb = null; G.region = null;
+    P.x = TREE_POS.x; P.y = TREE_POS.y + 125; P.vx = P.vy = 0; fb = null; G.region = null;
     cam.x = P.x; cam.y = P.y; clampCam(); G.fade = 1;
   });
 }

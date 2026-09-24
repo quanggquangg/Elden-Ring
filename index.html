@@ -100,9 +100,26 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
   border:1px solid rgba(214,178,94,.55);background:rgba(12,10,8,.5);color:var(--parch);font:600 13px/1 var(--ui);display:grid;place-items:center;padding:0;touch-action:none}
 .tb.big{font-size:15px;border-color:rgba(242,220,151,.8);background:rgba(40,32,18,.55)}
 .tb:active,.tb.on{background:rgba(214,178,94,.35)}
-#topBtns{position:absolute;right:12px;top:118px;display:flex;gap:8px;pointer-events:auto}
-#topBtns button{appearance:none;min-width:46px;height:34px;border:1px solid rgba(214,178,94,.45);background:rgba(12,10,8,.55);color:var(--parch);font:600 12px/1 var(--ui);padding:0 6px}
+#topBtns{position:absolute;right:12px;top:128px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:calc(100% - 24px);pointer-events:auto}
+#topBtns button{appearance:none;min-width:42px;height:34px;border:1px solid rgba(214,178,94,.45);background:rgba(12,10,8,.55);color:var(--parch);font:600 12px/1 var(--ui);padding:0 6px}
 
+.sec{margin:14px 0 6px;font:600 12px/1.3 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.sec:first-child{margin-top:0}
+.note{margin:0 0 8px;font-size:12.5px;color:var(--muted)}
+.scroll{max-height:min(52vh,460px);overflow-y:auto;padding-right:4px}
+.travel button.on{border-color:var(--gold);background:rgba(214,178,94,.14)}
+.travel button:disabled{opacity:.45;cursor:not-allowed}
+.travel small .bad,.bad{color:#f0a58f}
+.tag{font:500 11px/1 var(--ui);color:var(--gold);border:1px solid var(--line);padding:1px 5px;border-radius:3px;margin-left:4px}
+.tabs{flex-wrap:wrap}
+.cls{list-style:none;margin:0;padding:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.cls button{width:100%;height:100%;text-align:left;appearance:none;background:rgba(214,178,94,.05);border:1px solid rgba(214,178,94,.2);color:var(--parch);padding:14px;cursor:pointer;display:grid;gap:6px;align-content:start}
+.cls button:hover,.cls button:focus-visible{border-color:var(--gold);outline:none;background:rgba(214,178,94,.14)}
+.cls .cn{font:600 22px/1.1 var(--display);color:var(--gold-hi)}
+.cls .cd{font-size:12.5px;color:var(--muted)}
+.cls .cs{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
+.cls .cs b{color:var(--parch)}
+.panel.wide{max-width:720px}
 @media (max-width:520px){
   .controls{grid-template-columns:1fr}
   .lvtop b{font-size:18px}
@@ -119,14 +136,16 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
     <button class="tb big" data-act="light" style="--x:62px;--y:124px;--s:78px">Đánh</button>
     <button class="tb" data-act="roll" style="--x:154px;--y:56px;--s:64px">Lăn</button>
     <button class="tb" data-act="heavy" style="--x:50px;--y:214px;--s:56px">Mạnh</button>
-    <button class="tb" data-act="spell" style="--x:136px;--y:184px;--s:54px">Phép</button>
-    <button class="tb" data-act="flask" style="--x:222px;--y:118px;--s:52px">Bình</button>
+    <button class="tb" data-act="skill" style="--x:136px;--y:184px;--s:54px">Kỹ năng</button>
+    <button class="tb" data-act="item" style="--x:222px;--y:118px;--s:52px">Bình</button>
     <button class="tb" data-act="interact" style="--x:240px;--y:44px;--s:46px">Dùng</button>
     <button class="tb" data-hold="guard" style="--x:128px;--y:262px;--s:54px">Đỡ</button>
     <div id="topBtns">
       <button data-act="lock">Khóa</button>
       <button data-act="mount">Ngựa</button>
       <button data-act="eqnext">Vũ khí</button>
+      <button data-act="itemnext">Đồ</button>
+      <button data-act="spellnext">Phép</button>
       <button data-act="map">Bản đồ</button>
       <button data-act="pause" aria-label="Tạm dừng">II</button>
     </div>
@@ -144,7 +163,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       </svg>
       <p class="eyebrow">Hành trình souls-like 2D</p>
       <h1>Vòng Vàng Vỡ</h1>
-      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy băng qua Đồng Cỏ Sương Mờ, hạ gục kẻ canh cổng Varek và chạm tới Cây Vàng. Ngươi chỉ có một thanh kiếm gãy. Vũ khí tốt hơn nằm trong những chiếc rương khắp vùng đất, và trong tay các boss.</p>
+      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy thu thập ba Đại Ấn từ Pháo Đài phía đông, đầm lầy của rồng tro và Học Viện bên Hồ Pha Lê, rồi vượt qua Kinh Thành Vàng để chạm tới Cây Vàng. Ngươi bắt đầu với trang bị tồi tàn; mọi thứ tốt hơn phải tự đi tìm.</p>
       <div class="actions">
         <button id="btnContinue" class="mbtn" hidden>Tiếp tục</button>
         <button id="btnNew" class="mbtn">Hành trình mới</button>
@@ -155,8 +174,10 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <div><dt>Đánh thường</dt><dd>chuột trái</dd></div>
         <div><dt>Đánh mạnh</dt><dd><kbd>Shift</kbd> + chuột trái</dd></div>
         <div><dt>Đỡ / phản đòn</dt><dd>giữ chuột phải</dd></div>
-        <div><dt>Phép Đá Sao</dt><dd><kbd>Shift</kbd> + chuột phải</dd></div>
-        <div><dt>Uống Bình Máu</dt><dd><kbd>R</kbd></dd></div>
+        <div><dt>Niệm phép (tay trái cầm gậy / ấn)</dt><dd>giữ chuột phải</dd></div>
+        <div><dt>Kỹ năng vũ khí</dt><dd><kbd>Shift</kbd> + chuột phải</dd></div>
+        <div><dt>Dùng đồ / đổi đồ</dt><dd><kbd>R</kbd> / <kbd>↓</kbd></dd></div>
+        <div><dt>Đổi phép</dt><dd><kbd>↑</kbd></dd></div>
         <div><dt>Tương tác / mở rương</dt><dd><kbd>E</kbd></dd></div>
         <div><dt>Khóa mục tiêu</dt><dd><kbd>Q</kbd> / chuột giữa</dd></div>
         <div><dt>Đổi vũ khí</dt><dd><kbd>←</kbd> <kbd>→</kbd></dd></div>
@@ -165,7 +186,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <div><dt>Tạm dừng</dt><dd><kbd>Esc</kbd></dd></div>
         <div><dt>Chỉ dùng bàn phím</dt><dd><kbd>J</kbd> <kbd>K</kbd> <kbd>X</kbd> <kbd>C</kbd></dd></div>
       </dl>
-      <p class="fine">Tay cầm (giống Elden Ring): R1 đánh · R2 đánh mạnh · L1 đỡ · L2 phép · ○/B lăn (giữ để chạy) · □/X bình máu · △/Y tương tác · ×/A ngựa · R3 khóa · ←→ đổi vũ khí · Share/Back bản đồ</p>
+      <p class="fine">Tay cầm (giống Elden Ring): R1 đánh · R2 đánh mạnh · L1 đỡ / niệm phép · L2 kỹ năng · ○/B lăn (giữ để chạy) · □/X dùng đồ · △/Y tương tác · ×/A ngựa · R3 khóa · ←→ vũ khí · ↑ phép · ↓ đồ · Share/Back bản đồ</p>
       <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring. Không liên quan tới FromSoftware hay Bandai Namco.</p>
     </div>
   </section>
@@ -176,8 +197,9 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       <dl class="controls">
         <div><dt>Lăn / chạy</dt><dd><kbd>Space</kbd> nhấn / giữ</dd></div>
         <div><dt>Đánh / đánh mạnh</dt><dd>chuột trái / <kbd>Shift</kbd>+trái</dd></div>
-        <div><dt>Đỡ / phép</dt><dd>chuột phải / <kbd>Shift</kbd>+phải</dd></div>
-        <div><dt>Bình Máu / tương tác</dt><dd><kbd>R</kbd> <kbd>E</kbd></dd></div>
+        <div><dt>Đỡ hoặc niệm phép / kỹ năng</dt><dd>chuột phải / <kbd>Shift</kbd>+phải</dd></div>
+        <div><dt>Dùng đồ / tương tác</dt><dd><kbd>R</kbd> <kbd>E</kbd></dd></div>
+        <div><dt>Đổi đồ / đổi phép</dt><dd><kbd>↓</kbd> <kbd>↑</kbd></dd></div>
         <div><dt>Khóa / ngựa</dt><dd><kbd>Q</kbd> <kbd>F</kbd></dd></div>
         <div><dt>Vũ khí / bản đồ</dt><dd><kbd>←</kbd><kbd>→</kbd> <kbd>G</kbd></dd></div>
       </dl>
@@ -191,11 +213,13 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
   </section>
 
   <section id="grace" class="overlay" hidden>
-    <div class="panel">
+    <div class="panel wide">
       <header><p class="eyebrow" id="graceName">Ân Điển</p><h2>Nghỉ ngơi</h2></header>
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" id="tabLevel" aria-selected="true">Lên cấp</button>
         <button class="tab" role="tab" id="tabGear" aria-selected="false">Trang bị</button>
+        <button class="tab" role="tab" id="tabSpell" aria-selected="false">Phép</button>
+        <button class="tab" role="tab" id="tabFlask" aria-selected="false">Bình</button>
         <button class="tab" role="tab" id="tabTravel" aria-selected="false">Dịch chuyển</button>
       </div>
       <div id="paneLevel" style="display:grid;gap:14px">
@@ -207,13 +231,30 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <ul class="stats" id="statList"></ul>
         <dl class="drv" id="derived"></dl>
       </div>
-      <div id="paneGear" hidden>
-        <ul class="travel" id="gearList"></ul>
-      </div>
-      <div id="paneTravel" hidden>
+      <div id="paneGear" class="scroll" hidden><div id="gearWrap"></div></div>
+      <div id="paneSpell" class="scroll" hidden><div id="spellWrap"></div></div>
+      <div id="paneFlask" hidden><div id="flaskWrap"></div></div>
+      <div id="paneTravel" class="scroll" hidden>
         <ul class="travel" id="travelList"></ul>
       </div>
       <div class="row"><button id="btnLeave" class="pbtn">Rời đi</button></div>
+    </div>
+  </section>
+
+  <section id="shop" class="overlay" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow">Điện Hội Ngộ</p><h2 id="shopName">Cửa hàng</h2><p class="note" id="shopLine"></p></header>
+      <div class="lvtop"><div><span class="k">Rune đang có</span><b id="shopRunes">0</b></div></div>
+      <div class="scroll"><ul class="travel" id="shopList"></ul></div>
+      <div class="row"><button id="btnShopLeave" class="pbtn">Rời đi</button></div>
+    </div>
+  </section>
+
+  <section id="cls" class="overlay title" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow">Hành trình mới</p><h2>Chọn xuất thân</h2><p class="note">Mọi lớp đều bắt đầu ở cấp 1 với trang bị tồi tàn. Lớp chỉ quyết định chỉ số ban đầu; sau này có thể tăng bất kỳ chỉ số nào.</p></header>
+      <ul class="cls" id="clsList"></ul>
+      <div class="row"><button id="btnClsBack" class="pbtn ghost">Quay lại</button></div>
     </div>
   </section>
 
@@ -232,11 +273,14 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 </div>
 <script src="src/core.js"></script>
 <script src="src/world.js"></script>
+<script src="src/data.js"></script>
 <script src="src/state.js"></script>
 <script src="src/input.js"></script>
 <script src="src/player.js"></script>
+<script src="src/progression.js"></script>
 <script src="src/enemies.js"></script>
 <script src="src/bosses.js"></script>
+<script src="src/content.js"></script>
 <script src="src/systems.js"></script>
 <script src="src/render.js"></script>
 <script src="src/hud.js"></script>

@@ -13,90 +13,84 @@ python3 -m http.server 8000
 # rồi mở http://localhost:8000
 ```
 
-Mục tiêu: rời Nhà Nguyện, băng qua Đồng Cỏ Sương Mờ, hạ gục **Varek, Kẻ Canh Cổng Phản Trắc**, đi qua cổng phía bắc tới **Cây Vàng**, rồi vượt qua trận cuối hai giai đoạn ở Cõi Vàng. Thử thách phụ: đánh thức **Ignarth, Rồng Tro Cổ Đại** trong Đầm Lầy Tro Độc, rồi đi xa hơn về phía đông để khám phá Pháo Đài Đá Xám, Rừng Linh Hồn và Đấu Trường Thử Thách.
+**Mục tiêu:** chọn xuất thân, rời Nhà Nguyện, hạ **Varek** ở cổng phía bắc, rồi thu thập đủ **ba Đại Ấn**:
+
+- **Đại Ấn Pháo Đài** từ Dornach trong Pháo Đài Đá Xám (phía đông, giải đố lò lửa để vào).
+- **Đại Ấn Rồng Tro** từ rồng Ignarth trong Đầm Lầy Tro Độc.
+- **Đại Ấn Trăng Pha Lê** từ Selvara, nữ hoàng của Học Viện Pha Lê bên Hồ Pha Lê (phía tây, cần Chìa Khóa Pha Lê trên một hòn đảo giữa hồ).
+
+Đủ ba Đại Ấn thì cổng **Kinh Thành Vàng** trên Cao Nguyên Hoàng Kim mở ra. Trong Kinh Thành, Varek trở lại với hình dạng thật là **Vua Ẩn Mặt**. Hạ hắn để tới **Cây Vàng**, rồi vượt qua trận cuối hai giai đoạn ở Cõi Vàng.
 
 ## Điều khiển
 
-Phím được đặt theo Elden Ring bản PC (bố cục mặc định trước bản mở rộng Shadow of the Erdtree). Game không có nút nhảy, nên `Space` dùng cho lăn và chạy như bản gốc.
+Phím đặt theo Elden Ring bản PC. `Space` dùng cho lăn và chạy như bản gốc.
 
 | Hành động | Bàn phím / chuột | Tay cầm (Xbox / PlayStation) |
 |---|---|---|
 | Di chuyển | `W` `A` `S` `D` | cần trái |
-| Lăn né | nhấn `Space` | nhấn B / ○ |
-| Chạy nhanh | giữ `Space` | giữ B / ○ |
-| Đánh thường | chuột trái | RB / R1 |
-| Đánh mạnh | `Shift` + chuột trái | RT / R2 |
-| Đỡ / phản đòn | giữ chuột phải | giữ LB / L1 |
-| Phép Đá Sao (vị trí nút Skill) | `Shift` + chuột phải | LT / L2 |
-| Uống Bình Máu | `R` | X / □ |
-| Tương tác, mở rương | `E` | Y / △ |
+| Lăn né / chạy nhanh | nhấn / giữ `Space` | nhấn / giữ B / ○ |
+| Đánh thường / đánh mạnh | chuột trái / `Shift` + chuột trái | RB / RT |
+| Đỡ, phản đòn (tay trái cầm khiên) | giữ chuột phải | giữ LB / L1 |
+| Niệm phép (tay trái cầm gậy hoặc ấn) | giữ chuột phải | giữ LB / L1 |
+| Kỹ năng vũ khí (Tro Chiến Tranh) | `Shift` + chuột phải | LT / L2 |
+| Dùng đồ trong ô nhanh / đổi đồ | `R` / `↓` | X / □, D-pad ↓ |
+| Đổi phép | `↑` | D-pad ↑ |
+| Đổi vũ khí tay phải | `←` `→` (hoặc `1`–`9`) | D-pad ← → |
+| Tương tác, mở rương, nói chuyện | `E` | Y / △ |
 | Khóa mục tiêu | `Q` hoặc chuột giữa | R3 |
-| Đổi vũ khí | `←` `→` (hoặc `1`–`8`) | D-pad ← → |
 | Gọi / xuống ngựa | `F` | A / × |
-| Bản đồ | `G` | Back / Share |
-| Tạm dừng | `Esc` | Start / Options |
-| Tắt/bật âm thanh | `M` | |
+| Bản đồ / tạm dừng / âm thanh | `G` / `Esc` / `M` | Back / Start |
 
-Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để đỡ, `C` dùng phép. Trên điện thoại, game tự hiện cần điều khiển ảo và các nút bấm.
+Chỉ dùng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để đỡ hoặc niệm phép, `C` dùng kỹ năng. Trên điện thoại, game tự hiện cần điều khiển ảo và các nút bấm.
 
-## Tính năng
+## Phát triển nhân vật
 
-- **Chiến đấu kiểu souls:** thanh thể lực, lăn né có khung bất tử, combo đòn nhẹ, đòn mạnh phá thế, đòn chí mạng khi kẻ địch mạnh bị mất thế, và bộ đệm lệnh để nối đòn mượt.
-- **Đỡ và phản đòn:** giữ chuột phải để giơ khiên chặn phần lớn sát thương (tốn thể lực). Nếu giơ khiên đúng lúc kẻ địch vung vũ khí, bạn phản đòn và chúng mất thế, sẵn sàng cho một đòn chí mạng. Rồng không phản đòn được.
-- **Mỗi vũ khí một bộ chiêu:**
-  - Kiếm Thẳng: chém – chém – đâm; đòn mạnh bổ từ trên xuống.
-  - Uchigatana: 2 nhát chém nhanh rồi xoay tròn; đòn mạnh là rút kiếm lướt chém.
-  - Giáo: đâm – đâm – quét ngang; đòn mạnh lao tới đâm.
-  - Kiếm Vàng Varek: đòn thứ 3 bổ xuống; đòn mạnh bổ xuống kèm sóng ánh vàng.
-  - Đại kiếm: đòn thứ 3 bổ xuống; đòn mạnh xoay tròn.
-  - Chùy: bổ xuống gây sát thương theo vùng; đòn mạnh đập đất rung chuyển.
-  - Liềm: quét rộng rồi xoay; đòn mạnh xoay 2 vòng.
-- **Vũ khí hai tay:** Kiếm Vàng Varek, Đại Kiếm Nanh Rồng, Chùy Vệ Binh và Liềm Hồn Ma phải cầm bằng hai tay nên không dùng khiên được. Khi đỡ đòn bằng thân vũ khí thì chặn kém hơn, tốn thể lực hơn và không phản đòn được. Bù lại, sát thương lớn và một số vũ khí không bị ngắt đòn.
-- **Đâm lưng:** đánh vào sau lưng kẻ địch chưa phát hiện ra bạn sẽ gây sát thương chí mạng.
-- **Vũ khí phải tự đi tìm:** bạn bắt đầu với Kiếm Gãy. Kiếm Thẳng, Uchigatana Tro (gây chảy máu) và Giáo Kỵ Sĩ (đâm xa) nằm trong rương, thường có kẻ địch canh giữ. Hạ Varek nhận Kiếm Vàng Varek (đòn mạnh phóng sóng ánh sáng), hạ rồng nhận Đại Kiếm Nanh Rồng, hạ Dornach nhận Chùy Vệ Binh, hạ Seluna nhận Liềm Hồn Ma (quét rộng, gây chảy máu). Đổi vũ khí bằng phím mũi tên hoặc ở tab Trang bị khi nghỉ tại Ân Điển.
-- **Rương báu:** 15 rương rải rác khắp bản đồ, có rương chỉ xuất hiện sau khi giải đố hoặc vượt thử thách, chứa vũ khí, rune, Đá Rèn Kiếm và Hạt Vàng.
-- **Bản đồ (`G`) mở dần theo tiến trình:** lúc đầu chỉ thấy quanh Nhà Nguyện, và nơi nào bạn tự đi qua sẽ hiện rõ. 6 **Bia Bản Đồ** (bia đá phát sáng xanh) nằm gần lối vào mỗi vùng, trên đường chính, giống mảnh bản đồ trong Elden Ring hay tháp trong Zelda. Đọc bia chỉ mở bản đồ **dạng phác thảo** (tông giấy da mờ, thấy địa hình và tên vùng), phải tự đi qua mới hiện đầy đủ. Rương, tượng đá, lò lửa, tường ảo và bên trong pháo đài không bao giờ hiện trên bản đồ. Cây Vàng luôn hiện làm mốc định hướng.
-- **Kẻ địch:** mỗi loại có kỹ năng riêng, và mọi đòn đánh đều có thời gian vung báo trước.
-  - Lính Tàn Binh, bầy Sói Xám, Kỵ Sĩ Tro Tàn (tinh anh, combo 2 đòn).
-  - Pháp Sư Lưu Đày: bắn đạn phép.
-  - Thây Ma Đầm Lầy: đánh trúng gây độc.
-  - Cung Thủ Tàn Binh: bắn tên, có lúc bắn loạt 3 mũi.
-  - Kẻ Ném Lửa: ném bom lửa nổ theo vùng, có vòng báo trước chỗ rơi.
-  - Hồn Ma Lang Thang: dịch chuyển ra sau lưng bạn rồi chém.
-  - Lính Khiên Sắt: chặn mọi đòn nhẹ từ phía trước. Hãy đánh vòng ra sau, dùng đòn mạnh hoặc phép.
-  - Người Khổng Lồ Đá: vung chùy, đập đất tạo sóng xung kích, dậm chân.
-  - Dơi Máu: bay vòng quanh rồi bổ nhào.
-  - Nhện Độc: phun độc tạo vũng độc trên mặt đất, cắn gây độc.
-- **Mini-boss:**
-  - Dornach, Vệ Binh Pháo Đài: combo chùy, lao tới húc, đập đất.
-  - Seluna, Nữ Vương Hồn Ma: dịch chuyển, bắn vòng cầu hồn, triệu hồi hồn ma.
-- **Giải đố và khám phá:**
-  - Thắp ba lò lửa trước Pháo Đài theo đúng đường đi của mặt trời để mở cổng. Thắp sai thứ tự thì lửa tắt và bạn bị bỏng.
-  - Tìm và đánh thức bốn tượng đá ở bốn góc Rừng Linh Hồn để phá kết giới.
-  - Tường ảo kiểu Elden Ring: đánh vào bức tường khả nghi để lộ phòng bí mật.
-- **Đấu Trường Thử Thách:** chạm lá cờ để bắt đầu ba đợt kẻ thù, cổng sẽ đóng lại cho tới khi bạn thắng hoặc chết. Thắng thì mở ra rương thưởng.
-- **Trận cuối ở Cõi Vàng (2 phase):**
-  - Phase 1 — Aurel, Vị Vua Tro Tàn (2.400 máu): combo chùy vàng kết thúc bằng cú đập đất, nhảy đập, cột ánh sáng dọc theo hướng bạn đứng, dịch chuyển ra sau lưng, vòng sáng lan tỏa. Đòn chùy phản đòn được.
-  - Phase 2 — Thú Vàng (3.000 máu): cầu sáng đuổi theo bạn, tia sáng quét ngang, ba vòng sóng liên tiếp, mưa sao rơi, bay lên rồi lao xuống. Dưới 40% máu thì đánh dồn dập hơn. Không phản đòn được.
-- **Boss gác cổng hai giai đoạn:** Varek có đòn đánh chậm một nhịp, nhảy đập, ném dao vàng, và khi còn nửa máu thì dùng thêm búa vàng tạo sóng xung kích và mưa ánh sáng.
-- **Rồng Ignarth (boss phụ):** phun lửa quét, bay lên rồi lao xuống, bắn cầu lửa, cắn liên hoàn, và quật đuôi nếu bạn đứng sau lưng. Khi còn dưới 40% máu thì nổi điên. Hạ rồng sẽ nhận được đại kiếm.
-- **Đầm Lầy Tro Độc:** đứng trong ao tím sẽ tích độc, đầy thanh thì bị trúng độc và mất máu dần. Đi bằng ngựa sẽ không bị ảnh hưởng. Nghỉ ở Ân Điển để giải độc.
-- **Ân Điển:** nghỉ ngơi để hồi máu và Bình Máu (kẻ địch cũng hồi sinh), lên cấp bằng rune, và dịch chuyển giữa các Ân Điển đã tìm thấy.
-- **Chết thì mất rune:** rune rơi tại chỗ bạn chết. Quay lại nhặt trước khi chết lần nữa.
-- **Độ khó:** quái có nhiều máu hơn và đánh đau hơn, rune rơi ít đi, lên cấp đắt hơn, Bình Máu hồi ít máu hơn.
-- **Quái mạnh dần theo vùng đất** (giống Elden Ring, không tăng theo cấp người chơi): đồng cỏ +0%, tàn tích +10%, gần cổng Varek +10–20%, đầm lầy +25%, phía đông +35–50%, Cõi Vàng +55%. Quái ở vùng khó hơn cũng rơi nhiều rune hơn.
-- **Bình Máu:** bắt đầu với 3 bình, tối đa 8. Khi đã đủ, Hạt Vàng đổi thành rune.
-- **Thế giới mở:** 10 vùng, 9 Ân Điển, 5 Hạt Vàng rải theo tiến trình (thêm lượt Bình Máu), Đá Rèn Kiếm (cường hóa vũ khí), Túi Rune ở những góc khuất, lời nhắn gợi ý trên mặt đất, và ngựa linh để đi nhanh.
-- **Hình ảnh:**
-  - Ánh sáng động: mỗi vùng có độ tối và tông màu riêng. Ân Điển, lò lửa, phép, cầu lửa, Cây Vàng, hồn ma và boss tỏa sáng, soi rõ vùng quanh chúng.
-  - Không khí theo vùng: sương mù trôi, tro bay ở vùng đông, đom đóm ở Rừng Linh Hồn và đầm lầy, lá vàng rơi quanh Cây Vàng.
-  - Chi tiết sống động: cỏ lay theo gió và rẽ ra khi bạn đi qua, tán cây đung đưa, mặt ao độc lấp lánh, tia nắng vàng gần Cây Vàng.
-  - Chỉnh **Đồ họa: cao/thấp** trong menu tạm dừng. Điện thoại mặc định dùng mức thấp.
-- **Tự động lưu** vào `localStorage` khi nghỉ ở Ân Điển, nhặt vật phẩm, chết hoặc hạ boss.
+- **5 xuất thân:** Hiệp Sĩ, Kiếm Khách, Pháp Sư, Tu Sĩ, Thợ Săn. Tất cả bắt đầu ở cấp 1 với trang bị tồi tàn; xuất thân chỉ quyết định chỉ số ban đầu.
+- **7 chỉ số:** Sinh Lực (máu), Tâm Trí (FP), Bền Bỉ (thể lực và sức mang vác), Sức Mạnh, Khéo Léo, Trí Tuệ, Đức Tin. Lên cấp bằng rune tại Ân Điển.
+- **Vũ khí có hệ số và yêu cầu chỉ số** (S/A/B/C/D/E) như Elden Ring. Hệ số tăng chậm dần sau các mốc 20, 40, 60. Thiếu chỉ số thì sát thương giảm mạnh. Sát thương chia theo loại: vật lý, ma thuật, lửa, thánh, sét; mỗi loại kẻ địch kháng hoặc yếu với loại khác nhau (hồn ma sợ thánh, người pha lê kháng ma thuật...).
+- **Hai tay:** tay phải cầm vũ khí hoặc cung. Tay trái cầm khiên (đỡ, phản đòn) hoặc chất xúc tác (gậy cho phép Trí Tuệ, ấn cho phép Đức Tin). Vũ khí hai tay và cung khóa tay trái.
+- **17 vũ khí tay phải:** kiếm, dao, kiếm liễu, katana, giáo, rìu, đại kiếm, đại rìu, chùy, liềm, kiếm pha lê, kiếm hoàng gia, ba loại cung... mỗi loại có bộ chiêu riêng. Cường hóa tới +9 bằng Đá Rèn I–III; vũ khí đặc biệt lấy từ boss cường hóa tới +5 bằng Đá Rèn U Ám.
+- **Cung:** đánh thường bắn nhanh, đánh mạnh ngắm bắn xuyên qua kẻ địch. Mũi tên có hạn, nạp lại khi nghỉ ở Ân Điển.
+- **10 phép:** Đá Sao, Mảnh Pha Lê, Lưỡi Kiếm Ánh Trăng, Sao Chổi Pha Lê, Mưa Thiên Thạch (Trí Tuệ); Hồi Phục, Lửa Thiêng, Tia Sét, Phúc Lành Vàng, Phán Xét Vàng (Đức Tin). Ghi nhớ phép vào số ô giới hạn; Đá Ký Ức thêm ô.
+- **Tro Chiến Tranh (kỹ năng vũ khí):** Đột Kích, Lốc Xoáy, Địa Chấn, Lưỡi Lửa, Lưỡi Thánh, Rút Kiếm, Mưa Tên; vũ khí boss có kỹ năng riêng không đổi được.
+- **9 bộ giáp** với độ giảm sát thương, độ trụ (đòn yếu không làm khựng) và trọng lượng. **Sức mang vác** quyết định kiểu lăn: nhẹ (nhanh, bất tử lâu), vừa, nặng (chậm), quá tải (không lăn được).
+- **14 bùa hộ mệnh**, bắt đầu với 1 ô, Túi Bùa mở tới 4 ô.
+- **Bình Máu và Bình FP:** chia tổng số bình giữa máu và FP ở Ân Điển. Hạt Vàng thêm bình (tối đa 10), Nước Mắt Thánh tăng lượng hồi (tối đa 5).
+- **Vật phẩm dùng nhanh:** Bình Lửa, Dao Ném, Thuốc Giải Độc, Dầu Thánh, Rune Vàng.
+- **Kẻ địch rơi đồ:** đá rèn, vật phẩm, đôi khi cả bộ giáp hiếm. Nhặt bằng `E`.
+- **Điện Hội Ngộ:** nơi tụ họp, dịch chuyển tới từ bất kỳ Ân Điển nào. Có Thợ Rèn (cường hóa), Lái Buôn (vật phẩm, khiên, đá rèn), Học Giả (phép Trí Tuệ, gậy), Nữ Tu (phép Đức Tin, ấn).
+
+## Thế giới
+
+- **Miền trung:** Đồng Cỏ Sương Mờ, Tàn Tích Phía Tây, Đấu Trường Cổng Varek, Đầm Lầy Tro Độc.
+- **Miền đông:** Cao Nguyên Tro Đông, Pháo Đài Đá Xám (giải đố lò lửa, tường ảo), Rừng Linh Hồn (bốn tượng đá, kết giới), Đấu Trường Thử Thách (ba đợt kẻ thù).
+- **Miền tây:** Hồ Pha Lê (nước nông làm chậm bước, đảo nhỏ giữa hồ), Học Viện Pha Lê (hầm ngục lớn có cửa tắt mở bằng cần gạt, tường ảo, thư viện), Bờ Biển Muối.
+- **Miền bắc:** Cao Nguyên Hoàng Kim và Sườn Núi Hoàng Kim; Kinh Thành Vàng (cổng lớn cần ba Đại Ấn, cửa hông mở bằng cần gạt bên trong, Sân Ngai Vàng), Cây Vàng ở tận cùng.
+- **4 hầm ngục phụ**, mỗi hầm có ân điển, câu đố riêng và boss ở phòng cuối sau cửa sương: Hầm Mộ Ven Biển (cần gạt mở cửa đá), Mỏ Pha Lê (tường pha lê ảo), Hang Tro (bẫy lửa phun theo nhịp), Hầm Mộ Hoàng Gia (tường ảo).
+- **Boss:** Varek (2 phase), Varek Vua Ẩn Mặt (2 phase), rồng Ignarth, Dornach (2 phase), Seluna, Selvara (2 phase, triệu hồi pháp sư, mưa thiên thạch), Kỵ Sĩ Mộ Phần, Khổng Lồ Pha Lê, Hộ Vệ Đá Cổ, Nhà Vô Địch Hoàng Gia, và trận cuối Aurel / Thú Vàng.
+- **Kẻ địch mới:** Pháp Sư Học Viện (bắn mảnh pha lê, dịch chuyển né), Người Pha Lê, Chó Hồ, Kỵ Sĩ Hoàng Gia (sóng ánh thánh, nhảy bổ), Tu Sĩ Vàng (cột sáng, hồi máu cho đồng đội), Sư Tử Vàng, Cung Thủ Hoàng Gia (mưa tên).
+- **Quái mạnh theo vùng đất**, không theo cấp người chơi (giống Elden Ring): từ +0% ở đồng cỏ tới +85–100% ở Kinh Thành và Cõi Vàng. Vùng khó hơn rơi nhiều rune hơn hẳn.
+- **Bản đồ mở dần:** nơi tự đi qua mới hiện rõ. 11 **Bia Bản Đồ** đặt ở lối vào mỗi vùng chỉ mở bản đồ dạng phác thảo. Bí mật không bao giờ hiện trên bản đồ.
+- **Ánh sáng và không khí theo vùng:** sương, tro, đom đóm, lá vàng, mặt hồ gợn sóng, sóng biển, tia nắng gần Cây Vàng. Chỉnh **Đồ họa: cao/thấp** trong menu tạm dừng.
+- **Chết thì mất rune** tại chỗ; quay lại nhặt trước khi chết lần nữa. **Tự động lưu** vào `localStorage`.
 
 ## Cấu trúc
 
+Các file script dùng chung phạm vi toàn cục và được nạp theo thứ tự trong `index.html`:
+
 ```
-index.html   giao diện, menu, CSS
-game.js      toàn bộ logic: thế giới, người chơi, AI, boss, hiển thị, âm thanh
+index.html          giao diện, menu, CSS
+src/core.js         tiện ích, canvas, âm thanh
+src/world.js        bản đồ thế giới, vùng, tường, ân điển, rương, quái, hầm ngục, nền đất dựng sẵn
+src/data.js         vũ khí, giáp, bùa, phép, tro chiến tranh, xuất thân, cửa hàng, kẻ địch
+src/state.js        lưu game, chỉ số nhân vật, sát thương vũ khí, va chạm, hiệu ứng
+src/input.js        bàn phím, chuột, cảm ứng, tay cầm
+src/player.js       người chơi: đánh, cung, kỹ năng, phép, vật phẩm, gây sát thương
+src/progression.js  túi đồ, nhận thưởng, lên cấp, cường hóa, cửa hàng, trang bị
+src/enemies.js      AI kẻ địch và miniboss
+src/bosses.js       Varek, rồng, trận cuối
+src/content.js      phòng boss, bẫy, cần gạt, cửa hầm ngục, cổng lớn, NPC
+src/systems.js      đạn, vùng sát thương, tương tác, vòng lặp chính
+src/render.js       vẽ thế giới, ánh sáng, thời tiết
+src/hud.js          HUD, bản đồ, menu Ân Điển, cửa hàng, khởi động
 ```
