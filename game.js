@@ -131,6 +131,35 @@ const BRAZIERS = [{ id: 'e', x: 3780, y: 1440 }, { id: 'n', x: 3600, y: 1370 }, 
 const BRAZIER_ORDER = ['e', 'n', 'w'];
 const STATUES = [{ id: 's1', x: 2980, y: 1980 }, { id: 's2', x: 4250, y: 1990 }, { id: 's3', x: 2990, y: 2720 }, { id: 's4', x: 4240, y: 2720 }];
 const FLAG = { x: 3600, y: 3230 };
+// Bia Bản Đồ: đọc để mở toàn bộ một vùng trên bản đồ (như mảnh bản đồ trong Elden Ring)
+const MAP_FRAGS = [
+  { id: 'm1', x: 1180, y: 2650, name: 'Đồng Cỏ Sương Mờ', rect: { x: 0, y: 1500, w: 2050, h: 2100 } },
+  { id: 'm2', x: 1620, y: 1380, name: 'Miền Bắc', rect: { x: 0, y: 0, w: 2100, h: 1600 } },
+  { id: 'm3', x: 1950, y: 2200, name: 'Đầm Lầy Tro Độc', rect: { x: 2000, y: 1000, w: 800, h: 2600 } },
+  { id: 'm4', x: 2790, y: 2620, name: 'Miền Đông', rect: { x: 2800, y: 0, w: 1600, h: 3600 } },
+];
+// sương mù bản đồ: mỗi ô 100×100 đơn vị, mở ra khi người chơi đi qua
+const EXP_CELL = 100, EXP_COLS = Math.ceil(4400 / EXP_CELL), EXP_ROWS = Math.ceil(3600 / EXP_CELL);
+const EXP = new Uint8Array(EXP_COLS * EXP_ROWS);
+function explore(x, y, r) {
+  if (x > 4400) return;
+  const c0 = Math.max(0, Math.floor((x - r) / EXP_CELL)), c1 = Math.min(EXP_COLS - 1, Math.floor((x + r) / EXP_CELL));
+  const r0 = Math.max(0, Math.floor((y - r) / EXP_CELL)), r1 = Math.min(EXP_ROWS - 1, Math.floor((y + r) / EXP_CELL));
+  for (let cy = r0; cy <= r1; cy++) for (let cx = c0; cx <= c1; cx++) {
+    if (dist(x, y, (cx + 0.5) * EXP_CELL, (cy + 0.5) * EXP_CELL) < r) EXP[cy * EXP_COLS + cx] = 1;
+  }
+}
+function expEncode() { let out = ''; for (let i = 0; i < EXP.length; i += 4) out += ((EXP[i] | 0) | (EXP[i + 1] | 0) << 1 | (EXP[i + 2] | 0) << 2 | (EXP[i + 3] | 0) << 3).toString(16); return out; }
+function expDecode(str) {
+  EXP.fill(0);
+  if (!str) return;
+  for (let k = 0; k < str.length; k++) { const v = parseInt(str[k], 16) || 0; for (let b = 0; b < 4; b++) if (k * 4 + b < EXP.length) EXP[k * 4 + b] = (v >> b) & 1; }
+}
+function revealedAt(x, y) {
+  const cx = Math.floor(x / EXP_CELL), cy = Math.floor(y / EXP_CELL);
+  if (cx >= 0 && cy >= 0 && cx < EXP_COLS && cy < EXP_ROWS && EXP[cy * EXP_COLS + cx]) return true;
+  return MAP_FRAGS.some(f => S.frags.includes(f.id) && inRect(x, y, f.rect));
+}
 const inRect = (x, y, r, m = 0) => x > r.x - m && x < r.x + r.w + m && y > r.y - m && y < r.y + r.h + m;
 const WALLS = [
   // đấu trường của Varek
@@ -283,6 +312,7 @@ function spotBlocked(x, y, pad) {
   for (const c of CHESTS) if (!c.noObst) OBST.push({ kind: 'chest', x: c.x, y: c.y, r: 14, chest: c });
   for (const b of BRAZIERS) OBST.push({ kind: 'brazier', x: b.x, y: b.y, r: 14 });
   for (const st of STATUES) OBST.push({ kind: 'statue', x: st.x, y: st.y, r: 16 });
+  for (const f of MAP_FRAGS) OBST.push({ kind: 'stele', x: f.x, y: f.y, r: 12 });
   OBST.push({ kind: 'flag', x: FLAG.x, y: FLAG.y, r: 8 });
   let tries = 0;
   while (OBST.filter(o => o.kind === 'tree').length < 370 && tries++ < 14000) {
@@ -468,10 +498,10 @@ const BIGTREE = (function () {
 // ───────────────────────── trạng thái ─────────────────────────
 const SAVE_KEY = 'vong-vang-vo-save-v1';
 function defaultSave() {
-  return { level: 1, stats: { vig: 10, end: 10, str: 10, mnd: 10 }, runes: 0, weaponLv: 0, flaskMax: 3, lastGrace: 0, discovered: [0], bossDead: false, taken: [], lost: null, treeReached: false, deaths: 0, time: 0, weapons: ['broken'], equipped: 'broken', dragonDead: false, finalDead: false, chests: [], fortOpen: false, statues: [], glade: false, illusory: [], coloDone: false, mb: {} };
+  return { level: 1, stats: { vig: 10, end: 10, str: 10, mnd: 10 }, runes: 0, weaponLv: 0, flaskMax: 3, lastGrace: 0, discovered: [0], bossDead: false, taken: [], lost: null, treeReached: false, deaths: 0, time: 0, weapons: ['broken'], equipped: 'broken', dragonDead: false, finalDead: false, chests: [], fortOpen: false, statues: [], glade: false, illusory: [], coloDone: false, mb: {}, explored: '', frags: [] };
 }
 let S = defaultSave();
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* bộ nhớ trình duyệt bị chặn */ } }
+function save() { try { S.explored = expEncode(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* bộ nhớ trình duyệt bị chặn */ } }
 function loadSave() {
   try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.stats) return s; } catch (e) { /* bỏ qua */ }
   return null;
@@ -2215,6 +2245,7 @@ const nearItem = () => ITEMS.find(it => !S.taken.includes(it.id) && dist(P.x, P.
 const nearChest = () => CHESTS.find(c => !S.chests.includes(c.id) && (!c.req || c.req()) && dist(P.x, P.y, c.x, c.y) < 52);
 const nearBrazier = () => !S.fortOpen && BRAZIERS.find(b => !G.braziers.includes(b.id) && dist(P.x, P.y, b.x, b.y) < 50);
 const nearStatue = () => STATUES.find(st => !S.statues.includes(st.id) && dist(P.x, P.y, st.x, st.y) < 55);
+const nearStele = () => MAP_FRAGS.find(f => !S.frags.includes(f.id) && dist(P.x, P.y, f.x, f.y) < 50);
 const nearFlag = () => !S.coloDone && !G.colo.active && dist(P.x, P.y, FLAG.x, FLAG.y) < 50;
 const nearNote = () => NOTES.find(n => dist(P.x, P.y, n.x, n.y) < 46);
 function interact() {
@@ -2227,6 +2258,13 @@ function interact() {
   const st = nearStatue();
   if (st) { wakeStatue(st); return; }
   if (nearFlag()) { startColo(); return; }
+  const mf = nearStele();
+  if (mf) {
+    S.frags.push(mf.id); SFX.grace();
+    burst(mf.x, mf.y - 20, 30, '#cfe0ff', 110, 3, 'mote', 1.2);
+    banner('item', 'Mảnh Bản Đồ', 'Đã mở bản đồ: ' + mf.name + ' · bấm ' + (G.touch ? 'Bản đồ' : 'G') + ' để xem', 4);
+    save(); return;
+  }
   const it = nearItem();
   if (it) { takeItem(it); return; }
   const n = nearNote();
@@ -2347,6 +2385,7 @@ function worldChecks(dt) {
   else if (nearBrazier()) G.prompt = { key, text: 'Thắp lửa' };
   else if (nearStatue()) G.prompt = { key, text: 'Đánh thức tượng đá' };
   else if (nearFlag()) G.prompt = { key, text: 'Bắt đầu thử thách' };
+  else if (nearStele()) G.prompt = { key, text: 'Đọc Bia Bản Đồ' };
   else if (nearItem()) G.prompt = { key, text: 'Nhặt vật phẩm' };
   else if (nearNote()) G.prompt = { key, text: 'Đọc lời nhắn' };
   else G.prompt = null;
@@ -2391,6 +2430,8 @@ function ambient(dt) {
 }
 function update(dt) {
   G.clock += dt; S.time += dt;
+  G.expT = (G.expT || 0) + dt;
+  if (G.expT > 0.25 && P.state !== 'dead') { G.expT = 0; explore(P.x, P.y, 380); }
   mouse.wx = cam.x + (mouse.x - CW / 2) / ZOOM; mouse.wy = cam.y + (mouse.y - CH / 2) / ZOOM;
   updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateParts(dt);
   updateCam(dt); worldChecks(dt); ambient(dt);
@@ -2876,6 +2917,16 @@ function drawPuzzles() {
       if (Math.random() < 0.6) addPart(b.x + rand(-5, 5), b.y - 4, rand(-8, 8), rand(-70, -40), 0.45, rand(4, 7), FIRE_COLS[(Math.random() * 4) | 0], 'fire');
     }
   }
+  for (const f of MAP_FRAGS) {
+    if (!inView(f.x, f.y, 60)) continue;
+    const read = S.frags.includes(f.id), pulse = 0.6 + Math.sin(t * 2.5 + f.x) * 0.4;
+    shadow(f.x + 3, f.y + 6, 13, 6, 0.35);
+    if (!read) { const gr = ctx.createRadialGradient(f.x, f.y - 16, 2, f.x, f.y - 16, 46); gr.addColorStop(0, `rgba(190,215,255,${0.25 * pulse})`); gr.addColorStop(1, 'rgba(190,215,255,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(f.x, f.y - 16, 46, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = '#5d5a52'; ctx.strokeStyle = '#2a2822'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(f.x - 9, f.y + 4); ctx.lineTo(f.x - 7, f.y - 30); ctx.lineTo(f.x, f.y - 38); ctx.lineTo(f.x + 7, f.y - 30); ctx.lineTo(f.x + 9, f.y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = read ? 'rgba(200,190,160,.5)' : `rgba(200,225,255,${0.6 + 0.4 * pulse})`; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(f.x, f.y - 20, 4, 0, TAU); ctx.moveTo(f.x, f.y - 29); ctx.lineTo(f.x, f.y - 8); ctx.moveTo(f.x - 5, f.y - 13); ctx.lineTo(f.x + 5, f.y - 13); ctx.stroke();
+  }
   for (const st of STATUES) {
     if (!inView(st.x, st.y, 60)) continue;
     const on = S.statues.includes(st.id);
@@ -3247,6 +3298,7 @@ function collectLights() {
   for (const c of CHESTS) if (!S.chests.includes(c.id) && (!c.req || c.req())) light(c.x, c.y, 80, 0.6, '255,210,120');
   for (const nt of NOTES) light(nt.x, nt.y, 50, 0.45, '255,150,60');
   for (const st of STATUES) if (S.statues.includes(st.id)) light(st.x, st.y, 160, 0.9, '150,250,235');
+  for (const f of MAP_FRAGS) if (!S.frags.includes(f.id)) light(f.x, f.y - 16, 110, 0.7, '190,215,255');
   if (!S.glade) light(BARRIER.x, BARRIER.y, 240, 0.7, '150,240,230');
   for (const [px, py, rx, ry] of POOLS) light(px, py, Math.max(rx, ry) * 1.2, 0.3, '170,110,200');
   for (const q of puddles) light(q.x, q.y, 70, 0.35 * Math.min(1, (q.life - q.t) / 1.2), '150,220,90');
@@ -3500,6 +3552,17 @@ function drawHUD() {
     ctx.globalAlpha = 1;
   }
 }
+const maskCanvas = document.createElement('canvas');
+maskCanvas.width = EXP_COLS; maskCanvas.height = EXP_ROWS;
+function mapMask() {
+  const m = maskCanvas.getContext('2d'), img = m.createImageData(EXP_COLS, EXP_ROWS);
+  for (let cy = 0; cy < EXP_ROWS; cy++) for (let cx = 0; cx < EXP_COLS; cx++) {
+    const i = (cy * EXP_COLS + cx) * 4, open = revealedAt((cx + 0.5) * EXP_CELL, (cy + 0.5) * EXP_CELL);
+    img.data[i] = 24; img.data[i + 1] = 19; img.data[i + 2] = 13; img.data[i + 3] = open ? 0 : 255;
+  }
+  m.putImageData(img, 0, 0);
+  return maskCanvas;
+}
 const MAP_LABELS = [['Pháo Đài Đá Xám', 3600, 900], ['Rừng Linh Hồn', 3650, 2180], ['Đấu Trường Thử Thách', 3600, 3230], ['Cao Nguyên Tro Đông', 3700, 1580], ['Đồng Cỏ Sương Mờ', 1400, 2620], ['Tàn Tích Phía Tây', 700, 1900], ['Đầm Lầy Tro Độc', 2420, 1520], ['Đấu Trường Varek', 1400, 760], ['Cây Vàng', 1400, 250], ['Nhà Nguyện', 1400, 3480]];
 function drawMap() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -3511,10 +3574,11 @@ function drawMap() {
   ctx.strokeStyle = 'rgba(214,178,94,.6)'; ctx.lineWidth = 1; ctx.strokeRect(mx + 0.5, my + 0.5, mw - 1, mh - 1);
   ctx.fillStyle = '#2a261e';
   for (const w of WALLS) if (!w.void && (wallOn(w, false) || w.gate === 'colo')) ctx.fillRect(mx + w.x * sc, my + w.y * sc, Math.max(1.5, w.w * sc), Math.max(1.5, w.h * sc));
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(mapMask(), mx, my, mw, mh);
   const pt = (x, y) => [mx + x * sc, my + y * sc];
   ctx.fillStyle = 'rgba(255,214,110,.8)'; { const [x, y] = pt(TREE_POS.x, TREE_POS.y); ctx.beginPath(); ctx.arc(x, y, 7, 0, TAU); ctx.fill(); }
   const fs = CW < 500 ? 12 : 15;
-  for (const [n, x, y] of MAP_LABELS) { const [px, py] = pt(x, y); textC(n, px, py, `600 ${fs}px ${FONT_D}`, 'rgba(236,227,204,.9)', 0.9); }
+  for (const [n, x, y] of MAP_LABELS) { if (!revealedAt(x, y)) continue; const [px, py] = pt(x, y); textC(n, px, py, `600 ${fs}px ${FONT_D}`, 'rgba(236,227,204,.9)', 0.9); }
   for (const g of GRACES) {
     if (!S.discovered.includes(g.id)) continue;
     const [x, y] = pt(g.x, g.y);
@@ -3526,7 +3590,7 @@ function drawMap() {
   ctx.save(); ctx.translate(px, py); ctx.rotate(P.face); ctx.scale(pulse, pulse);
   ctx.fillStyle = '#e0503c'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-6, -6); ctx.lineTo(-3, 0); ctx.lineTo(-6, 6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
-  textC(G.touch ? 'Chạm để đóng · điểm vàng: Ân Điển đã tìm thấy' : 'G / Esc để đóng · điểm vàng: Ân Điển đã tìm thấy · mũi tên đỏ: bạn', CW / 2, CH - 14, `500 12px ${FONT_U}`, 'rgba(236,227,204,.7)');
+  textC(G.touch ? 'Chạm để đóng · khám phá hoặc đọc Bia Bản Đồ để mở rộng' : 'G / Esc để đóng · đi khám phá hoặc đọc Bia Bản Đồ để mở rộng bản đồ', CW / 2, CH - 14, `500 12px ${FONT_U}`, 'rgba(236,227,204,.7)');
 }
 function wrapText(str, cx, y, maxW, lh, font, col) {
   ctx.font = font;
@@ -3682,6 +3746,9 @@ let confirmNew = false;
 function startGame(data) {
   S = data ? Object.assign(defaultSave(), data) : defaultSave();
   S.flaskMax = Math.min(S.flaskMax, FLASK_CAP);
+  expDecode(S.explored);
+  // save cũ chưa có dữ liệu khám phá: mở quanh các Ân Điển đã tìm thấy
+  if (!S.explored) for (const g of GRACES) if (S.discovered.includes(g.id)) explore(g.x, g.y, 500);
   UI.title.hidden = true; parts.length = 0;
   G.endingShown = S.treeReached && S.finalDead; G.hintT = data ? 99 : 0; G.region = null; G.timers.length = 0;
   respawnAt(S.lastGrace); setMode('play');

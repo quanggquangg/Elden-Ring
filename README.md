@@ -55,7 +55,7 @@ Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, gi
 - **Đâm lưng:** đánh vào sau lưng kẻ địch chưa phát hiện ra bạn sẽ gây sát thương chí mạng.
 - **Vũ khí phải tự đi tìm:** bạn bắt đầu với Kiếm Gãy. Kiếm Thẳng, Uchigatana Tro (gây chảy máu) và Giáo Kỵ Sĩ (đâm xa) nằm trong rương, thường có kẻ địch canh giữ. Hạ Varek nhận Kiếm Vàng Varek (đòn mạnh phóng sóng ánh sáng), hạ rồng nhận Đại Kiếm Nanh Rồng, hạ Dornach nhận Chùy Vệ Binh, hạ Seluna nhận Liềm Hồn Ma (quét rộng, gây chảy máu). Đổi vũ khí bằng phím mũi tên hoặc ở tab Trang bị khi nghỉ tại Ân Điển.
 - **Rương báu:** 15 rương rải rác khắp bản đồ, có rương chỉ xuất hiện sau khi giải đố hoặc vượt thử thách, chứa vũ khí, rune, Đá Rèn Kiếm và Hạt Vàng.
-- **Bản đồ (`G`):** hiện các vùng, những Ân Điển đã tìm thấy, vị trí của bạn và chỗ rơi rune.
+- **Bản đồ (`G`) mở dần theo tiến trình:** lúc đầu chỉ thấy quanh Nhà Nguyện. Vùng quanh đường bạn đi sẽ tự hiện ra. Đọc 4 **Bia Bản Đồ** (bia đá phát sáng xanh) để mở toàn bộ một vùng, giống mảnh bản đồ trong Elden Ring. Cây Vàng luôn hiện làm mốc định hướng. Bản đồ còn hiện các Ân Điển đã tìm thấy, vị trí của bạn và chỗ rơi rune.
 - **Kẻ địch:** mỗi loại có kỹ năng riêng, và mọi đòn đánh đều có thời gian vung báo trước.
   - Lính Tàn Binh, bầy Sói Xám, Kỵ Sĩ Tro Tàn (tinh anh, combo 2 đòn).
   - Pháp Sư Lưu Đày: bắn đạn phép.
