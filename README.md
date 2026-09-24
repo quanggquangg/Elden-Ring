@@ -76,15 +76,15 @@ Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, gi
   - Tường ảo kiểu Elden Ring: đánh vào bức tường khả nghi để lộ phòng bí mật.
 - **Đấu Trường Thử Thách:** chạm lá cờ để bắt đầu ba đợt kẻ thù, cổng sẽ đóng lại cho tới khi bạn thắng hoặc chết. Thắng thì mở ra rương thưởng.
 - **Trận cuối ở Cõi Vàng (2 phase):**
-  - Phase 1 — Aurel, Vị Vua Tro Tàn: combo chùy vàng kết thúc bằng cú đập đất, nhảy đập, cột ánh sáng dọc theo hướng bạn đứng, dịch chuyển ra sau lưng, vòng sáng lan tỏa. Đòn chùy phản đòn được.
-  - Phase 2 — Thú Vàng: cầu sáng đuổi theo bạn, tia sáng quét ngang, ba vòng sóng liên tiếp, mưa sao rơi, bay lên rồi lao xuống. Dưới 40% máu thì đánh dồn dập hơn. Không phản đòn được.
+  - Phase 1 — Aurel, Vị Vua Tro Tàn (2.400 máu): combo chùy vàng kết thúc bằng cú đập đất, nhảy đập, cột ánh sáng dọc theo hướng bạn đứng, dịch chuyển ra sau lưng, vòng sáng lan tỏa. Đòn chùy phản đòn được.
+  - Phase 2 — Thú Vàng (3.000 máu): cầu sáng đuổi theo bạn, tia sáng quét ngang, ba vòng sóng liên tiếp, mưa sao rơi, bay lên rồi lao xuống. Dưới 40% máu thì đánh dồn dập hơn. Không phản đòn được.
 - **Boss gác cổng hai giai đoạn:** Varek có đòn đánh chậm một nhịp, nhảy đập, ném dao vàng, và khi còn nửa máu thì dùng thêm búa vàng tạo sóng xung kích và mưa ánh sáng.
 - **Rồng Ignarth (boss phụ):** phun lửa quét, bay lên rồi lao xuống, bắn cầu lửa, cắn liên hoàn, và quật đuôi nếu bạn đứng sau lưng. Khi còn dưới 40% máu thì nổi điên. Hạ rồng sẽ nhận được đại kiếm.
 - **Đầm Lầy Tro Độc:** đứng trong ao tím sẽ tích độc, đầy thanh thì bị trúng độc và mất máu dần. Đi bằng ngựa sẽ không bị ảnh hưởng. Nghỉ ở Ân Điển để giải độc.
 - **Ân Điển:** nghỉ ngơi để hồi máu và Bình Máu (kẻ địch cũng hồi sinh), lên cấp bằng rune, và dịch chuyển giữa các Ân Điển đã tìm thấy.
 - **Chết thì mất rune:** rune rơi tại chỗ bạn chết. Quay lại nhặt trước khi chết lần nữa.
 - **Độ khó:** quái có nhiều máu hơn và đánh đau hơn, rune rơi ít đi, lên cấp đắt hơn, Bình Máu hồi ít máu hơn.
-- **Quái mạnh dần:** như Elden Ring, quái mạnh hơn theo vùng đất (vùng xa như phía đông, Cõi Vàng: máu và sát thương tới +35–50%). Ngoài ra, mỗi cấp người chơi làm quái tăng 3% máu và 2% sát thương; chỉ số này hiện trong menu lên cấp. Rune rơi ra cũng tăng theo.
+- **Quái mạnh dần theo vùng đất** (giống Elden Ring, không tăng theo cấp người chơi): đồng cỏ +0%, tàn tích +10%, gần cổng Varek +10–20%, đầm lầy +25%, phía đông +35–50%, Cõi Vàng +55%. Quái ở vùng khó hơn cũng rơi nhiều rune hơn.
 - **Bình Máu:** bắt đầu với 3 bình, tối đa 8. Khi đã đủ, Hạt Vàng đổi thành rune.
 - **Thế giới mở:** 10 vùng, 9 Ân Điển, Hạt Vàng (thêm lượt Bình Máu), Đá Rèn Kiếm (cường hóa vũ khí), lời nhắn gợi ý trên mặt đất, và ngựa linh để đi nhanh.
 - **Tự động lưu** vào `localStorage` khi nghỉ ở Ân Điển, nhặt vật phẩm, chết hoặc hạ boss.

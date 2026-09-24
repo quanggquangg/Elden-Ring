@@ -472,9 +472,9 @@ const maxSt = () => 80 + 5 * (S.stats.end - 10);
 const maxFp = () => 50 + 7 * (S.stats.mnd - 10);
 const weaponDmg = () => 18 + 2.6 * (S.stats.str - 10) + 5 * S.weaponLv;
 const spellDmg = () => 26 + 3.5 * (S.stats.mnd - 10);
-// Elden Ring tăng sức mạnh quái theo vùng đất; game này cộng thêm một lượng nhỏ theo cấp người chơi.
+// Như Elden Ring: quái mạnh theo vùng đất, không theo cấp người chơi.
 function regionMul(x, y) {
-  if (x > MAPW) return 1.4;
+  if (x > MAPW) return 1.55;
   if (y < 420) return 1.45;
   if (inRect(x, y, COLO.rect)) return 1.5;
   if (inRect(x, y, FORT)) return 1.45;
@@ -485,8 +485,6 @@ function regionMul(x, y) {
   if (y < 1600 || (x > 370 && x < 1030 && y < 2210)) return 1.1;
   return 1;
 }
-const lvHp = () => 1 + 0.03 * (S.level - 1);
-const lvDmg = () => 1 + 0.02 * (S.level - 1);
 const levelCost = () => Math.floor(200 * Math.pow(1.14, S.level - 1) + 35 * S.level);
 
 const G = {
@@ -770,8 +768,8 @@ const ETYPES = {
   },
 };
 function makeEnemy(type, x, y) {
-  const T = ETYPES[type], rm = regionMul(x, y), hp = Math.round(T.hp * DIFF.hp * rm * lvHp());
-  return { type, T, name: T.name, x, y, hx: x, hy: y, r: T.r, hp, maxHp: hp, fade: 0, runeMul: rm * (1 + 0.02 * (S.level - 1)), face: rand(0, TAU), state: 'idle', t: 0, cd: rand(0.5, 1.5), vx: 0, vy: 0,
+  const T = ETYPES[type], rm = regionMul(x, y), hp = Math.round(T.hp * DIFF.hp * rm);
+  return { type, T, name: T.name, x, y, hx: x, hy: y, r: T.r, hp, maxHp: hp, fade: 0, runeMul: rm, face: rand(0, TAU), state: 'idle', t: 0, cd: rand(0.5, 1.5), vx: 0, vy: 0,
     poise: T.poise, poiseAcc: 0, lastHit: 9, hurtFlash: 0, atk: null, atkHit: false, lunged: false, fired: false, glinted: false, wander: null,
     strafe: Math.random() < 0.5 ? 1 : -1, elite: !!T.elite, dead: false, anim: rand(0, 10), moving: false, stagDur: 0.5 };
 }
@@ -782,7 +780,7 @@ function spawnEnemies() {
   G.colo.active = false; G.colo.wave = 0; G.braziers = [];
 }
 function makeBoss() {
-  return { isBoss: true, name: 'Varek, Kẻ Canh Cổng Phản Trắc', x: 1400, y: 640, r: 28, hp: Math.round(1300 * lvHp()), maxHp: Math.round(1300 * lvHp()), ghost: Math.round(1300 * lvHp()), face: Math.PI / 2, state: 'dormant', t: 0, cd: 1,
+  return { isBoss: true, name: 'Varek, Kẻ Canh Cổng Phản Trắc', x: 1400, y: 640, r: 28, hp: 1300, maxHp: 1300, ghost: 1300, face: Math.PI / 2, state: 'dormant', t: 0, cd: 1,
     vx: 0, vy: 0, poise: 170, poiseAcc: 0, lastHit: 9, hurtFlash: 0, phase: 1, atk: null, dead: false, z: 0, elite: true, invuln: 0, anim: 0, stagDur: 0.8, lastMove: '', bleedMax: 180,
     look: { body: '#4d4234', trim: '#c9a34a', head: '#2c2721', cloak: '#2a241b', weapon: 'greatsword', wlen: 40, wcol: '#dcc06a', scale: 1.9, hood: true, glow: true } };
 }
@@ -1220,7 +1218,7 @@ function updatePlayer(dt) {
 function hurtPlayer(dmg, fx, fy, heavy, src = null, kind = 'melee') {
   const p = P;
   if (p.state === 'dead' || p.invuln > 0 || G.mode !== 'play') return false;
-  dmg *= DIFF.dmg * lvDmg() * regionMul(P.x, P.y);
+  dmg *= DIFF.dmg * regionMul(P.x, P.y);
   if (p.state === 'roll' && p.t > 0.03 && p.t < 0.36) return false; // khung bất tử khi lăn
   const from = Math.atan2(fy - p.y, fx - p.x);
   if (p.state === 'guard' && (dist(fx, fy, p.x, p.y) < 4 || Math.abs(angDiff(p.face, from)) < 1.5)) {
@@ -1711,7 +1709,7 @@ function bossDefeated() {
 
 // ───────────────────────── rồng: Ignarth ─────────────────────────
 function makeDragon() {
-  return { isDragon: true, noParry: true, name: 'Ignarth, Rồng Tro Cổ Đại', x: LAIR.x, y: LAIR.y, r: 40, hp: Math.round(2000 * lvHp()), maxHp: Math.round(2000 * lvHp()), ghost: Math.round(2000 * lvHp()),
+  return { isDragon: true, noParry: true, name: 'Ignarth, Rồng Tro Cổ Đại', x: LAIR.x, y: LAIR.y, r: 40, hp: 2000, maxHp: 2000, ghost: 2000,
     face: Math.PI * 0.8, state: 'sleep', t: 0, cd: 1, vx: 0, vy: 0, poise: 260, poiseAcc: 0, lastHit: 9, hurtFlash: 0, atk: null, dead: false,
     z: 0, elite: true, invuln: 0, anim: 0, stagDur: 1, bleed: 0, bleedMax: 220, lastMove: '', spin: 0, charge: 0, breathing: false, breathDir: 0, flying: false };
 }
@@ -1897,7 +1895,7 @@ function dragonDefeated() {
 
 // ───────────────────────── trận cuối: Aurel (phase 1) và Thú Vàng (phase 2) ─────────────────────────
 function makeFinal() {
-  const hp = Math.round(1800 * lvHp());
+  const hp = 2400;
   return { isFinal: true, name: 'Aurel, Vị Vua Tro Tàn', x: RC.x, y: RC.y - 170, r: 26, hp, maxHp: hp, ghost: hp, face: Math.PI / 2, state: 'intro', t: 0, cd: 1.2,
     vx: 0, vy: 0, poise: 240, poiseAcc: 0, lastHit: 9, hurtFlash: 0, phase: 1, atk: null, dead: false, z: 0, elite: true, invuln: 0, anim: 0, stagDur: 0.8,
     lastMove: '', bleedMax: 240, beamDir: 0, beaming: false, charge: 0, fx: false,
@@ -2087,7 +2085,7 @@ function updateFinal(dt) {
       if (!f.fx && f.t > 1.8) {
         f.fx = true; SFX.roar(); shake(18); G.white = 0.85;
         burst(f.x, f.y, 90, '#fff1c2', 320, 5, 'dot', 1.4);
-        const hp = Math.round(2400 * lvHp());
+        const hp = 3000;
         Object.assign(f, { phase: 2, name: 'Thú Vàng, Hiện Thân Vòng Vàng', r: 44, hp, maxHp: hp, ghost: hp, poise: 330, poiseAcc: 0, noParry: true, bleed: 0, bleedMax: 320 });
         subtitle('“Vòng Vàng tự phán xét kẻ nhạt phai.”', 4);
       }
@@ -3383,7 +3381,7 @@ function renderGrace() {
   $('lvCost').className = S.runes < cost ? 'short' : '';
   $('statList').innerHTML = STAT_INFO.map(([k, n, d]) =>
     `<li><div class="nm"><span>${n}</span><span>${d}</span></div><span class="val">${S.stats[k]}</span><button class="plus" data-stat="${k}" aria-label="Tăng ${n}" ${S.runes < cost ? 'disabled' : ''}>+</button></li>`).join('');
-  const rows = [['Quái mạnh thêm', '+' + Math.round((lvHp() - 1) * 100) + '%'], ['Máu', maxHp()], ['Thể lực', maxSt()], ['FP', maxFp()], ['Sát thương', Math.round(weaponDmg())], ['Phép', Math.round(spellDmg())], ['Bình Máu', S.flaskMax]];
+  const rows = [['Máu', maxHp()], ['Thể lực', maxSt()], ['FP', maxFp()], ['Sát thương', Math.round(weaponDmg())], ['Phép', Math.round(spellDmg())], ['Bình Máu', S.flaskMax]];
   $('derived').innerHTML = rows.map(([k, v]) => `<div><dt class="k">${k}</dt><dd><b>${v}</b></dd></div>`).join('');
   const list = GRACES.filter(g => S.discovered.includes(g.id));
   $('gearList').innerHTML = WEAPON_ORDER.filter(w => S.weapons.includes(w)).map(w => `<li><button data-weapon="${w}"><span>${WEAPONS[w].name}<br><small>${WEAPONS[w].desc}</small></span><small>${w === S.equipped ? 'Đang dùng' : 'Trang bị'}</small></button></li>`).join('');
