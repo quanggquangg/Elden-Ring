@@ -132,11 +132,16 @@ const BRAZIER_ORDER = ['e', 'n', 'w'];
 const STATUES = [{ id: 's1', x: 2980, y: 1980 }, { id: 's2', x: 4250, y: 1990 }, { id: 's3', x: 2990, y: 2720 }, { id: 's4', x: 4240, y: 2720 }];
 const FLAG = { x: 3600, y: 3230 };
 // Bia Bản Đồ: đọc để mở toàn bộ một vùng trên bản đồ (như mảnh bản đồ trong Elden Ring)
+// Bia Bản Đồ đặt gần lối vào mỗi vùng, trên đường chính (như Elden Ring, tháp trong Zelda BotW).
+// Bia chỉ mở bản đồ dạng phác thảo: thấy địa hình và tên vùng; nơi đã tự đi qua mới hiện đầy đủ.
+// Bí mật (rương, tượng, lò lửa, tường ảo, bên trong pháo đài) không bao giờ hiện lên bản đồ.
 const MAP_FRAGS = [
-  { id: 'm1', x: 1180, y: 2650, name: 'Đồng Cỏ Sương Mờ', rect: { x: 0, y: 1500, w: 2050, h: 2100 } },
-  { id: 'm2', x: 1620, y: 1380, name: 'Miền Bắc', rect: { x: 0, y: 0, w: 2100, h: 1600 } },
-  { id: 'm3', x: 1950, y: 2200, name: 'Đầm Lầy Tro Độc', rect: { x: 2000, y: 1000, w: 800, h: 2600 } },
-  { id: 'm4', x: 2790, y: 2620, name: 'Miền Đông', rect: { x: 2800, y: 0, w: 1600, h: 3600 } },
+  { id: 'm1', x: 1180, y: 2650, name: 'Đồng Cỏ Phía Nam', rect: { x: 0, y: 2230, w: 2050, h: 1370 } },
+  { id: 'm2', x: 1620, y: 1380, name: 'Miền Bắc', rect: { x: 0, y: 420, w: 2100, h: 1180 } },
+  { id: 'm3', x: 2150, y: 2080, name: 'Đầm Lầy Tro Độc', rect: { x: 2000, y: 1000, w: 800, h: 1100 } },
+  { id: 'm4', x: 3020, y: 1700, name: 'Cao Nguyên Tro Đông', rect: { x: 2800, y: 420, w: 1600, h: 1480 } },
+  { id: 'm5', x: 3060, y: 2250, name: 'Rừng Linh Hồn', rect: { x: 2850, y: 1900, w: 1500, h: 900 } },
+  { id: 'm6', x: 3320, y: 2815, name: 'Vùng Nam Phía Đông', rect: { x: 2800, y: 2800, w: 1600, h: 800 } },
 ];
 // sương mù bản đồ: mỗi ô 100×100 đơn vị, mở ra khi người chơi đi qua
 const EXP_CELL = 100, EXP_COLS = Math.ceil(4400 / EXP_CELL), EXP_ROWS = Math.ceil(3600 / EXP_CELL);
@@ -155,10 +160,11 @@ function expDecode(str) {
   if (!str) return;
   for (let k = 0; k < str.length; k++) { const v = parseInt(str[k], 16) || 0; for (let b = 0; b < 4; b++) if (k * 4 + b < EXP.length) EXP[k * 4 + b] = (v >> b) & 1; }
 }
+function fragAt(x, y) { return !inRect(x, y, FORT) && MAP_FRAGS.some(f => S.frags.includes(f.id) && inRect(x, y, f.rect)); }
 function revealedAt(x, y) {
   const cx = Math.floor(x / EXP_CELL), cy = Math.floor(y / EXP_CELL);
   if (cx >= 0 && cy >= 0 && cx < EXP_COLS && cy < EXP_ROWS && EXP[cy * EXP_COLS + cx]) return true;
-  return MAP_FRAGS.some(f => S.frags.includes(f.id) && inRect(x, y, f.rect));
+  return fragAt(x, y);
 }
 const inRect = (x, y, r, m = 0) => x > r.x - m && x < r.x + r.w + m && y > r.y - m && y < r.y + r.h + m;
 const WALLS = [
@@ -212,8 +218,8 @@ const GRACES = [
 const ITEMS = [
   { id: 'seed1', x: 470, y: 1710, kind: 'seed' },
   { id: 'seed2', x: 2480, y: 2300, kind: 'seed' },
-  { id: 'seed3', x: 260, y: 2950, kind: 'seed' },
-  { id: 'seed4', x: 500, y: 800, kind: 'seed' },
+  { id: 'seed3', x: 260, y: 2950, kind: 'runes', amount: 400 },
+  { id: 'seed4', x: 500, y: 800, kind: 'runes', amount: 500 },
   { id: 'stone1', x: 910, y: 1710, kind: 'stone' },
   { id: 'stone2', x: 2715, y: 1235, kind: 'stone' },
   { id: 'stone3', x: 1000, y: 2960, kind: 'stone' },
@@ -225,14 +231,14 @@ const CHESTS = [
   { id: 'c_katana', x: 700, y: 1760, loot: { weapon: 'katana' } },
   { id: 'c_spear', x: 2300, y: 3390, loot: { weapon: 'spear' } },
   { id: 'c_north', x: 2600, y: 900, loot: { runes: 300, stone: 1 } },
-  { id: 'c_west', x: 300, y: 1500, loot: { runes: 200, seed: 1 } },
+  { id: 'c_west', x: 300, y: 1500, loot: { runes: 400 } },
   { id: 'c_swamp', x: 2720, y: 2000, loot: { runes: 600, stone: 1 } },
   { id: 'c_troll', x: 2900, y: 1150, loot: { runes: 500, seed: 1 } },
-  { id: 'c_fort_secret', x: 3284, y: 1190, loot: { runes: 1000, seed: 1 } },
+  { id: 'c_fort_secret', x: 3284, y: 1190, loot: { runes: 1500 } },
   { id: 'c_keep', x: 3700, y: 610, loot: { runes: 800, stone: 2 } },
   { id: 'c_hut', x: 3025, y: 3225, loot: { runes: 700, stone: 1 } },
   { id: 'c_glade', x: 3650, y: 2300, loot: { seed: 1, stone: 1 }, req: () => S.glade },
-  { id: 'c_colo', x: 3600, y: 3330, loot: { runes: 2500, stone: 2, seed: 1 }, req: () => S.coloDone, noObst: true },
+  { id: 'c_colo', x: 3600, y: 3330, loot: { runes: 2500, stone: 2 }, req: () => S.coloDone, noObst: true },
 ];
 const NOTES = [
   { x: 1400, y: 3130, text: 'Phía trước có kẻ địch. Lăn né (Space) đúng lúc chúng vung vũ khí.' },
@@ -2262,7 +2268,7 @@ function interact() {
   if (mf) {
     S.frags.push(mf.id); SFX.grace();
     burst(mf.x, mf.y - 20, 30, '#cfe0ff', 110, 3, 'mote', 1.2);
-    banner('item', 'Mảnh Bản Đồ', 'Đã mở bản đồ: ' + mf.name + ' · bấm ' + (G.touch ? 'Bản đồ' : 'G') + ' để xem', 4);
+    banner('item', 'Mảnh Bản Đồ', 'Đã phác thảo bản đồ: ' + mf.name + ' · bấm ' + (G.touch ? 'Bản đồ' : 'G') + ' để xem', 4);
     save(); return;
   }
   const it = nearItem();
@@ -2358,6 +2364,7 @@ function takeItem(it) {
     if (S.flaskMax < FLASK_CAP) { S.flaskMax++; P.flasks++; banner('item', 'Hạt Vàng', 'Số lần dùng Bình Máu tăng lên ' + S.flaskMax); }
     else { gainRunes(300, it.x, it.y); banner('item', 'Hạt Vàng', 'Bình Máu đã tối đa (' + FLASK_CAP + ') · đổi thành 300 rune'); }
   }
+  else if (it.kind === 'runes') { gainRunes(it.amount, it.x, it.y); banner('item', 'Túi Rune', '+' + it.amount + ' rune'); }
   else if (it.kind === 'stone') { S.weaponLv++; banner('item', 'Đá Rèn Kiếm', 'Vũ khí được cường hóa lên +' + S.weaponLv); }
   else {
     if (!S.weapons.includes(it.w)) S.weapons.push(it.w);
@@ -3052,7 +3059,7 @@ function drawDecals() {
     if (S.taken.includes(it.id) || !inView(it.x, it.y, 40)) continue;
     const p = 0.6 + Math.sin(t * 4 + it.x) * 0.4;
     ctx.fillStyle = `rgba(255,248,220,${0.25 * p})`; ctx.beginPath(); ctx.arc(it.x, it.y, 16, 0, TAU); ctx.fill();
-    ctx.fillStyle = it.kind === 'seed' ? '#ffe28a' : it.kind === 'weapon' ? '#ffb86a' : '#e8f0ff'; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
+    ctx.fillStyle = it.kind === 'seed' ? '#ffe28a' : it.kind === 'weapon' ? '#ffb86a' : it.kind === 'runes' ? '#f3c35a' : '#e8f0ff'; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.arc(it.x, it.y, 3.5 + p, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
   }
   for (const n of NOTES) {
@@ -3557,8 +3564,12 @@ maskCanvas.width = EXP_COLS; maskCanvas.height = EXP_ROWS;
 function mapMask() {
   const m = maskCanvas.getContext('2d'), img = m.createImageData(EXP_COLS, EXP_ROWS);
   for (let cy = 0; cy < EXP_ROWS; cy++) for (let cx = 0; cx < EXP_COLS; cx++) {
-    const i = (cy * EXP_COLS + cx) * 4, open = revealedAt((cx + 0.5) * EXP_CELL, (cy + 0.5) * EXP_CELL);
-    img.data[i] = 24; img.data[i + 1] = 19; img.data[i + 2] = 13; img.data[i + 3] = open ? 0 : 255;
+    const i = (cy * EXP_COLS + cx) * 4, x = (cx + 0.5) * EXP_CELL, y = (cy + 0.5) * EXP_CELL;
+    const walked = EXP[cy * EXP_COLS + cx], sketch = !walked && fragAt(x, y);
+    // đã đi qua: rõ nét; chỉ có bia: phác thảo mờ màu giấy da; chưa biết: tối hẳn
+    if (walked) { img.data[i + 3] = 0; continue; }
+    if (sketch) { img.data[i] = 96; img.data[i + 1] = 78; img.data[i + 2] = 50; img.data[i + 3] = 118; }
+    else { img.data[i] = 24; img.data[i + 1] = 19; img.data[i + 2] = 13; img.data[i + 3] = 255; }
   }
   m.putImageData(img, 0, 0);
   return maskCanvas;

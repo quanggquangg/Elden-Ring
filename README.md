@@ -55,7 +55,7 @@ Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, gi
 - **Đâm lưng:** đánh vào sau lưng kẻ địch chưa phát hiện ra bạn sẽ gây sát thương chí mạng.
 - **Vũ khí phải tự đi tìm:** bạn bắt đầu với Kiếm Gãy. Kiếm Thẳng, Uchigatana Tro (gây chảy máu) và Giáo Kỵ Sĩ (đâm xa) nằm trong rương, thường có kẻ địch canh giữ. Hạ Varek nhận Kiếm Vàng Varek (đòn mạnh phóng sóng ánh sáng), hạ rồng nhận Đại Kiếm Nanh Rồng, hạ Dornach nhận Chùy Vệ Binh, hạ Seluna nhận Liềm Hồn Ma (quét rộng, gây chảy máu). Đổi vũ khí bằng phím mũi tên hoặc ở tab Trang bị khi nghỉ tại Ân Điển.
 - **Rương báu:** 15 rương rải rác khắp bản đồ, có rương chỉ xuất hiện sau khi giải đố hoặc vượt thử thách, chứa vũ khí, rune, Đá Rèn Kiếm và Hạt Vàng.
-- **Bản đồ (`G`) mở dần theo tiến trình:** lúc đầu chỉ thấy quanh Nhà Nguyện. Vùng quanh đường bạn đi sẽ tự hiện ra. Đọc 4 **Bia Bản Đồ** (bia đá phát sáng xanh) để mở toàn bộ một vùng, giống mảnh bản đồ trong Elden Ring. Cây Vàng luôn hiện làm mốc định hướng. Bản đồ còn hiện các Ân Điển đã tìm thấy, vị trí của bạn và chỗ rơi rune.
+- **Bản đồ (`G`) mở dần theo tiến trình:** lúc đầu chỉ thấy quanh Nhà Nguyện, và nơi nào bạn tự đi qua sẽ hiện rõ. 6 **Bia Bản Đồ** (bia đá phát sáng xanh) nằm gần lối vào mỗi vùng, trên đường chính, giống mảnh bản đồ trong Elden Ring hay tháp trong Zelda. Đọc bia chỉ mở bản đồ **dạng phác thảo** (tông giấy da mờ, thấy địa hình và tên vùng), phải tự đi qua mới hiện đầy đủ. Rương, tượng đá, lò lửa, tường ảo và bên trong pháo đài không bao giờ hiện trên bản đồ. Cây Vàng luôn hiện làm mốc định hướng.
 - **Kẻ địch:** mỗi loại có kỹ năng riêng, và mọi đòn đánh đều có thời gian vung báo trước.
   - Lính Tàn Binh, bầy Sói Xám, Kỵ Sĩ Tro Tàn (tinh anh, combo 2 đòn).
   - Pháp Sư Lưu Đày: bắn đạn phép.
@@ -86,7 +86,7 @@ Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, gi
 - **Độ khó:** quái có nhiều máu hơn và đánh đau hơn, rune rơi ít đi, lên cấp đắt hơn, Bình Máu hồi ít máu hơn.
 - **Quái mạnh dần theo vùng đất** (giống Elden Ring, không tăng theo cấp người chơi): đồng cỏ +0%, tàn tích +10%, gần cổng Varek +10–20%, đầm lầy +25%, phía đông +35–50%, Cõi Vàng +55%. Quái ở vùng khó hơn cũng rơi nhiều rune hơn.
 - **Bình Máu:** bắt đầu với 3 bình, tối đa 8. Khi đã đủ, Hạt Vàng đổi thành rune.
-- **Thế giới mở:** 10 vùng, 9 Ân Điển, Hạt Vàng (thêm lượt Bình Máu), Đá Rèn Kiếm (cường hóa vũ khí), lời nhắn gợi ý trên mặt đất, và ngựa linh để đi nhanh.
+- **Thế giới mở:** 10 vùng, 9 Ân Điển, 5 Hạt Vàng rải theo tiến trình (thêm lượt Bình Máu), Đá Rèn Kiếm (cường hóa vũ khí), Túi Rune ở những góc khuất, lời nhắn gợi ý trên mặt đất, và ngựa linh để đi nhanh.
 - **Hình ảnh:**
   - Ánh sáng động: mỗi vùng có độ tối và tông màu riêng. Ân Điển, lò lửa, phép, cầu lửa, Cây Vàng, hồn ma và boss tỏa sáng, soi rõ vùng quanh chúng.
   - Không khí theo vùng: sương mù trôi, tro bay ở vùng đông, đom đóm ở Rừng Linh Hồn và đầm lầy, lá vàng rơi quanh Cây Vàng.
