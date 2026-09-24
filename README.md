@@ -24,7 +24,7 @@ Mục tiêu: rời Nhà Nguyện, băng qua Đồng Cỏ Sương Mờ, hạ gụ
 | Lăn né (có khung bất tử) | `Space` |
 | Đánh thường (combo 3 đòn) | `J` / chuột trái |
 | Đánh mạnh | `K` / chuột phải |
-| Phép Đá Sao | `L` hoặc `C` |
+| Phép Đá Sao | `C` / chuột giữa (hoặc `L` nếu chơi toàn bàn phím) |
 | Uống Bình Máu | `R` |
 | Tương tác (Ân Điển, vật phẩm, lời nhắn) | `E` |
 | Khóa mục tiêu | `Q` |

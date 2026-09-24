@@ -476,7 +476,7 @@ window.addEventListener('keydown', e => {
   if (G.mode !== 'play') return;
   keys.add(e.code);
   const a = KEYMAP[e.code];
-  if (a && !e.repeat) { if (a === 'light' || a === 'heavy' || a === 'spell') aimMode = 'keys'; act(a); }
+  if (a && !e.repeat) { if (e.code === 'KeyJ' || e.code === 'KeyK' || e.code === 'KeyL') aimMode = 'keys'; act(a); }
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
 });
 window.addEventListener('keyup', e => keys.delete(e.code));
@@ -488,8 +488,9 @@ canvas.addEventListener('mousedown', e => {
   if (G.touch) return;
   audioInit();
   const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; aimMode = 'mouse';
-  if (e.button === 0) act('light'); else if (e.button === 2) act('heavy');
+  if (e.button === 0) act('light'); else if (e.button === 1) { e.preventDefault(); act('spell'); } else if (e.button === 2) act('heavy');
 });
+canvas.addEventListener('auxclick', e => e.preventDefault());
 function moveInput() {
   let x = 0, y = 0;
   if (keys.has('KeyW') || keys.has('ArrowUp')) y -= 1;
@@ -590,7 +591,7 @@ function doAction(a, moving, mx, my) {
       break;
     case 'spell':
       if (P.mounted) return;
-      if (P.fp < 10) { toast('Không đủ FP'); return; }
+      if (P.fp < 10) { toast('Không đủ FP'); G.fpWarn = 1; return; }
       P.fp -= 10; P.state = 'cast'; P.t = 0; P.cast = false; P.face = aimFace(moving, mx, my);
       break;
     case 'flask':
@@ -627,7 +628,7 @@ function updatePlayer(dt) {
   if (p.invuln > 0) p.invuln -= dt;
   if (p.ghostDelay > 0) p.ghostDelay -= dt; else p.ghost = Math.max(p.hp, p.ghost - p.maxHp * 0.5 * dt);
   if (p.ghost < p.hp) p.ghost = p.hp;
-  p.fp = Math.min(p.maxFp, p.fp + 1.2 * dt);
+  p.fp = Math.min(p.maxFp, p.fp + 4 * dt);
   if (p.stDelay > 0) p.stDelay -= dt;
   else if (p.state !== 'roll' && p.state !== 'attack') p.st = Math.min(p.maxSt, p.st + (p.state === 'drink' ? 18 : p.mounted ? 60 : 48) * dt);
   const ox = p.x, oy = p.y;
@@ -1172,6 +1173,7 @@ function update(dt) {
 function tick(dt) {
   G.shake = Math.max(0, G.shake - dt * 30);
   G.flash = Math.max(0, G.flash - dt * 1.6);
+  G.fpWarn = Math.max(0, (G.fpWarn || 0) - dt);
   G.fade = Math.max(0, G.fade - dt * 1.4);
   if (G.banner) { G.banner.t += dt; if (G.banner.t > G.banner.dur) G.banner = null; }
   if (G.sub) { G.sub.t += dt; if (G.sub.t > G.sub.dur) G.sub = null; }
@@ -1615,7 +1617,9 @@ function spacedFont(px, weight = 600) { return `${weight} ${px}px ${FONT_D}`; }
 function drawHUD() {
   const x = 20, y = 20, maxW = CW - 40;
   bar(x, y, Math.min(maxW * 0.7, P.maxHp * 1.25), 11, P.hp / P.maxHp, P.ghost / P.maxHp, '#a3201c');
-  bar(x, y + 19, Math.min(maxW * 0.6, P.maxFp * 1.7), 6, P.fp / P.maxFp, null, '#3d5fc6');
+  const fpW = Math.min(maxW * 0.6, P.maxFp * 1.7);
+  bar(x, y + 19, fpW, 6, P.fp / P.maxFp, null, '#3d5fc6');
+  if (G.fpWarn > 0 && Math.sin(G.fpWarn * 30) > 0) { ctx.strokeStyle = '#e0503c'; ctx.lineWidth = 2; ctx.strokeRect(x - 3, y + 16, fpW + 6, 12); ctx.lineWidth = 1; }
   bar(x, y + 31, Math.min(maxW * 0.6, P.maxSt * 1.9), 6, P.st / P.maxSt, null, '#4f8f3e');
   // bình máu
   const fx = x, fy = y + 48, fs = 40;
@@ -1686,7 +1690,7 @@ function drawHUD() {
   if (!G.touch && G.hintT < 22 && G.mode === 'play') {
     ctx.globalAlpha = Math.min(1, (22 - G.hintT) / 2) * 0.75;
     ctx.font = `500 12px ${FONT_U}`; ctx.fillStyle = '#d8ccb0';
-    ctx.fillText('WASD di chuyển · Space lăn · J/K đánh · L phép · R bình máu · E tương tác · Q khóa · F ngựa · Esc tạm dừng', 20, CH - 22);
+    ctx.fillText('WASD di chuyển · Space lăn · J/K đánh · C/chuột giữa phép · R bình máu · E tương tác · Q khóa · F ngựa · Esc tạm dừng', 20, CH - 22);
     ctx.globalAlpha = 1;
   }
 }
