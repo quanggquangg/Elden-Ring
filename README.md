@@ -17,31 +17,36 @@ Mục tiêu: rời Nhà Nguyện, băng qua Đồng Cỏ Sương Mờ, hạ gụ
 
 ## Điều khiển
 
-| Hành động | Bàn phím / chuột |
-|---|---|
-| Di chuyển | `W` `A` `S` `D` hoặc phím mũi tên |
-| Chạy nhanh | giữ `Shift` |
-| Lăn né (có khung bất tử) | `Space` |
-| Đánh thường (combo 3 đòn) | `J` / chuột trái |
-| Đánh mạnh | `K` / chuột phải |
-| Phép Đá Sao | `C` / chuột giữa (hoặc `L` nếu chơi toàn bàn phím) |
-| Đỡ đòn / phản đòn (parry) | giữ `X` |
-| Đổi vũ khí | `1`–`4`, hoặc `T` để xoay vòng |
-| Uống Bình Máu | `R` |
-| Tương tác (Ân Điển, vật phẩm, lời nhắn) | `E` |
-| Khóa mục tiêu | `Q` |
-| Gọi / xuống ngựa | `F` |
-| Tạm dừng | `Esc` |
-| Tắt/bật âm thanh | `M` |
+Phím được đặt theo Elden Ring bản PC (bố cục mặc định trước bản mở rộng Shadow of the Erdtree). Game không có nút nhảy, nên `Space` dùng cho lăn và chạy như bản gốc.
 
-Trên điện thoại, game tự hiện cần điều khiển ảo và các nút bấm.
+| Hành động | Bàn phím / chuột | Tay cầm (Xbox / PlayStation) |
+|---|---|---|
+| Di chuyển | `W` `A` `S` `D` | cần trái |
+| Lăn né | nhấn `Space` | nhấn B / ○ |
+| Chạy nhanh | giữ `Space` | giữ B / ○ |
+| Đánh thường | chuột trái | RB / R1 |
+| Đánh mạnh | `Shift` + chuột trái | RT / R2 |
+| Đỡ / phản đòn | giữ chuột phải | giữ LB / L1 |
+| Phép Đá Sao (vị trí nút Skill) | `Shift` + chuột phải | LT / L2 |
+| Uống Bình Máu | `R` | X / □ |
+| Tương tác, mở rương | `E` | Y / △ |
+| Khóa mục tiêu | `Q` hoặc chuột giữa | R3 |
+| Đổi vũ khí | `←` `→` (hoặc `1`–`6`) | D-pad ← → |
+| Gọi / xuống ngựa | `F` | A / × |
+| Bản đồ | `G` | Back / Share |
+| Tạm dừng | `Esc` | Start / Options |
+| Tắt/bật âm thanh | `M` | |
+
+Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để đỡ, `C` dùng phép. Trên điện thoại, game tự hiện cần điều khiển ảo và các nút bấm.
 
 ## Tính năng
 
 - **Chiến đấu kiểu souls:** thanh thể lực, lăn né có khung bất tử, combo đòn nhẹ, đòn mạnh phá thế, đòn chí mạng khi kẻ địch mạnh bị mất thế, và bộ đệm lệnh để nối đòn mượt.
 - **Đỡ và phản đòn:** giữ `X` để giơ khiên chặn phần lớn sát thương (tốn thể lực). Nếu giơ khiên đúng lúc kẻ địch vung vũ khí, bạn phản đòn và chúng mất thế, sẵn sàng cho một đòn chí mạng. Rồng không phản đòn được.
 - **Đâm lưng:** đánh vào sau lưng kẻ địch chưa phát hiện ra bạn sẽ gây sát thương chí mạng.
-- **4 vũ khí:** Kiếm Thẳng (cân bằng), Uchigatana Tro (nhanh, gây chảy máu), Giáo Kỵ Sĩ (đâm xa, góc hẹp), và Đại Kiếm Nanh Rồng (chậm, cực mạnh, không bị ngắt đòn). Đổi vũ khí bằng phím số hoặc ở tab Trang bị khi nghỉ tại Ân Điển.
+- **Vũ khí phải tự đi tìm:** bạn bắt đầu với Kiếm Gãy. Kiếm Thẳng, Uchigatana Tro (gây chảy máu) và Giáo Kỵ Sĩ (đâm xa) nằm trong rương, thường có kẻ địch canh giữ. Hạ Varek nhận Kiếm Vàng Varek (đòn mạnh phóng sóng ánh sáng), hạ rồng nhận Đại Kiếm Nanh Rồng (không bị ngắt đòn). Đổi vũ khí bằng phím mũi tên hoặc ở tab Trang bị khi nghỉ tại Ân Điển.
+- **Rương báu:** 6 rương rải rác khắp bản đồ, chứa vũ khí, rune, Đá Rèn Kiếm và Hạt Vàng.
+- **Bản đồ (`G`):** hiện các vùng, những Ân Điển đã tìm thấy, vị trí của bạn và chỗ rơi rune.
 - **Kẻ địch:** Lính Tàn Binh, bầy Sói Xám, Pháp Sư Lưu Đày bắn đạn phép, Thây Ma Đầm Lầy (đánh trúng sẽ gây độc), và Kỵ Sĩ Tro Tàn (tinh anh). Mỗi đòn đánh đều có thời gian vung báo trước.
 - **Boss hai giai đoạn:** Varek có đòn đánh chậm một nhịp, nhảy đập, ném dao vàng, và khi còn nửa máu thì dùng thêm búa vàng tạo sóng xung kích và mưa ánh sáng.
 - **Rồng Ignarth (boss phụ):** phun lửa quét, bay lên rồi lao xuống, bắn cầu lửa, cắn liên hoàn, và quật đuôi nếu bạn đứng sau lưng. Khi còn dưới 40% máu thì nổi điên. Hạ rồng sẽ nhận được đại kiếm.

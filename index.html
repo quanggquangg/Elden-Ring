@@ -101,7 +101,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 .tb.big{font-size:15px;border-color:rgba(242,220,151,.8);background:rgba(40,32,18,.55)}
 .tb:active,.tb.on{background:rgba(214,178,94,.35)}
 #topBtns{position:absolute;right:12px;top:118px;display:flex;gap:8px;pointer-events:auto}
-#topBtns button{appearance:none;width:46px;height:34px;border:1px solid rgba(214,178,94,.45);background:rgba(12,10,8,.55);color:var(--parch);font:600 12px/1 var(--ui);padding:0}
+#topBtns button{appearance:none;min-width:46px;height:34px;border:1px solid rgba(214,178,94,.45);background:rgba(12,10,8,.55);color:var(--parch);font:600 12px/1 var(--ui);padding:0 6px}
 
 @media (max-width:520px){
   .controls{grid-template-columns:1fr}
@@ -127,6 +127,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       <button data-act="lock">Khóa</button>
       <button data-act="mount">Ngựa</button>
       <button data-act="eqnext">Vũ khí</button>
+      <button data-act="map">Bản đồ</button>
       <button data-act="pause" aria-label="Tạm dừng">II</button>
     </div>
   </div>
@@ -143,27 +144,28 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       </svg>
       <p class="eyebrow">Hành trình souls-like 2D</p>
       <h1>Vòng Vàng Vỡ</h1>
-      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy băng qua Đồng Cỏ Sương Mờ, hạ gục kẻ canh cổng Varek và chạm tới Cây Vàng. Nếu đủ can đảm, hãy đánh thức con rồng ngủ trong đầm lầy.</p>
+      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy băng qua Đồng Cỏ Sương Mờ, hạ gục kẻ canh cổng Varek và chạm tới Cây Vàng. Ngươi chỉ có một thanh kiếm gãy. Vũ khí tốt hơn nằm trong những chiếc rương khắp vùng đất, và trong tay các boss.</p>
       <div class="actions">
         <button id="btnContinue" class="mbtn" hidden>Tiếp tục</button>
         <button id="btnNew" class="mbtn">Hành trình mới</button>
       </div>
       <dl class="controls">
         <div><dt>Di chuyển</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd></div>
-        <div><dt>Chạy nhanh</dt><dd><kbd>Shift</kbd></dd></div>
-        <div><dt>Lăn né</dt><dd><kbd>Space</kbd></dd></div>
-        <div><dt>Đánh thường</dt><dd><kbd>J</kbd> / chuột trái</dd></div>
-        <div><dt>Đánh mạnh</dt><dd><kbd>K</kbd> / chuột phải</dd></div>
-        <div><dt>Phép Đá Sao</dt><dd><kbd>C</kbd> / chuột giữa</dd></div>
-        <div><dt>Đỡ / phản đòn</dt><dd>giữ <kbd>X</kbd></dd></div>
-        <div><dt>Đổi vũ khí</dt><dd><kbd>1</kbd>–<kbd>4</kbd> / <kbd>T</kbd></dd></div>
+        <div><dt>Lăn né / chạy nhanh</dt><dd><kbd>Space</kbd> nhấn / giữ</dd></div>
+        <div><dt>Đánh thường</dt><dd>chuột trái</dd></div>
+        <div><dt>Đánh mạnh</dt><dd><kbd>Shift</kbd> + chuột trái</dd></div>
+        <div><dt>Đỡ / phản đòn</dt><dd>giữ chuột phải</dd></div>
+        <div><dt>Phép Đá Sao</dt><dd><kbd>Shift</kbd> + chuột phải</dd></div>
         <div><dt>Uống Bình Máu</dt><dd><kbd>R</kbd></dd></div>
-        <div><dt>Tương tác</dt><dd><kbd>E</kbd></dd></div>
-        <div><dt>Khóa mục tiêu</dt><dd><kbd>Q</kbd></dd></div>
+        <div><dt>Tương tác / mở rương</dt><dd><kbd>E</kbd></dd></div>
+        <div><dt>Khóa mục tiêu</dt><dd><kbd>Q</kbd> / chuột giữa</dd></div>
+        <div><dt>Đổi vũ khí</dt><dd><kbd>←</kbd> <kbd>→</kbd></dd></div>
         <div><dt>Gọi ngựa</dt><dd><kbd>F</kbd></dd></div>
+        <div><dt>Bản đồ</dt><dd><kbd>G</kbd></dd></div>
         <div><dt>Tạm dừng</dt><dd><kbd>Esc</kbd></dd></div>
-        <div><dt>Tắt/bật âm</dt><dd><kbd>M</kbd></dd></div>
+        <div><dt>Chỉ dùng bàn phím</dt><dd><kbd>J</kbd> <kbd>K</kbd> <kbd>X</kbd> <kbd>C</kbd></dd></div>
       </dl>
+      <p class="fine">Tay cầm (giống Elden Ring): R1 đánh · R2 đánh mạnh · L1 đỡ · L2 phép · ○/B lăn (giữ để chạy) · □/X bình máu · △/Y tương tác · ×/A ngựa · R3 khóa · ←→ đổi vũ khí · Share/Back bản đồ</p>
       <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring. Không liên quan tới FromSoftware hay Bandai Namco.</p>
     </div>
   </section>
@@ -172,14 +174,12 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
     <div class="panel center">
       <header><p class="eyebrow">Tạm dừng</p><h2>Hơi thở giữa trận</h2></header>
       <dl class="controls">
-        <div><dt>Lăn né</dt><dd><kbd>Space</kbd></dd></div>
-        <div><dt>Đánh thường / mạnh</dt><dd><kbd>J</kbd> <kbd>K</kbd></dd></div>
-        <div><dt>Phép</dt><dd><kbd>C</kbd> / chuột giữa</dd></div>
-        <div><dt>Đỡ / phản đòn</dt><dd>giữ <kbd>X</kbd></dd></div>
-        <div><dt>Đổi vũ khí</dt><dd><kbd>1</kbd>–<kbd>4</kbd></dd></div>
-        <div><dt>Bình Máu</dt><dd><kbd>R</kbd></dd></div>
-        <div><dt>Tương tác</dt><dd><kbd>E</kbd></dd></div>
-        <div><dt>Khóa / Ngựa</dt><dd><kbd>Q</kbd> <kbd>F</kbd></dd></div>
+        <div><dt>Lăn / chạy</dt><dd><kbd>Space</kbd> nhấn / giữ</dd></div>
+        <div><dt>Đánh / đánh mạnh</dt><dd>chuột trái / <kbd>Shift</kbd>+trái</dd></div>
+        <div><dt>Đỡ / phép</dt><dd>chuột phải / <kbd>Shift</kbd>+phải</dd></div>
+        <div><dt>Bình Máu / tương tác</dt><dd><kbd>R</kbd> <kbd>E</kbd></dd></div>
+        <div><dt>Khóa / ngựa</dt><dd><kbd>Q</kbd> <kbd>F</kbd></dd></div>
+        <div><dt>Vũ khí / bản đồ</dt><dd><kbd>←</kbd><kbd>→</kbd> <kbd>G</kbd></dd></div>
       </dl>
       <div class="row">
         <button id="btnResume" class="pbtn">Tiếp tục</button>

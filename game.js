@@ -150,8 +150,14 @@ const ITEMS = [
   { id: 'stone3', x: 1000, y: 2960, kind: 'stone' },
   { id: 'stone4', x: 2200, y: 900, kind: 'stone' },
   { id: 'seed5', x: 2130, y: 1985, kind: 'seed' },
-  { id: 'katana', x: 915, y: 2040, kind: 'weapon', w: 'katana' },
-  { id: 'spear', x: 2260, y: 3330, kind: 'weapon', w: 'spear' },
+];
+const CHESTS = [
+  { id: 'c_sword', x: 820, y: 2980, loot: { weapon: 'sword' } },
+  { id: 'c_katana', x: 700, y: 1760, loot: { weapon: 'katana' } },
+  { id: 'c_spear', x: 2300, y: 3390, loot: { weapon: 'spear' } },
+  { id: 'c_north', x: 2600, y: 900, loot: { runes: 600, stone: 1 } },
+  { id: 'c_west', x: 300, y: 1500, loot: { runes: 400, seed: 1 } },
+  { id: 'c_swamp', x: 2720, y: 2000, loot: { runes: 1200, stone: 1 } },
 ];
 const NOTES = [
   { x: 1400, y: 3130, text: 'Phía trước có kẻ địch. Lăn né (Space) đúng lúc chúng vung vũ khí.' },
@@ -205,6 +211,7 @@ function spotBlocked(x, y, pad) {
 }
 (function genObstacles() {
   const r = mulberry32(20250311);
+  for (const c of CHESTS) OBST.push({ kind: 'chest', x: c.x, y: c.y, r: 14, chest: c });
   let tries = 0;
   while (OBST.filter(o => o.kind === 'tree').length < 230 && tries++ < 8000) {
     const x = r() * W, y = 460 + r() * (H - 460), tr = 13 + r() * 6;
@@ -358,7 +365,7 @@ const BIGTREE = (function () {
 // ───────────────────────── trạng thái ─────────────────────────
 const SAVE_KEY = 'vong-vang-vo-save-v1';
 function defaultSave() {
-  return { level: 1, stats: { vig: 10, end: 10, str: 10, mnd: 10 }, runes: 0, weaponLv: 0, flaskMax: 4, lastGrace: 0, discovered: [0], bossDead: false, taken: [], lost: null, treeReached: false, deaths: 0, time: 0, weapons: ['sword'], equipped: 'sword', dragonDead: false };
+  return { level: 1, stats: { vig: 10, end: 10, str: 10, mnd: 10 }, runes: 0, weaponLv: 0, flaskMax: 4, lastGrace: 0, discovered: [0], bossDead: false, taken: [], lost: null, treeReached: false, deaths: 0, time: 0, weapons: ['broken'], equipped: 'broken', dragonDead: false, chests: [] };
 }
 let S = defaultSave();
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* bộ nhớ trình duyệt bị chặn */ } }
@@ -397,10 +404,28 @@ function applyStats(full) {
 
 // ───────────────────────── kẻ địch ─────────────────────────
 const LOOK_BASE = { body: '#474b52', trim: '#8d9199', head: '#5b5f67', cloak: '#5e1f1c', scale: 1 };
-const WEAPON_ORDER = ['sword', 'katana', 'spear', 'greatsword'];
+const WEAPON_ORDER = ['broken', 'sword', 'katana', 'spear', 'varek', 'greatsword'];
 const WEAPONS = {
+  broken: {
+    name: 'Kiếm Gãy', desc: 'Lưỡi kiếm mẻ, ngắn và yếu', look: { weapon: 'sword', wlen: 26, wcol: '#9a958a' }, cost: [11, 22],
+    light: [
+      { wind: 0.12, act: 0.1, rec: 0.26, mul: 0.75, range: 56, arc: 2.0, lunge: 160, poise: 10, swing: 1 },
+      { wind: 0.1, act: 0.1, rec: 0.26, mul: 0.8, range: 56, arc: 2.0, lunge: 160, poise: 10, swing: -1 },
+      { wind: 0.16, act: 0.12, rec: 0.36, mul: 1.0, range: 60, arc: 2.2, lunge: 220, poise: 16, swing: 1 },
+    ],
+    heavy: { wind: 0.46, act: 0.14, rec: 0.42, mul: 1.7, range: 68, arc: 2.3, lunge: 240, poise: 38, swing: 1 },
+  },
+  varek: {
+    name: 'Kiếm Vàng Varek', desc: 'Đòn mạnh phóng ra sóng ánh vàng', look: { weapon: 'greatsword', wlen: 44, wcol: '#e0c068', glow: true }, cost: [13, 26],
+    light: [
+      { wind: 0.15, act: 0.11, rec: 0.3, mul: 1.25, range: 76, arc: 2.2, lunge: 190, poise: 20, swing: 1 },
+      { wind: 0.13, act: 0.11, rec: 0.3, mul: 1.3, range: 76, arc: 2.2, lunge: 190, poise: 20, swing: -1 },
+      { wind: 0.2, act: 0.13, rec: 0.4, mul: 1.6, range: 82, arc: 2.5, lunge: 260, poise: 30, swing: 1 },
+    ],
+    heavy: { wind: 0.55, act: 0.15, rec: 0.5, mul: 2.6, range: 88, arc: 2.5, lunge: 260, poise: 60, swing: 1, wave: true },
+  },
   sword: {
-    name: 'Kiếm Thẳng', desc: 'Cân bằng, dễ dùng', look: { weapon: 'sword', wlen: 38, wcol: '#dcdcd2' }, cost: [11, 22],
+    name: 'Kiếm Thẳng', desc: 'Cân bằng, đáng tin cậy', look: { weapon: 'sword', wlen: 38, wcol: '#dcdcd2' }, cost: [11, 22],
     light: [
       { wind: 0.12, act: 0.1, rec: 0.26, mul: 1, range: 66, arc: 2.0, lunge: 170, poise: 14, swing: 1 },
       { wind: 0.1, act: 0.1, rec: 0.26, mul: 1.05, range: 66, arc: 2.0, lunge: 170, poise: 14, swing: -1 },
@@ -550,12 +575,18 @@ const keys = new Set();
 let buf = null, aimMode = 'keys';
 const mouse = { x: 0, y: 0, wx: 0, wy: 0, inside: false };
 const stick = { x: 0, y: 0 };
-const KEYMAP = { Space: 'roll', KeyJ: 'light', KeyK: 'heavy', KeyL: 'spell', KeyC: 'spell', KeyR: 'flask', KeyE: 'interact', KeyF: 'mount', KeyQ: 'lock', Digit1: 'eq1', Digit2: 'eq2', Digit3: 'eq3', Digit4: 'eq4', KeyT: 'eqnext' };
+const KEYMAP = { KeyJ: 'light', KeyK: 'heavy', KeyL: 'spell', KeyC: 'spell', KeyR: 'flask', KeyE: 'interact', KeyF: 'mount', KeyQ: 'lock', KeyG: 'map', ArrowRight: 'eqnext', ArrowLeft: 'eqprev', KeyT: 'eqnext', Digit1: 'eq1', Digit2: 'eq2', Digit3: 'eq3', Digit4: 'eq4', Digit5: 'eq5', Digit6: 'eq6' };
 let touchGuard = false;
-const guardHeld = () => keys.has('KeyX') || touchGuard;
+let mouseGuard = false;
+const DASH_HOLD = 280; // giữ nút lăn lâu hơn mức này thì chạy nhanh, nhả sớm thì lăn (giống Elden Ring)
+const dodgeKey = { down: false, at: 0 };
+const pad = { prev: [], stick: { x: 0, y: 0 }, guard: false, dodgeDown: false, dodgeAt: 0 };
+const guardHeld = () => keys.has('KeyX') || touchGuard || mouseGuard || pad.guard;
+const sprintHeld = () => (dodgeKey.down && performance.now() - dodgeKey.at >= DASH_HOLD) || (pad.dodgeDown && performance.now() - pad.dodgeAt >= DASH_HOLD);
 function act(a) {
   audioInit();
   if (a === 'pause') { togglePause(); return; }
+  if (a === 'map') { toggleMap(); return; }
   if (G.mode !== 'play') return;
   if (a === 'lock') { toggleLock(); return; }
   if (a.startsWith('eq')) { equipKey(a); return; }
@@ -566,14 +597,21 @@ function takeBuf() { const a = peekBuf(); buf = null; return a; }
 window.addEventListener('keydown', e => {
   if (e.code === 'Escape') { e.preventDefault(); togglePause(); return; }
   if (e.code === 'KeyM' && !e.repeat) { toggleMute(); return; }
+  if (e.code === 'KeyG' && !e.repeat && G.mode === 'map') { toggleMap(); return; }
   if (G.mode !== 'play') return;
   keys.add(e.code);
+  if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) { dodgeKey.down = true; dodgeKey.at = performance.now(); } return; }
   const a = KEYMAP[e.code];
   if (a && !e.repeat) { if (e.code === 'KeyJ' || e.code === 'KeyK' || e.code === 'KeyL') aimMode = 'keys'; act(a); }
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
 });
-window.addEventListener('keyup', e => keys.delete(e.code));
-window.addEventListener('blur', () => keys.clear());
+window.addEventListener('keyup', e => {
+  keys.delete(e.code);
+  if (e.code === 'Space' && dodgeKey.down) { dodgeKey.down = false; if (performance.now() - dodgeKey.at < DASH_HOLD) act('roll'); }
+});
+window.addEventListener('blur', () => { keys.clear(); dodgeKey.down = false; mouseGuard = false; });
+window.addEventListener('mouseup', e => { if (e.button === 2) mouseGuard = false; });
+canvas.addEventListener('pointerdown', () => { if (G.mode === 'map') { toggleMap(); G.ignoreClick = true; } });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('mousemove', e => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; mouse.inside = true; if (!G.touch) aimMode = 'mouse'; });
 canvas.addEventListener('mouseleave', () => { mouse.inside = false; });
@@ -581,17 +619,61 @@ canvas.addEventListener('mousedown', e => {
   if (G.touch) return;
   audioInit();
   const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; aimMode = 'mouse';
-  if (e.button === 0) act('light'); else if (e.button === 1) { e.preventDefault(); act('spell'); } else if (e.button === 2) act('heavy');
+  if (G.ignoreClick) { G.ignoreClick = false; return; }
+  if (G.mode !== 'play') return;
+  // Elden Ring: chuột trái đánh, Shift + trái đánh mạnh, chuột phải đỡ, Shift + phải dùng kỹ năng (phép), chuột giữa khóa mục tiêu
+  if (e.button === 0) act(e.shiftKey ? 'heavy' : 'light');
+  else if (e.button === 1) { e.preventDefault(); act('lock'); }
+  else if (e.button === 2) { if (e.shiftKey) act('spell'); else mouseGuard = true; }
 });
 canvas.addEventListener('auxclick', e => e.preventDefault());
 function moveInput() {
   let x = 0, y = 0;
-  if (keys.has('KeyW') || keys.has('ArrowUp')) y -= 1;
-  if (keys.has('KeyS') || keys.has('ArrowDown')) y += 1;
-  if (keys.has('KeyA') || keys.has('ArrowLeft')) x -= 1;
-  if (keys.has('KeyD') || keys.has('ArrowRight')) x += 1;
+  if (keys.has('KeyW')) y -= 1;
+  if (keys.has('KeyS')) y += 1;
+  if (keys.has('KeyA')) x -= 1;
+  if (keys.has('KeyD')) x += 1;
   const l = Math.hypot(x, y); if (l > 0) { x /= l; y /= l; }
-  return [x + stick.x, y + stick.y];
+  return [x + stick.x + pad.stick.x, y + stick.y + pad.stick.y];
+}
+// tay cầm: sơ đồ nút giống Elden Ring trên console (chuẩn Xbox / PlayStation)
+const PB = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+window.addEventListener('gamepadconnected', () => { audioInit(); toast('Đã kết nối tay cầm'); });
+function padMenuNav(dir) {
+  const ov = [UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
+  if (!ov) return;
+  const els = [...ov.querySelectorAll('button:not([disabled])')].filter(el => el.offsetParent !== null);
+  if (!els.length) return;
+  let i = els.indexOf(document.activeElement);
+  i = i < 0 ? 0 : (i + dir + els.length) % els.length;
+  els[i].focus();
+}
+function pollPad() {
+  let gp = null;
+  try { gp = navigator.getGamepads ? [...navigator.getGamepads()].find(g => g && g.connected) : null; } catch (e) { gp = null; }
+  if (!gp) { pad.stick.x = 0; pad.stick.y = 0; pad.guard = false; pad.dodgeDown = false; return; }
+  const btn = i => { const b = gp.buttons[i]; return !!(b && (b.pressed || b.value > 0.5)); };
+  const down = i => btn(i) && !pad.prev[i], up = i => !btn(i) && pad.prev[i];
+  let x = gp.axes[0] || 0, y = gp.axes[1] || 0;
+  if (Math.hypot(x, y) < 0.2) { x = 0; y = 0; }
+  pad.stick.x = x; pad.stick.y = y;
+  if (G.mode === 'play' || G.mode === 'dead') {
+    if (down(PB.B)) { pad.dodgeDown = true; pad.dodgeAt = performance.now(); }
+    if (up(PB.B) && pad.dodgeDown) { pad.dodgeDown = false; if (performance.now() - pad.dodgeAt < DASH_HOLD) act('roll'); }
+    const map = [[PB.RB, 'light'], [PB.RT, 'heavy'], [PB.LT, 'spell'], [PB.X, 'flask'], [PB.Y, 'interact'], [PB.A, 'mount'], [PB.R3, 'lock'], [PB.RIGHT, 'eqnext'], [PB.LEFT, 'eqprev'], [PB.BACK, 'map'], [PB.START, 'pause']];
+    for (const [i, a] of map) if (down(i)) { aimMode = 'keys'; act(a); }
+    pad.guard = btn(PB.LB);
+  } else {
+    pad.guard = false; pad.dodgeDown = false;
+    if (G.mode === 'map') { if (down(PB.BACK) || down(PB.B) || down(PB.START)) toggleMap(); }
+    else {
+      if (down(PB.UP) || down(PB.LEFT)) padMenuNav(-1);
+      if (down(PB.DOWN) || down(PB.RIGHT)) padMenuNav(1);
+      if (down(PB.A) && document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.click();
+      if (down(PB.START) || down(PB.B)) { if (G.mode === 'title') { if (!document.activeElement || document.activeElement.tagName !== 'BUTTON') padMenuNav(1); } else togglePause(); }
+    }
+  }
+  pad.prev = gp.buttons.map((_, i) => btn(i));
 }
 
 // điều khiển cảm ứng
@@ -669,6 +751,7 @@ function equip(id) {
 }
 function equipKey(a) {
   if (a === 'eqnext') { const own = WEAPON_ORDER.filter(w => S.weapons.includes(w)); equip(own[(own.indexOf(S.equipped) + 1) % own.length]); }
+  else if (a === 'eqprev') { const own = WEAPON_ORDER.filter(w => S.weapons.includes(w)); equip(own[(own.indexOf(S.equipped) - 1 + own.length) % own.length]); }
   else equip(WEAPON_ORDER[+a.slice(2) - 1]);
 }
 function startAttack(kind, combo, moving, mx, my) {
@@ -754,7 +837,7 @@ function updatePlayer(dt) {
   if (p.lock && (p.lock.dead || dist(p.x, p.y, p.lock.x, p.lock.y) > 620 || (p.lock.isBoss && !G.bossFight))) p.lock = null;
 
   if (p.state === 'idle') {
-    const sprint = !p.mounted && (keys.has('ShiftLeft') || keys.has('ShiftRight')) && moving && p.st > 1;
+    const sprint = !p.mounted && sprintHeld() && moving && p.st > 1;
     const spd = (p.mounted ? 320 : sprint ? 215 : 145) * slow;
     if (moving) {
       moveCircle(p, mx * spd * dt, my * spd * dt, false);
@@ -789,6 +872,10 @@ function updatePlayer(dt) {
       if (!A.lunged) {
         A.lunged = true; p.vx += Math.cos(p.face) * A.lunge; p.vy += Math.sin(p.face) * A.lunge;
         if (A.kind === 'heavy') SFX.heavy(); else SFX.swing();
+        if (A.wave) {
+          projs.push({ x: p.x + Math.cos(p.face) * 30, y: p.y + Math.sin(p.face) * 30, vx: Math.cos(p.face) * 460, vy: Math.sin(p.face) * 460, r: 12, dmg: A.dmg * 0.6, kind: 'gwave', friendly: true, life: 0.55 });
+          SFX.spell();
+        }
       }
       for (const e of targets()) {
         if (A.hits.has(e) || (e.z || 0) > 30) continue;
@@ -1209,6 +1296,7 @@ function startBossFight() {
 function bossDefeated() {
   S.bossDead = true; G.bossFight = false;
   gainRunes(5000, boss.x, boss.y);
+  if (!S.weapons.includes('varek')) { S.weapons.push('varek'); later(9.2, () => { banner('item', WEAPONS.varek.name, WEAPONS.varek.desc + (G.touch ? ' · bấm Vũ khí để đổi' : ' · ← → để đổi vũ khí'), 4.2); SFX.pickup(); }); }
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.6); SFX.felled();
   burst(boss.x, boss.y, 80, '#f3cf6e', 280, 5, 'dot', 1.6);
   subtitle('“Ánh vàng... đã chọn... ngươi...”', 3.6);
@@ -1398,7 +1486,7 @@ function dragonDefeated() {
   if (!S.weapons.includes('greatsword')) S.weapons.push('greatsword');
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.2); SFX.felled();
   burst(dragon.x, dragon.y, 90, '#ff9a4a', 300, 5, 'dot', 1.6);
-  later(4.4, () => { banner('item', WEAPONS.greatsword.name, WEAPONS.greatsword.desc + (G.touch ? '' : ' · bấm 4 để trang bị')); SFX.pickup(); });
+  later(4.4, () => { banner('item', WEAPONS.greatsword.name, WEAPONS.greatsword.desc + (G.touch ? '' : ' · ← → để đổi vũ khí')); SFX.pickup(); });
   save();
 }
 
@@ -1413,6 +1501,7 @@ function updateProjs(dt) {
     }
     q.x += q.vx * dt; q.y += q.vy * dt;
     if (Math.random() < 0.8) addPart(q.x, q.y, rand(-10, 10), rand(-10, 10), 0.3, q.kind === 'dagger' ? 2 : 3, q.kind === 'glint' ? '#bcd6ff' : q.kind === 'orb' ? '#8fb0ff' : q.kind === 'fireball' ? '#ff8a3a' : '#f3cf6e');
+    if (q.kind === 'gwave' && Math.random() < 0.6) addPart(q.x, q.y, rand(-20, 20), rand(-20, 20), 0.4, 3, '#ffe39a', 'mote');
     if (q.kind === 'fireball') {
       if (q.life <= 0 || dist(q.x, q.y, P.x, P.y) < q.r + P.r) {
         aoeBlast(q.x, q.y, q.boom, q.dmg, 'fire'); noise(0.3, 0.3, 300, 0.7); shake(5);
@@ -1464,14 +1553,34 @@ function updateParts(dt) {
 // ───────────────────────── tương tác thế giới ─────────────────────────
 const nearGrace = () => GRACES.find(g => S.discovered.includes(g.id) && dist(P.x, P.y, g.x, g.y) < 70);
 const nearItem = () => ITEMS.find(it => !S.taken.includes(it.id) && dist(P.x, P.y, it.x, it.y) < 46);
+const nearChest = () => CHESTS.find(c => !S.chests.includes(c.id) && dist(P.x, P.y, c.x, c.y) < 52);
 const nearNote = () => NOTES.find(n => dist(P.x, P.y, n.x, n.y) < 46);
 function interact() {
   const g = nearGrace();
   if (g) { restAtGrace(g); return; }
+  const c = nearChest();
+  if (c) { openChest(c); return; }
   const it = nearItem();
   if (it) { takeItem(it); return; }
   const n = nearNote();
   if (n) { subtitle('“' + n.text + '”', 5.5); SFX.glint(); }
+}
+function openChest(c) {
+  S.chests.push(c.id); c.openAt = G.clock;
+  noise(0.5, 0.2, 400, 0.8); SFX.pickup();
+  burst(c.x, c.y - 6, 24, '#ffe7a3', 110, 3, 'mote', 1.1);
+  const L = c.loot, got = [];
+  let wpn = null;
+  if (L.weapon) {
+    if (S.weapons.includes(L.weapon)) got.push('+800 rune'), gainRunes(800, c.x, c.y);
+    else { S.weapons.push(L.weapon); wpn = WEAPONS[L.weapon]; }
+  }
+  if (L.runes) { gainRunes(L.runes, c.x, c.y); got.push('+' + L.runes + ' rune'); }
+  if (L.stone) { S.weaponLv += L.stone; got.push('Đá Rèn Kiếm (vũ khí +' + S.weaponLv + ')'); }
+  if (L.seed) { S.flaskMax += L.seed; P.flasks += L.seed; got.push('Hạt Vàng (Bình Máu ' + S.flaskMax + ')'); }
+  if (wpn) banner('item', wpn.name, wpn.desc + (G.touch ? ' · bấm Vũ khí để đổi' : ' · ← → để đổi vũ khí'), 4.2);
+  else banner('item', 'Rương báu', got.join(' · '), 3.6);
+  save();
 }
 function takeItem(it) {
   S.taken.push(it.id); SFX.pickup();
@@ -1481,7 +1590,7 @@ function takeItem(it) {
   else {
     if (!S.weapons.includes(it.w)) S.weapons.push(it.w);
     const Wp = WEAPONS[it.w];
-    banner('item', Wp.name, Wp.desc + (G.touch ? ' · bấm Vũ khí để đổi' : ' · bấm ' + (WEAPON_ORDER.indexOf(it.w) + 1) + ' để trang bị'), 4.2);
+    banner('item', Wp.name, Wp.desc + (G.touch ? ' · bấm Vũ khí để đổi' : ' · ← → để đổi vũ khí'), 4.2);
   }
   save();
 }
@@ -1500,6 +1609,7 @@ function worldChecks(dt) {
   }
   const key = G.touch ? '' : 'E';
   if (nearGrace()) G.prompt = { key, text: 'Nghỉ ngơi tại Ân Điển' };
+  else if (nearChest()) G.prompt = { key, text: 'Mở rương' };
   else if (nearItem()) G.prompt = { key, text: 'Nhặt vật phẩm' };
   else if (nearNote()) G.prompt = { key, text: 'Đọc lời nhắn' };
   else G.prompt = null;
@@ -1561,6 +1671,7 @@ function tick(dt) {
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  pollPad();
   if (G.mode === 'play' || G.mode === 'dead') {
     if (G.hitStop > 0) G.hitStop -= dt; else update(dt);
     tick(dt);
@@ -1855,6 +1966,27 @@ function drawBoss() {
     alpha: b.dead ? Math.max(0, 1 - b.t / 2.4) : undefined, eyes: b.dead ? null : '#ffcf5a',
   });
 }
+function drawChest(c) {
+  const open = S.chests.includes(c.id), t = G.clock;
+  shadow(c.x + 2, c.y + 8, 17, 7, 0.35);
+  if (!open) {
+    const gr = ctx.createRadialGradient(c.x, c.y, 2, c.x, c.y, 34);
+    gr.addColorStop(0, `rgba(255,220,130,${0.18 + Math.sin(t * 2.5 + c.x) * 0.08})`); gr.addColorStop(1, 'rgba(255,220,130,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(c.x, c.y, 34, 0, TAU); ctx.fill();
+  }
+  ctx.fillStyle = '#5a3d22'; ctx.fillRect(c.x - 15, c.y - 6, 30, 16);
+  ctx.strokeStyle = '#1e140b'; ctx.lineWidth = 1.5; ctx.strokeRect(c.x - 15, c.y - 6, 30, 16);
+  if (open) {
+    ctx.fillStyle = '#1a120a'; ctx.fillRect(c.x - 13, c.y - 6, 26, 5);
+    ctx.fillStyle = '#6b4a2a'; ctx.fillRect(c.x - 15, c.y - 18, 30, 8); ctx.strokeRect(c.x - 15, c.y - 18, 30, 8);
+  } else {
+    ctx.fillStyle = '#6b4a2a'; ctx.fillRect(c.x - 15, c.y - 12, 30, 8); ctx.strokeRect(c.x - 15, c.y - 12, 30, 8);
+  }
+  ctx.fillStyle = '#c9a34a';
+  ctx.fillRect(c.x - 10, c.y - (open ? 18 : 12), 3, open ? 8 : 22); ctx.fillRect(c.x + 7, c.y - (open ? 18 : 12), 3, open ? 8 : 22);
+  if (open) { ctx.fillRect(c.x - 10, c.y - 6, 3, 16); ctx.fillRect(c.x + 7, c.y - 6, 3, 16); }
+  else { ctx.fillRect(c.x - 2, c.y - 5, 4, 5); }
+}
 function drawRock(o) {
   const r = mulberry32(o.seed);
   shadow(o.x + 3, o.y + 5, o.r * 1.05, o.r * 0.7, 0.3);
@@ -1958,7 +2090,11 @@ function drawAoeFx() {
 }
 function drawProjs() {
   for (const q of projs) {
-    if (q.kind === 'dagger') {
+    if (q.kind === 'gwave') {
+      const a = Math.atan2(q.vy, q.vx);
+      ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(a); ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 16;
+      ctx.strokeStyle = 'rgba(255,230,150,.9)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(-10, 0, 18, -1.1, 1.1); ctx.stroke(); ctx.restore();
+    } else if (q.kind === 'dagger') {
       const a = Math.atan2(q.vy, q.vx);
       ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(a);
       ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 10; ctx.fillStyle = '#f6dc8e';
@@ -2039,6 +2175,7 @@ function render() {
   if (gx1 > gx0 && gy1 > gy0) ctx.drawImage(GROUND, gx0 / 2, gy0 / 2, (gx1 - gx0) / 2, (gy1 - gy0) / 2, gx0, gy0, gx1 - gx0, gy1 - gy0);
   drawDecals();
   for (const o of OBST) if (o.kind === 'rock' && inView(o.x, o.y, 40)) drawRock(o);
+  for (const c of CHESTS) if (inView(c.x, c.y, 40)) drawChest(c);
   for (const o of OBST) if (o.kind === 'tree' && inView(o.x, o.y, 30)) { shadow(o.x, o.y + 3, o.r, o.r * 0.6, 0.35); ctx.fillStyle = '#3b2d1c'; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.7, 0, TAU); ctx.fill(); }
   for (const w of WALLS) if (inView(w.x + w.w / 2, w.y + w.h / 2, Math.max(w.w, w.h))) drawWall(w);
   drawGates();
@@ -2063,6 +2200,7 @@ function render() {
   ctx.fillStyle = VIGNETTE; ctx.fillRect(0, 0, CW, CH);
   if (G.flash > 0) { ctx.fillStyle = `rgba(150,10,10,${G.flash * 0.35})`; ctx.fillRect(0, 0, CW, CH); }
   if (G.mode !== 'title') drawHUD();
+  if (G.mode === 'map') drawMap();
   if (G.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${G.fade})`; ctx.fillRect(0, 0, CW, CH); }
 }
 
@@ -2118,7 +2256,7 @@ function drawHUD() {
   ctx.font = `500 12px ${FONT_U}`; ctx.fillStyle = '#ece3cc';
   ctx.fillText(Wp.name + (S.weaponLv ? ' +' + S.weaponLv : ''), wx + fs + 8, fy + 17);
   ctx.font = `500 11px ${FONT_U}`; ctx.fillStyle = P.mounted ? '#b9d8ff' : 'rgba(236,227,204,.55)';
-  ctx.fillText(P.mounted ? 'Đang cưỡi ngựa' : G.touch ? 'Bấm Vũ khí để đổi' : 'Phím 1–4 để đổi', wx + fs + 8, fy + 33);
+  ctx.fillText(P.mounted ? 'Đang cưỡi ngựa' : G.touch ? 'Bấm Vũ khí để đổi' : 'Phím ← → để đổi', wx + fs + 8, fy + 33);
   // rune
   const rx = CW - 20, ry = G.touch ? 32 : CH - 26;
   ctx.font = `600 18px ${FONT_U}`; ctx.textAlign = 'right';
@@ -2176,9 +2314,37 @@ function drawHUD() {
   if (!G.touch && G.hintT < 22 && G.mode === 'play') {
     ctx.globalAlpha = Math.min(1, (22 - G.hintT) / 2) * 0.75;
     ctx.font = `500 12px ${FONT_U}`; ctx.fillStyle = '#d8ccb0';
-    ctx.fillText('WASD di chuyển · Space lăn · J/K đánh · X đỡ/phản đòn · C phép · R bình máu · E tương tác · 1–4 vũ khí · Q khóa · F ngựa', 20, CH - 22);
+    ctx.fillText('Space lăn (giữ: chạy) · Chuột trái đánh · Shift+trái đánh mạnh · Chuột phải đỡ · Shift+phải phép · R bình · E tương tác · Q khóa · G bản đồ', 20, CH - 22);
     ctx.globalAlpha = 1;
   }
+}
+const MAP_LABELS = [['Đồng Cỏ Sương Mờ', 1400, 2620], ['Tàn Tích Phía Tây', 700, 1900], ['Đầm Lầy Tro Độc', 2420, 1520], ['Đấu Trường Varek', 1400, 760], ['Cây Vàng', 1400, 250], ['Nhà Nguyện', 1400, 3480]];
+function drawMap() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = 'rgba(8,7,5,.94)'; ctx.fillRect(0, 0, CW, CH);
+  const top = 58, bottom = 40, sc = Math.min((CW - 32) / W, (CH - top - bottom) / H), mw = W * sc, mh = H * sc, mx = (CW - mw) / 2, my = top;
+  textC('Bản đồ', CW / 2, 36, spacedFont(CW < 500 ? 24 : 30, 700), '#ece3cc');
+  ctx.drawImage(GROUND, mx, my, mw, mh);
+  ctx.fillStyle = 'rgba(70,52,24,.3)'; ctx.fillRect(mx, my, mw, mh);
+  ctx.strokeStyle = 'rgba(214,178,94,.6)'; ctx.lineWidth = 1; ctx.strokeRect(mx + 0.5, my + 0.5, mw - 1, mh - 1);
+  ctx.fillStyle = '#2a261e';
+  for (const w of WALLS) if (!(w.gate === 'north' && S.bossDead)) ctx.fillRect(mx + w.x * sc, my + w.y * sc, Math.max(1.5, w.w * sc), Math.max(1.5, w.h * sc));
+  const pt = (x, y) => [mx + x * sc, my + y * sc];
+  ctx.fillStyle = 'rgba(255,214,110,.8)'; { const [x, y] = pt(TREE_POS.x, TREE_POS.y); ctx.beginPath(); ctx.arc(x, y, 7, 0, TAU); ctx.fill(); }
+  const fs = CW < 500 ? 12 : 15;
+  for (const [n, x, y] of MAP_LABELS) { const [px, py] = pt(x, y); textC(n, px, py, `600 ${fs}px ${FONT_D}`, 'rgba(236,227,204,.9)', 0.9); }
+  for (const g of GRACES) {
+    if (!S.discovered.includes(g.id)) continue;
+    const [x, y] = pt(g.x, g.y);
+    ctx.fillStyle = '#ffe28a'; ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(x, y, 4, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+  }
+  for (const c of CHESTS) if (S.chests.includes(c.id)) { const [x, y] = pt(c.x, c.y); ctx.fillStyle = 'rgba(160,120,70,.9)'; ctx.fillRect(x - 3, y - 2, 6, 4); }
+  if (S.lost) { const [x, y] = pt(S.lost.x, S.lost.y); ctx.fillStyle = '#9dffb8'; ctx.beginPath(); ctx.arc(x, y, 4, 0, TAU); ctx.fill(); }
+  const [px, py] = pt(P.x, P.y), pulse = 1 + Math.sin(G.clock * 6) * 0.15;
+  ctx.save(); ctx.translate(px, py); ctx.rotate(P.face); ctx.scale(pulse, pulse);
+  ctx.fillStyle = '#e0503c'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-6, -6); ctx.lineTo(-3, 0); ctx.lineTo(-6, 6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+  textC(G.touch ? 'Chạm để đóng · điểm vàng: Ân Điển đã tìm thấy' : 'G / Esc để đóng · điểm vàng: Ân Điển đã tìm thấy · mũi tên đỏ: bạn', CW / 2, CH - 14, `500 12px ${FONT_U}`, 'rgba(236,227,204,.7)');
 }
 function wrapText(str, cx, y, maxW, lh, font, col) {
   ctx.font = font;
@@ -2237,7 +2403,7 @@ const STAT_INFO = [
 function setMode(m) {
   G.mode = m;
   $('touch').hidden = !(G.touch && m === 'play');
-  keys.clear(); stick.x = 0; stick.y = 0; touchGuard = false;
+  keys.clear(); stick.x = 0; stick.y = 0; touchGuard = false; mouseGuard = false; dodgeKey.down = false;
   if (m === 'play' && document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
 }
 let currentGrace = null;
@@ -2294,7 +2460,12 @@ $('tabTravel').onclick = () => selectTab('travel');
 $('tabGear').onclick = () => selectTab('gear');
 $('btnLeave').onclick = closeGrace;
 
+function toggleMap() {
+  if (G.mode === 'play') { setMode('map'); SFX.glint(); }
+  else if (G.mode === 'map') setMode('play');
+}
 function togglePause() {
+  if (G.mode === 'map') { toggleMap(); return; }
   if (G.mode === 'play') { setMode('pause'); UI.pause.hidden = false; $('btnResume').focus({ preventScroll: true }); }
   else if (G.mode === 'pause') { UI.pause.hidden = true; setMode('play'); }
   else if (G.mode === 'menu' && !UI.grace.hidden) closeGrace();
