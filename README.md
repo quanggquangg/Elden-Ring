@@ -13,7 +13,7 @@ python3 -m http.server 8000
 # rồi mở http://localhost:8000
 ```
 
-Mục tiêu: rời Nhà Nguyện, băng qua Đồng Cỏ Sương Mờ, hạ gục **Varek, Kẻ Canh Cổng Phản Trắc**, rồi đi qua cổng phía bắc để chạm tới **Cây Vàng**. Thử thách phụ: đánh thức **Ignarth, Rồng Tro Cổ Đại** đang ngủ trong Đầm Lầy Tro Độc ở phía đông.
+Mục tiêu: rời Nhà Nguyện, băng qua Đồng Cỏ Sương Mờ, hạ gục **Varek, Kẻ Canh Cổng Phản Trắc**, rồi đi qua cổng phía bắc để chạm tới **Cây Vàng**. Thử thách phụ: đánh thức **Ignarth, Rồng Tro Cổ Đại** trong Đầm Lầy Tro Độc, rồi đi xa hơn về phía đông để khám phá Pháo Đài Đá Xám, Rừng Linh Hồn và Đấu Trường Thử Thách.
 
 ## Điều khiển
 
@@ -42,18 +42,38 @@ Nếu chỉ chơi bằng bàn phím: `J` đánh thường, `K` đánh mạnh, gi
 ## Tính năng
 
 - **Chiến đấu kiểu souls:** thanh thể lực, lăn né có khung bất tử, combo đòn nhẹ, đòn mạnh phá thế, đòn chí mạng khi kẻ địch mạnh bị mất thế, và bộ đệm lệnh để nối đòn mượt.
-- **Đỡ và phản đòn:** giữ `X` để giơ khiên chặn phần lớn sát thương (tốn thể lực). Nếu giơ khiên đúng lúc kẻ địch vung vũ khí, bạn phản đòn và chúng mất thế, sẵn sàng cho một đòn chí mạng. Rồng không phản đòn được.
+- **Đỡ và phản đòn:** giữ chuột phải để giơ khiên chặn phần lớn sát thương (tốn thể lực). Nếu giơ khiên đúng lúc kẻ địch vung vũ khí, bạn phản đòn và chúng mất thế, sẵn sàng cho một đòn chí mạng. Rồng không phản đòn được.
+- **Vũ khí hai tay:** Kiếm Vàng Varek, Đại Kiếm Nanh Rồng, Chùy Vệ Binh và Liềm Hồn Ma phải cầm bằng hai tay nên không dùng khiên được. Khi đỡ đòn bằng thân vũ khí thì chặn kém hơn, tốn thể lực hơn và không phản đòn được. Bù lại, sát thương lớn và một số vũ khí không bị ngắt đòn.
 - **Đâm lưng:** đánh vào sau lưng kẻ địch chưa phát hiện ra bạn sẽ gây sát thương chí mạng.
-- **Vũ khí phải tự đi tìm:** bạn bắt đầu với Kiếm Gãy. Kiếm Thẳng, Uchigatana Tro (gây chảy máu) và Giáo Kỵ Sĩ (đâm xa) nằm trong rương, thường có kẻ địch canh giữ. Hạ Varek nhận Kiếm Vàng Varek (đòn mạnh phóng sóng ánh sáng), hạ rồng nhận Đại Kiếm Nanh Rồng (không bị ngắt đòn). Đổi vũ khí bằng phím mũi tên hoặc ở tab Trang bị khi nghỉ tại Ân Điển.
-- **Rương báu:** 6 rương rải rác khắp bản đồ, chứa vũ khí, rune, Đá Rèn Kiếm và Hạt Vàng.
+- **Vũ khí phải tự đi tìm:** bạn bắt đầu với Kiếm Gãy. Kiếm Thẳng, Uchigatana Tro (gây chảy máu) và Giáo Kỵ Sĩ (đâm xa) nằm trong rương, thường có kẻ địch canh giữ. Hạ Varek nhận Kiếm Vàng Varek (đòn mạnh phóng sóng ánh sáng), hạ rồng nhận Đại Kiếm Nanh Rồng, hạ Dornach nhận Chùy Vệ Binh, hạ Seluna nhận Liềm Hồn Ma (quét rộng, gây chảy máu). Đổi vũ khí bằng phím mũi tên hoặc ở tab Trang bị khi nghỉ tại Ân Điển.
+- **Rương báu:** 15 rương rải rác khắp bản đồ, có rương chỉ xuất hiện sau khi giải đố hoặc vượt thử thách, chứa vũ khí, rune, Đá Rèn Kiếm và Hạt Vàng.
 - **Bản đồ (`G`):** hiện các vùng, những Ân Điển đã tìm thấy, vị trí của bạn và chỗ rơi rune.
-- **Kẻ địch:** Lính Tàn Binh, bầy Sói Xám, Pháp Sư Lưu Đày bắn đạn phép, Thây Ma Đầm Lầy (đánh trúng sẽ gây độc), và Kỵ Sĩ Tro Tàn (tinh anh). Mỗi đòn đánh đều có thời gian vung báo trước.
+- **Kẻ địch:** mỗi loại có kỹ năng riêng, và mọi đòn đánh đều có thời gian vung báo trước.
+  - Lính Tàn Binh, bầy Sói Xám, Kỵ Sĩ Tro Tàn (tinh anh, combo 2 đòn).
+  - Pháp Sư Lưu Đày: bắn đạn phép.
+  - Thây Ma Đầm Lầy: đánh trúng gây độc.
+  - Cung Thủ Tàn Binh: bắn tên, có lúc bắn loạt 3 mũi.
+  - Kẻ Ném Lửa: ném bom lửa nổ theo vùng, có vòng báo trước chỗ rơi.
+  - Hồn Ma Lang Thang: dịch chuyển ra sau lưng bạn rồi chém.
+  - Lính Khiên Sắt: chặn mọi đòn nhẹ từ phía trước. Hãy đánh vòng ra sau, dùng đòn mạnh hoặc phép.
+  - Người Khổng Lồ Đá: vung chùy, đập đất tạo sóng xung kích, dậm chân.
+  - Dơi Máu: bay vòng quanh rồi bổ nhào.
+  - Nhện Độc: phun độc tạo vũng độc trên mặt đất, cắn gây độc.
+- **Mini-boss:**
+  - Dornach, Vệ Binh Pháo Đài: combo chùy, lao tới húc, đập đất.
+  - Seluna, Nữ Vương Hồn Ma: dịch chuyển, bắn vòng cầu hồn, triệu hồi hồn ma.
+- **Giải đố và khám phá:**
+  - Thắp ba lò lửa trước Pháo Đài theo đúng đường đi của mặt trời để mở cổng. Thắp sai thứ tự thì lửa tắt và bạn bị bỏng.
+  - Tìm và đánh thức bốn tượng đá ở bốn góc Rừng Linh Hồn để phá kết giới.
+  - Tường ảo kiểu Elden Ring: đánh vào bức tường khả nghi để lộ phòng bí mật.
+- **Đấu Trường Thử Thách:** chạm lá cờ để bắt đầu ba đợt kẻ thù, cổng sẽ đóng lại cho tới khi bạn thắng hoặc chết. Thắng thì mở ra rương thưởng.
 - **Boss hai giai đoạn:** Varek có đòn đánh chậm một nhịp, nhảy đập, ném dao vàng, và khi còn nửa máu thì dùng thêm búa vàng tạo sóng xung kích và mưa ánh sáng.
 - **Rồng Ignarth (boss phụ):** phun lửa quét, bay lên rồi lao xuống, bắn cầu lửa, cắn liên hoàn, và quật đuôi nếu bạn đứng sau lưng. Khi còn dưới 40% máu thì nổi điên. Hạ rồng sẽ nhận được đại kiếm.
 - **Đầm Lầy Tro Độc:** đứng trong ao tím sẽ tích độc, đầy thanh thì bị trúng độc và mất máu dần. Đi bằng ngựa sẽ không bị ảnh hưởng. Nghỉ ở Ân Điển để giải độc.
 - **Ân Điển:** nghỉ ngơi để hồi máu và Bình Máu (kẻ địch cũng hồi sinh), lên cấp bằng rune, và dịch chuyển giữa các Ân Điển đã tìm thấy.
 - **Chết thì mất rune:** rune rơi tại chỗ bạn chết. Quay lại nhặt trước khi chết lần nữa.
-- **Thế giới mở:** 5 vùng, 5 Ân Điển, Hạt Vàng (thêm lượt Bình Máu), Đá Rèn Kiếm (cường hóa vũ khí), lời nhắn gợi ý trên mặt đất, và ngựa linh để đi nhanh.
+- **Độ khó:** quái có nhiều máu hơn và đánh đau hơn, rune rơi ít đi, lên cấp đắt hơn, Bình Máu hồi ít máu hơn.
+- **Thế giới mở:** 9 vùng, 8 Ân Điển, Hạt Vàng (thêm lượt Bình Máu), Đá Rèn Kiếm (cường hóa vũ khí), lời nhắn gợi ý trên mặt đất, và ngựa linh để đi nhanh.
 - **Tự động lưu** vào `localStorage` khi nghỉ ở Ân Điển, nhặt vật phẩm, chết hoặc hạ boss.
 
 ## Cấu trúc
