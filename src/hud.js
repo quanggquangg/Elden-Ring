@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — HUD, bản đồ và menu HTML
+// Gravebound — HUD, bản đồ và menu HTML
 // ───────────────────────── HUD ─────────────────────────
 function bar(x, y, w, h, frac, ghost, col) {
   ctx.fillStyle = 'rgba(8,7,5,.78)'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
@@ -131,8 +131,8 @@ function drawHUD() {
     ctx.globalAlpha = 1;
   }
   if (G.toast) {
-    const a = Math.min(1, G.toast.t * 4, (2.4 - G.toast.t) * 2);
-    ctx.globalAlpha = a; textC(G.toast.text, CW / 2, CH * (G.touch ? 0.5 : 0.62), `500 14px ${FONT_U}`, '#f2dc97'); ctx.globalAlpha = 1;
+    const a = Math.min(1, G.toast.t * 4, (G.toast.dur - G.toast.t) * 2);
+    ctx.globalAlpha = a; wrapText(G.toast.text, CW / 2, CH * (G.touch ? 0.5 : 0.62), Math.min(CW - 40, 560), 19, `500 14px ${FONT_U}`, '#f2dc97'); ctx.globalAlpha = 1;
   }
   // tên vùng
   if (G.region && G.regionT < 4 && G.mode === 'play') {
@@ -172,9 +172,9 @@ function mapMask() {
   m.putImageData(img, 0, 0);
   return maskCanvas;
 }
-const MAP_LABELS = [['Pháo Đài Đá Xám', 3600, 900], ['Rừng Linh Hồn', 3650, 2180], ['Đấu Trường Thử Thách', 3600, 3230], ['Cao Nguyên Tro Đông', 3700, 1580], ['Đồng Cỏ Sương Mờ', 1400, 2620],
-  ['Tàn Tích Phía Tây', 700, 1900], ['Đầm Lầy Tro Độc', 2420, 1520], ['Đấu Trường Varek', 1400, 760], ['Nhà Nguyện', 1400, 3480], ['Hồ Pha Lê', -1400, 1500], ['Bờ Biển Muối', -1300, 3300],
-  ['Học Viện Pha Lê', -1550, -300], ['Cao Nguyên Hoàng Kim', 2200, -100], ['Sườn Núi Hoàng Kim', 3500, -1400], ['Kinh Thành Vàng', 1400, -1300], ['Cây Vàng', 1400, -1720]];
+const MAP_LABELS = [['Pháo Đài Greystone', 3600, 900], ['Rừng Wraithwood', 3650, 2180], ['Đấu Trường Bloodsand', 3600, 3230], ['Cao Nguyên Cinderreach', 3700, 1580], ['Đồng Cỏ Mistveil', 1400, 2620],
+  ['Tàn Tích Hollowmere', 700, 1900], ['Đầm Lầy Ashmire', 2420, 1520], ['Cổng Gác Thornwall', 1400, 760], ['Nhà Nguyện Dawnrest', 1400, 3480], ['Hồ Crystalmere', -1400, 1500], ['Bờ Biển Saltreach', -1300, 3300],
+  ['Học Viện Starhollow', -1550, -300], ['Cao Nguyên Aurelia', 2200, -100], ['Sườn Núi Goldspire', 3500, -1400], ['Kinh Thành Aurumhold', 1400, -1300], ['Cây Aurum', 1400, -1720]];
 function drawMap() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = 'rgba(8,7,5,.94)'; ctx.fillRect(0, 0, CW, CH);
@@ -202,6 +202,14 @@ function drawMap() {
     ctx.fillStyle = '#ffe28a'; ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
   }
   for (const c of CHESTS) if (S.chests.includes(c.id) && c.x < MAPW) { const [x, y] = pt(c.x, c.y); ctx.fillStyle = 'rgba(160,120,70,.9)'; ctx.fillRect(x - 2.5, y - 2, 5, 4); }
+  // bia bản đồ chưa đọc ở những nơi đã đi qua: đánh dấu để người chơi quay lại
+  for (const f of MAP_FRAGS) {
+    if (S.frags.includes(f.id) || !revealedAt(f.x, f.y)) continue;
+    const [x, y] = pt(f.x, f.y), p = 0.7 + Math.sin(G.clock * 4) * 0.3;
+    ctx.fillStyle = `rgba(190,215,255,${p})`; ctx.shadowColor = '#bcd7ff'; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.moveTo(x - 4, y + 5); ctx.lineTo(x - 3, y - 5); ctx.lineTo(x, y - 8); ctx.lineTo(x + 3, y - 5); ctx.lineTo(x + 4, y + 5); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+  }
+  if (!S.frags.length) textC('Bản đồ còn trống. Hãy tìm những Bia Bản Đồ phát sáng xanh để phác họa từng vùng.', CW / 2, my + 24, `500 ${CW < 500 ? 11 : 13}px ${FONT_U}`, '#bfe0ff', 0.9);
   if (S.lost && S.lost.x < MAPW) { const [x, y] = pt(S.lost.x, S.lost.y); ctx.fillStyle = '#9dffb8'; ctx.beginPath(); ctx.arc(x, y, 4, 0, TAU); ctx.fill(); }
   if (S.marker) { const [x, y] = pt(S.marker.x, S.marker.y); drawMarkerIcon(x, y, 1); }
   const dg = dungeonAt(P.x, P.y), inMain = P.x < 4800, mpx = inMain ? P.x : dg ? dg.ex : null, mpy = inMain ? P.y : dg ? dg.ey : null;
@@ -210,7 +218,7 @@ function drawMap() {
     ctx.save(); ctx.translate(px, py); ctx.rotate(P.face); ctx.scale(pulse, pulse);
     ctx.fillStyle = '#e0503c'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-6, -6); ctx.lineTo(-3, 0); ctx.lineTo(-6, 6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
-  } else textC('Ngươi đang ở ngoài thế giới thường', CW / 2, my + 24, `500 13px ${FONT_U}`, '#f2dc97');
+  } else textC('Ngươi đang ở ngoài thế giới thường', CW / 2, my + 46, `500 13px ${FONT_U}`, '#f2dc97');
   textC(G.touch ? 'Chạm vào bản đồ để đặt dấu · chạm ra ngoài để đóng' : 'Bấm vào bản đồ để đặt / gỡ dấu · G / Esc để đóng', CW / 2, CH - 14, `500 12px ${FONT_U}`, 'rgba(236,227,204,.7)');
 }
 function drawMarkerIcon(x, y, s) {
@@ -280,7 +288,7 @@ function drawDeath() {
 }
 
 // ───────────────────────── menu HTML ─────────────────────────
-const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name') };
+const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name'), lore: $('lore'), controls: $('controlsBox') };
 const STAT_INFO = [
   ['vig', 'Tăng máu tối đa'], ['mnd', 'Tăng FP'], ['end', 'Tăng thể lực và sức mang vác'],
   ['str', 'Vũ khí nặng, sát thương theo Sức Mạnh'], ['dex', 'Vũ khí nhanh, cung, theo Khéo Léo'],
@@ -373,21 +381,24 @@ function commitLevels() {
 }
 // ── nhật ký mục tiêu ──
 function renderJournal() {
+  // chỉ hiện những mục tiêu người chơi đã nghe nói tới; phần còn lại lộ dần theo hành trình
+  const runesKnown = S.bossDead || S.gr.length > 0;
   const main = [
-    [S.bossDead, 'Hạ Varek, Kẻ Canh Cổng', 'Đấu trường ở cuối con đường phía bắc Nhà Nguyện.'],
-    [hasGR('east'), 'Đại Ấn Pháo Đài', 'Dornach trong Pháo Đài Đá Xám (phía đông). Thắp ba lò lửa theo đường đi của mặt trời để mở cổng.'],
-    [hasGR('swamp'), 'Đại Ấn Rồng Tro', 'Rồng Ignarth ngủ giữa Đầm Lầy Tro Độc. Cưỡi ngựa để băng qua ao độc.'],
-    [S.acadOpen || invN('crystalkey') > 0, 'Chìa Khóa Pha Lê', 'Trên hòn đảo phía tây bắc Hồ Pha Lê. Lối vào miền tây ở cạnh Tàn Tích Phía Tây.'],
-    [hasGR('west'), 'Đại Ấn Trăng Pha Lê', 'Nữ hoàng Selvara trong Học Viện Pha Lê, bờ bắc Hồ Pha Lê.'],
-    [S.greatOpen, 'Mở cổng Kinh Thành Vàng', 'Mang đủ ba Đại Ấn tới cổng lớn trên Cao Nguyên Hoàng Kim.'],
-    [S.boss2Dead, 'Hạ Vua Ẩn Mặt', 'Sân Ngai Vàng trong Kinh Thành.'],
-    [S.finalDead, 'Chạm tới Cây Vàng', 'Ở tận cùng phía bắc Kinh Thành.'],
+    [S.bossDead, 'Hạ Varek, Kẻ Canh Cổng', 'Đấu trường ở cuối con đường phía bắc Nhà Nguyện Dawnrest.'],
+    [hasGR('east'), 'Đại Ấn Greystone', 'Dornach trong Pháo Đài Greystone (phía đông). Thắp ba lò lửa theo đường đi của mặt trời để mở cổng.'],
+    [hasGR('swamp'), 'Đại Ấn Rồng Tro', 'Rồng Ignarth ngủ giữa Đầm Lầy Ashmire. Cưỡi ngựa để băng qua ao độc.'],
+    [S.acadOpen || invN('crystalkey') > 0, 'Chìa Khóa Pha Lê', 'Trên hòn đảo phía tây bắc Hồ Crystalmere. Lối vào miền tây ở cạnh Tàn Tích Hollowmere.'],
+    [hasGR('west'), 'Đại Ấn Trăng Pha Lê', 'Nữ hoàng Selvara trong Học Viện Starhollow, bờ bắc Hồ Crystalmere.'],
+    [S.greatOpen, 'Mở cổng Kinh Thành Aurumhold', 'Mang đủ ba Đại Ấn tới cổng lớn trên Cao Nguyên Aurelia.'],
+    [S.boss2Dead, 'Hạ Vua Ẩn Mặt', 'Sân Ngai Sunthrone trong Kinh Thành.'],
+    [S.finalDead, 'Chạm tới Cây Aurum', 'Ở tận cùng phía bắc Kinh Thành.'],
   ];
+  const known = [true, runesKnown, runesKnown, runesKnown || S.acadOpen || invN('crystalkey') > 0, runesKnown, runesKnown, S.greatOpen, S.boss2Dead];
   const nextI = main.findIndex(m => !m[0]);
   const dg = DUNGEONS.filter(d => S.dg[d.id]).length;
-  $('journal').innerHTML = '<h3 class="sec">Nhật ký hành trình</h3><ul class="journal">' + main.map(([ok, t, h], i) =>
-    `<li class="${ok ? 'ok' : i === nextI ? 'next' : ''}"><span>${ok ? '✓' : i === nextI ? '▸' : '·'}</span><div><b>${t}</b>${!ok && i === nextI ? '<small>' + h + '</small>' : ''}</div></li>`).join('') + '</ul>' +
-    `<p class="note">Phụ: hầm ngục ${dg}/${DUNGEONS.length} · Đấu Trường Thử Thách ${S.coloDone ? '✓' : '—'} · Rừng Linh Hồn ${S.mb.wraith ? '✓' : '—'} · Bia bản đồ ${S.frags.length}/${MAP_FRAGS.length} · Ân Điển ${S.discovered.length}/${GRACES.length} · Số lần chết ${S.deaths}</p>`;
+  $('journal').innerHTML = '<h3 class="sec">Nhật ký hành trình</h3><ul class="journal">' + main.map(([ok, t, h], i) => !ok && !known[i] ? '' :
+    `<li class="${ok ? 'ok' : i === nextI ? 'next' : ''}"><span>${ok ? '✓' : i === nextI ? '▸' : '·'}</span><div><b>${t}</b>${!ok && i === nextI ? '<small>' + h + '</small>' : ''}</div></li>`).join('') + (known.every(k => k) ? '' : '<li class="fog"><span>·</span><div><small>Phần còn lại của con đường vẫn chìm trong sương mù.</small></div></li>') + '</ul>' +
+    `<p class="note">Phụ: hầm ngục ${dg}/${DUNGEONS.length} · Đấu Trường Bloodsand ${S.coloDone ? '✓' : '—'} · Rừng Wraithwood ${S.mb.wraith ? '✓' : '—'} · Bia bản đồ ${S.frags.length}/${MAP_FRAGS.length} · Ân Điển ${S.discovered.length}/${GRACES.length} · Số lần chết ${S.deaths}</p>`;
 }
 // ── túi đồ ──
 function renderInv() {
@@ -428,7 +439,7 @@ function renderGrace() {
   const own = SPELL_ORDER.filter(s => S.spells.includes(s)), cs = curSpell();
   $('spellWrap').innerHTML = (g ? `<p class="note">Ghi nhớ ${S.att.length}/${S.slots} ô. Phép Trí Tuệ cần gậy, phép Đức Tin cần ấn ở tay trái. Giữ chuột phải (hoặc X) để niệm, ↑ để đổi phép.</p>`
     : `<p class="note">Đang ghi nhớ ${S.att.length}/${S.slots} ô. Bấm để chọn phép dùng tiếp theo; ghi nhớ phép mới khi nghỉ ở Ân Điển.</p>`) +
-    (own.length ? '<ul class="travel">' + own.filter(s => g || S.att.includes(s)).map(s => { const sp = SPELLS[s], on = S.att.includes(s); return `<li><button data-spell="${s}" class="${on ? 'on' : ''}"><span>${sp.name} <small class="tag">${sp.school === 'sorc' ? 'Trí Tuệ' : 'Đức Tin'}</small><br><small>${sp.desc} · ${sp.fp} FP · cần ${reqText(sp.req)}</small></span><small>${g ? (on ? 'Đã nhớ' : 'Ghi nhớ') : s === cs ? 'Đang dùng' : 'Dùng'}</small></button></li>`; }).join('') + '</ul>' : '<p class="note">Chưa học phép nào. Học Giả Ly và Nữ Tu Liên ở Điện Hội Ngộ có bán phép.</p>');
+    (own.length ? '<ul class="travel">' + own.filter(s => g || S.att.includes(s)).map(s => { const sp = SPELLS[s], on = S.att.includes(s); return `<li><button data-spell="${s}" class="${on ? 'on' : ''}"><span>${sp.name} <small class="tag">${sp.school === 'sorc' ? 'Trí Tuệ' : 'Đức Tin'}</small><br><small>${sp.desc} · ${sp.fp} FP · cần ${reqText(sp.req)}</small></span><small>${g ? (on ? 'Đã nhớ' : 'Ghi nhớ') : s === cs ? 'Đang dùng' : 'Dùng'}</small></button></li>`; }).join('') + '</ul>' : '<p class="note">Chưa học phép nào. Học Giả Lyra và Nữ Tu Seraphine ở Sảnh Hearthhold có bán phép.</p>');
   // bình
   const hpF = S.flaskMax - S.flaskFp;
   $('flaskWrap').innerHTML = `<p class="note">Tổng ${S.flaskMax} bình (Hạt Vàng tăng số bình, Nước Mắt Thánh tăng lượng hồi). Chia số bình giữa máu và FP.</p>
@@ -508,7 +519,7 @@ function renderShop() {
   const id = currentShop;
   $('shopRunes').textContent = S.runes.toLocaleString('vi-VN');
   if (id === 'smith') {
-    $('shopName').textContent = 'Thợ Rèn Hùng';
+    $('shopName').textContent = 'Thợ Rèn Hewen';
     $('shopLine').textContent = '“Đưa đá rèn đây. Lưỡi nào cùn, ta mài; lưỡi nào yếu, ta rèn lại.”';
     const mats = ['stone1', 'stone2', 'stone3', 'somber1', 'somber2'].map(k => ITEMDEF[k].name + ' ' + invN(k)).join(' · ');
     const list = [...ownedRight(), ...OFF_ORDER.filter(w => S.weapons.includes(w))].filter(upgradable);
@@ -543,6 +554,7 @@ function toggleMap() {
   else if (G.mode === 'map') setMode('play');
 }
 function togglePause() {
+  if (!UI.lore.hidden || !UI.controls.hidden) { closeInfo(); return; }
   if (G.mode === 'map') { toggleMap(); return; }
   if (G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { closeGrace(); return; }
   if (G.mode === 'play') { setMode('pause'); UI.pause.hidden = false; $('btnResume').focus({ preventScroll: true }); }
@@ -557,6 +569,24 @@ function togglePause() {
 function toggleMute() { muted = !muted; $('btnSound').textContent = 'Âm thanh: ' + (muted ? 'tắt' : 'bật'); toast(muted ? 'Đã tắt âm thanh' : 'Đã bật âm thanh'); }
 $('btnResume').onclick = togglePause;
 $('btnInv').onclick = () => openInventory();
+// bảng Truyền thuyết / Điều khiển: mở từ màn hình chính hoặc từ menu tạm dừng
+let infoBack = null;
+function openInfo(el, from) {
+  audioInit(); from.hidden = true; el.hidden = false;
+  infoBack = from;
+  const sc = el.querySelector('.scroll'); if (sc) sc.scrollTop = 0;
+  el.querySelector('.pbtn').focus({ preventScroll: true });
+}
+function closeInfo() {
+  UI.lore.hidden = true; UI.controls.hidden = true;
+  if (infoBack) { infoBack.hidden = false; const b = infoBack.querySelector('.mbtn:not([hidden]),.pbtn'); if (b) b.focus({ preventScroll: true }); }
+  infoBack = null;
+}
+$('btnLore').onclick = () => openInfo(UI.lore, UI.title);
+$('btnControls').onclick = () => openInfo(UI.controls, UI.title);
+$('btnPauseLore').onclick = () => openInfo(UI.lore, UI.pause);
+$('btnLoreClose').onclick = closeInfo;
+$('btnControlsClose').onclick = closeInfo;
 function updateFxBtn() { $('btnFx').textContent = 'Đồ họa: ' + (FX_LOW ? 'thấp' : 'cao'); }
 $('btnFx').onclick = () => {
   FX_LOW = !FX_LOW;
@@ -571,7 +601,7 @@ $('btnQuit').onclick = () => {
 };
 function openEnding() {
   setMode('menu');
-  $('endLv').textContent = S.level; $('endDeaths').textContent = S.deaths; $('endName').textContent = cleanName(S.name) || 'Kẻ Nhạt Phai';
+  $('endLv').textContent = S.level; $('endDeaths').textContent = S.deaths; $('endName').textContent = cleanName(S.name) || 'Gravebound';
   const showRank = () => { const r = myRank(); $('endRank').textContent = r ? 'Hạng #' + r + ' trên bảng xếp hạng' + (boardShared() ? ' chung' : ' của máy này') : 'Kết quả đã được ghi vào bảng xếp hạng'; };
   showRank(); later(1.5, showRank);
   const m = Math.floor(S.time / 60), s = Math.floor(S.time % 60);
@@ -586,13 +616,18 @@ $('btnEndClose').onclick = closeEnding;
 let confirmNew = false;
 function startGame(data, cls) {
   S = data ? Object.assign(defaultSave(), data) : defaultSave();
-  if (!data) { applyClass(cls); S.name = pendingName || 'Kẻ Nhạt Phai'; }
+  if (!data) { applyClass(cls); S.name = pendingName || 'Gravebound'; }
   S.flaskMax = Math.min(S.flaskMax, FLASK_CAP);
   expDecode(S.explored);
   UI.title.hidden = true; UI.cls.hidden = true; parts.length = 0;
   G.endingShown = S.treeReached && S.finalDead; G.hintT = data ? 99 : 0; G.region = null; G.timers.length = 0;
   respawnAt(S.lastGrace); setMode('play');
-  if (!data) later(1.2, () => subtitle('“Hỡi Kẻ Nhạt Phai... Hãy thu thập ba Đại Ấn và tới Cây Vàng ở tận cùng phương bắc.”', 5.5));
+  if (!data) {
+    // phần mở đầu kể trong game, không giải thích trước ở màn hình tiêu đề
+    later(1.2, () => subtitle('“...Tỉnh dậy đi, Gravebound.”', 3.2));
+    later(4.8, () => subtitle('“Vòng Aurum đã vỡ. Người chết không còn đường về, chỉ biết bò lên từ nấm mồ như ngươi. Vùng đất đang mục rữa từ gốc rễ.”', 5));
+    later(10.4, () => subtitle('“Ân Điển gọi ngươi trở về vì một lẽ. Hãy đi về phương bắc... câu trả lời đang chờ ở đó.”', 5));
+  }
   save();
 }
 function openClassSelect() {

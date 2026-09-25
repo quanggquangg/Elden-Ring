@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Tiện ích, canvas và âm thanh
+// Gravebound — Tiện ích, canvas và âm thanh
 // ───────────────────────── tiện ích ─────────────────────────
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);

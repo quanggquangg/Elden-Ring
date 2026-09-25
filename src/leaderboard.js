@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Tên người chơi và bảng xếp hạng
+// Gravebound — Tên người chơi và bảng xếp hạng
 // Xếp theo số lần chết (ít hơn đứng trên), bằng nhau thì theo thời gian phá đảo.
 // Nơi lưu, theo thứ tự ưu tiên: Firebase Firestore (khi src/config.js có cấu hình, dùng cho bản trên GitHub Pages),
 // kho dữ liệu của artifact claude.ai (db), rồi tới bảng chỉ nằm trên trình duyệt này.
@@ -49,7 +49,7 @@ async function refreshBoard() {
 // ghi kết quả một lần cho mỗi hành trình phá đảo
 async function submitRun() {
   if (S.submitted) return;
-  const row = { name: cleanName(S.name) || 'Kẻ Nhạt Phai', deaths: S.deaths, time: Math.round(S.time), level: S.level, cls: S.cls, at: Date.now() };
+  const row = { name: cleanName(S.name) || 'Gravebound', deaths: S.deaths, time: Math.round(S.time), level: S.level, cls: S.cls, at: Date.now() };
   S.submitted = true; S.runId = S.runId || ('r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); save();
   const local = readLocalBoard().filter(r => r.id !== S.runId); local.push(Object.assign({ id: S.runId }, row)); writeLocalBoard(local.sort(rankSort));
   try {
@@ -72,7 +72,7 @@ function renderBoard() {
     const tr = document.createElement('tr');
     if (r.id && r.id === S.runId) tr.className = 'me';
     const cls = (CLASSES.find(c => c.id === r.cls) || {}).name || '';
-    for (const v of [i + 1, cleanName(r.name) || 'Kẻ Nhạt Phai', r.deaths, fmtTime(r.time), r.level, cls]) { const td = document.createElement('td'); td.textContent = String(v); tr.appendChild(td); }
+    for (const v of [i + 1, cleanName(r.name) || 'Gravebound', r.deaths, fmtTime(r.time), r.level, cls]) { const td = document.createElement('td'); td.textContent = String(v); tr.appendChild(td); }
     body.appendChild(tr);
   });
 }

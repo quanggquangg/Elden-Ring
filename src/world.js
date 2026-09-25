@@ -1,13 +1,13 @@
 'use strict';
-// Vòng Vàng Vỡ — Dữ liệu thế giới và hình ảnh dựng sẵn
+// Gravebound — Dữ liệu thế giới và hình ảnh dựng sẵn
 // ───────────────────────── thế giới ─────────────────────────
 // Thế giới chính: x từ WX0 tới MAPW, y từ WY0 tới H.
-// Phía đông x > 5000 là các khu biệt lập (Cõi Vàng, Điện Hội Ngộ, hầm ngục), chỉ tới được bằng dịch chuyển.
+// Phía đông x > 5000 là các khu biệt lập (Cõi Aurum, Sảnh Hearthhold, hầm ngục), chỉ tới được bằng dịch chuyển.
 const WX0 = -2800, WY0 = -1800, MAPW = 4400, H = 3600, W = 11600;
 // độ khó chung: quái máu trâu hơn và đánh đau hơn
 const DIFF = { hp: 1.25, dmg: 1.3 };
 const ARENA = { x: 1000, y: 420, w: 800, h: 680 };
-const ARENA2 = { x: 1050, y: -1560, w: 700, h: 420 }; // Sân Ngai Vàng trong Kinh Thành
+const ARENA2 = { x: 1050, y: -1560, w: 700, h: 420 }; // Sân Ngai Sunthrone trong Kinh Thành
 const TREE_POS = { x: 1400, y: -1720 };
 const SWAMP = { x: 2060, y: 1230, w: 720, h: 790 };
 const LAIR = { x: 2420, y: 1620 };
@@ -16,7 +16,7 @@ function inPool(x, y) {
   for (const [px, py, rx, ry] of POOLS) { const dx = (x - px) / rx, dy = (y - py) / ry; if (dx * dx + dy * dy < 1) return true; }
   return false;
 }
-// Hồ Pha Lê: nước nông làm chậm bước, các đảo nhỏ nằm giữa hồ
+// Hồ Crystalmere: nước nông làm chậm bước, các đảo nhỏ nằm giữa hồ
 const LAKE = [[-1400, 1450, 850, 600], [-2250, 2250, 380, 260], [-500, 900, 280, 170], [-800, 2250, 260, 160]];
 const ISLES = [[-1750, 1250, 190, 130], [-950, 1700, 170, 120], [-1450, 1800, 130, 90]];
 const inEll = (x, y, [px, py, rx, ry], m = 0) => { const dx = (x - px) / (rx + m), dy = (y - py) / (ry + m); return dx * dx + dy * dy < 1; };
@@ -51,19 +51,19 @@ const STATUES = [{ id: 's1', x: 2980, y: 1980 }, { id: 's2', x: 4250, y: 1990 },
 const FLAG = { x: 3600, y: 3230 };
 
 // ───────────────────────── khu biệt lập ─────────────────────────
-const RC = { x: 5500, y: 500, r: 420 }; // đấu trường trận cuối trong Cõi Vàng
+const RC = { x: 5500, y: 500, r: 420 }; // đấu trường trận cuối trong Cõi Aurum
 const HUB = { x: 6100, y: 0, w: 1000, h: 900 };
 // Hầm ngục phụ: mỗi hầm có cửa vào ngoài thế giới, ân điển ở lối vào và một boss ở phòng cuối
 const DUNGEONS = [
-  { id: 'd1', name: 'Hầm Mộ Ven Biển', ex: -1600, ey: 3380, boss: 'graveknight', mul: 1.2, theme: 'crypt', reward: { tal: 'vital', pouch: 1, items: { somber1: 1 } } },
-  { id: 'd2', name: 'Mỏ Pha Lê', ex: -2450, ey: 1650, boss: 'minerg', mul: 1.45, theme: 'crystal', reward: { weapon: 'staff3', items: { stone2: 2, somber1: 1 } } },
-  { id: 'd3', name: 'Hang Tro', ex: 4250, ey: 760, boss: 'golem', mul: 1.4, theme: 'fire', reward: { tal: 'shieldtal', items: { somber2: 1, stone2: 2 } } },
-  { id: 'd4', name: 'Hầm Mộ Hoàng Gia', ex: 3900, ey: -1500, boss: 'royalchamp', mul: 1.8, theme: 'royal', reward: { weapon: 'royalsword', mem: 1, tal: 'gold' } },
+  { id: 'd1', name: 'Hầm Mộ Tidewrack', ex: -1600, ey: 3380, boss: 'graveknight', mul: 1.2, theme: 'crypt', reward: { tal: 'vital', pouch: 1, items: { somber1: 1 } } },
+  { id: 'd2', name: 'Mỏ Shardvein', ex: -2450, ey: 1650, boss: 'minerg', mul: 1.45, theme: 'crystal', reward: { weapon: 'staff3', items: { stone2: 2, somber1: 1 } } },
+  { id: 'd3', name: 'Hang Emberdeep', ex: 4250, ey: 760, boss: 'golem', mul: 1.4, theme: 'fire', reward: { tal: 'shieldtal', items: { somber2: 1, stone2: 2 } } },
+  { id: 'd4', name: 'Hầm Mộ Kingsrest', ex: 3900, ey: -1500, boss: 'royalchamp', mul: 1.8, theme: 'royal', reward: { weapon: 'royalsword', mem: 1, tal: 'gold' } },
 ];
 DUNGEONS.forEach((d, i) => { d.area = { x: 7200 + i * 1100, y: 0, w: 1000, h: 1600 }; d.grace = 30 + i; d.bossRoom = { x: d.area.x + 28, y: 28, w: 944, h: 544 }; });
 const AREAS = [
-  { id: 'realm', x: 5000, y: 0, w: 1000, h: 1000, name: 'Cõi Vàng' },
-  Object.assign({ id: 'hub', name: 'Điện Hội Ngộ' }, HUB),
+  { id: 'realm', x: 5000, y: 0, w: 1000, h: 1000, name: 'Cõi Aurum' },
+  Object.assign({ id: 'hub', name: 'Sảnh Hearthhold' }, HUB),
   ...DUNGEONS.map(d => Object.assign({ id: d.id, name: d.name, dg: d }, d.area)),
 ];
 function areaAt(x, y) {
@@ -79,15 +79,15 @@ const dungeonAt = (x, y) => { const a = areaAt(x, y); return a && a.dg ? a.dg : 
 const MAP_FRAGS = [
   { id: 'm1', x: 1180, y: 2650, name: 'Đồng Cỏ Phía Nam', rects: [{ x: 0, y: 2230, w: 2050, h: 1370 }] },
   { id: 'm2', x: 1620, y: 1380, name: 'Miền Bắc', rects: [{ x: 0, y: 420, w: 2100, h: 1180 }] },
-  { id: 'm3', x: 2150, y: 2080, name: 'Đầm Lầy Tro Độc', rects: [{ x: 2000, y: 1000, w: 800, h: 1100 }] },
-  { id: 'm4', x: 3020, y: 1700, name: 'Cao Nguyên Tro Đông', rects: [{ x: 2800, y: 420, w: 1600, h: 1480 }] },
-  { id: 'm5', x: 3060, y: 2250, name: 'Rừng Linh Hồn', rects: [{ x: 2850, y: 1900, w: 1500, h: 900 }] },
+  { id: 'm3', x: 2150, y: 2080, name: 'Đầm Lầy Ashmire', rects: [{ x: 2000, y: 1000, w: 800, h: 1100 }] },
+  { id: 'm4', x: 3020, y: 1700, name: 'Cao Nguyên Cinderreach', rects: [{ x: 2800, y: 420, w: 1600, h: 1480 }] },
+  { id: 'm5', x: 3060, y: 2250, name: 'Rừng Wraithwood', rects: [{ x: 2850, y: 1900, w: 1500, h: 900 }] },
   { id: 'm6', x: 3320, y: 2815, name: 'Vùng Nam Phía Đông', rects: [{ x: 2800, y: 2800, w: 1600, h: 800 }] },
-  { id: 'm7', x: -200, y: 1990, name: 'Hồ Pha Lê', rects: [{ x: -2800, y: 400, w: 2800, h: 2200 }] },
-  { id: 'm8', x: -220, y: 3120, name: 'Bờ Biển Muối', rects: [{ x: -2800, y: 2600, w: 2800, h: 1000 }] },
-  { id: 'm9', x: -1700, y: 340, name: 'Học Viện Pha Lê', rects: [ACAD] },
-  { id: 'm10', x: 1480, y: 250, name: 'Cao Nguyên Hoàng Kim', rects: [{ x: 0, y: -900, w: 4400, h: 1300 }, { x: 2500, y: -1800, w: 1900, h: 900 }] },
-  { id: 'm11', x: 1250, y: -990, name: 'Kinh Thành Vàng', rects: [CAPITAL] },
+  { id: 'm7', x: -200, y: 1990, name: 'Hồ Crystalmere', rects: [{ x: -2800, y: 400, w: 2800, h: 2200 }] },
+  { id: 'm8', x: -220, y: 3120, name: 'Bờ Biển Saltreach', rects: [{ x: -2800, y: 2600, w: 2800, h: 1000 }] },
+  { id: 'm9', x: -1700, y: 340, name: 'Học Viện Starhollow', rects: [ACAD] },
+  { id: 'm10', x: 1480, y: 250, name: 'Cao Nguyên Aurelia', rects: [{ x: 0, y: -900, w: 4400, h: 1300 }, { x: 2500, y: -1800, w: 1900, h: 900 }] },
+  { id: 'm11', x: 1250, y: -990, name: 'Kinh Thành Aurumhold', rects: [CAPITAL] },
 ];
 // sương mù bản đồ: mỗi ô 100×100 đơn vị, mở ra khi người chơi đi qua
 const EXP_CELL = 100, EXP_COLS = Math.ceil((MAPW - WX0) / EXP_CELL), EXP_ROWS = Math.ceil((H - WY0) / EXP_CELL);
@@ -122,7 +122,7 @@ const WALLS = [
   { x: 972, y: 1100, w: 388, h: 28 }, { x: 1440, y: 1100, w: 388, h: 28 },
   { x: 1360, y: 392, w: 80, h: 28, gate: 'north' },
   { x: 1360, y: 1100, w: 80, h: 28, gate: 'fog' },
-  // vách đá ngăn Cao Nguyên Hoàng Kim với miền dưới, rìa phía đông
+  // vách đá ngăn Cao Nguyên Aurelia với miền dưới, rìa phía đông
   { x: 0, y: 380, w: 972, h: 40, cliff: true }, { x: 1828, y: 380, w: MAPW - 1828, h: 40, cliff: true }, { x: MAPW, y: WY0, w: 90, h: H - WY0, void: true },
   // vách đá ngăn miền Tây, có hai lối qua: cạnh tàn tích và phía nam ra bờ biển
   { x: -40, y: 400, w: 40, h: 1460, cliff: true }, { x: -40, y: 1960, w: 40, h: 990, cliff: true }, { x: -40, y: 3150, w: 40, h: 450, cliff: true },
@@ -139,17 +139,17 @@ const WALLS = [
   { x: 420, y: 1960, w: 24, h: 204 }, { x: 420, y: 2140, w: 300, h: 24 },
   { x: 840, y: 2140, w: 140, h: 24 }, { x: 956, y: 1900, w: 24, h: 264 },
   { x: 600, y: 1860, w: 90, h: 20 },
-  // Pháo Đài Đá Xám
+  // Pháo Đài Greystone
   { x: 3200, y: 500, w: 800, h: 28 }, { x: 3200, y: 500, w: 28, h: 800 }, { x: 3972, y: 500, w: 28, h: 800 },
   { x: 3200, y: 1272, w: 340, h: 28 }, { x: 3660, y: 1272, w: 340, h: 28 }, { x: 3540, y: 1272, w: 120, h: 28, gate: 'fort' },
   { x: 3400, y: 528, w: 28, h: 260 }, { x: 3772, y: 528, w: 28, h: 260 }, { x: 3400, y: 760, w: 140, h: 28 }, { x: 3660, y: 760, w: 140, h: 28 },
   { x: 3228, y: 1100, w: 112, h: 24 }, { x: 3340, y: 1100, w: 24, h: 172, illusory: 'w_fort' },
   // căn nhà không cửa
   { x: 2950, y: 3150, w: 150, h: 22 }, { x: 2950, y: 3150, w: 22, h: 150 }, { x: 3078, y: 3150, w: 22, h: 150 }, { x: 2950, y: 3278, w: 150, h: 22, illusory: 'w_hut' },
-  // Đấu Trường Thử Thách
+  // Đấu Trường Bloodsand
   { x: 3200, y: 2950, w: 340, h: 28 }, { x: 3660, y: 2950, w: 340, h: 28 }, { x: 3540, y: 2950, w: 120, h: 28, gate: 'colo' },
   { x: 3200, y: 2950, w: 28, h: 560 }, { x: 3972, y: 2950, w: 28, h: 560 }, { x: 3200, y: 3482, w: 800, h: 28 },
-  // Học Viện Pha Lê: sân trước, cánh tây, thư viện và phòng của nữ hoàng
+  // Học Viện Starhollow: sân trước, cánh tây, thư viện và phòng của nữ hoàng
   { x: -2328, y: -928, w: 28, h: 1348, acad: true }, { x: -800, y: -928, w: 28, h: 1348, acad: true }, { x: -2328, y: -928, w: 1556, h: 28, acad: true },
   { x: -2328, y: 380, w: 728, h: 40, acad: true }, { x: -1600, y: 380, w: 100, h: 40, gate: 'acad' }, { x: -1500, y: 380, w: 728, h: 40, acad: true },
   { x: -2300, y: 72, w: 100, h: 28, acad: true }, { x: -2080, y: 72, w: 880, h: 28, acad: true }, { x: -1200, y: 72, w: 100, h: 28, gate: 'lever', lever: 'acad_sc' }, { x: -1100, y: 72, w: 300, h: 28, acad: true },
@@ -159,10 +159,10 @@ const WALLS = [
   { x: -1840, y: -430, w: 240, h: 26, shelf: true }, { x: -1520, y: -430, w: 240, h: 26, shelf: true }, { x: -1200, y: -430, w: 240, h: 26, shelf: true },
   { x: -1840, y: -270, w: 240, h: 26, shelf: true }, { x: -1520, y: -270, w: 240, h: 26, shelf: true }, { x: -1200, y: -270, w: 240, h: 26, shelf: true },
   { x: -1840, y: -110, w: 240, h: 26, shelf: true }, { x: -1520, y: -110, w: 240, h: 26, shelf: true },
-  // Kinh Thành Vàng: tường thành, cổng lớn cần ba Đại Ấn, cửa hông mở bằng cần gạt bên trong
+  // Kinh Thành Aurumhold: tường thành, cổng lớn cần ba Đại Ấn, cửa hông mở bằng cần gạt bên trong
   { x: 300, y: -928, w: 1040, h: 28 }, { x: 1340, y: -928, w: 120, h: 28, gate: 'great' }, { x: 1460, y: -928, w: 1040, h: 28 },
   { x: 300, y: -1800, w: 28, h: 872 }, { x: 2472, y: -1800, w: 28, h: 680 }, { x: 2472, y: -1120, w: 28, h: 120, gate: 'lever', lever: 'cap_side' }, { x: 2472, y: -1000, w: 28, h: 72 },
-  // Sân Ngai Vàng (Varek trở lại) và lối lên Cây Vàng
+  // Sân Ngai Sunthrone (Varek trở lại) và lối lên Cây Aurum
   { x: 1022, y: -1800, w: 28, h: 688 }, { x: 1750, y: -1800, w: 28, h: 688 },
   { x: 1022, y: -1140, w: 328, h: 28 }, { x: 1350, y: -1140, w: 100, h: 28, gate: 'fog2' }, { x: 1450, y: -1140, w: 328, h: 28 },
   { x: 1050, y: -1588, w: 300, h: 28 }, { x: 1350, y: -1588, w: 100, h: 28, gate: 'north2' }, { x: 1450, y: -1588, w: 300, h: 28 },
@@ -170,7 +170,7 @@ const WALLS = [
   ...[[400, -1700, 250, 200], [750, -1700, 200, 300], [400, -1400, 200, 220], [700, -1300, 260, 150], [420, -1100, 180, 120], [760, -1080, 200, 90],
     [1850, -1700, 250, 250], [2180, -1720, 220, 200], [1850, -1380, 200, 200], [2150, -1420, 250, 160], [1860, -1100, 220, 120], [2200, -1180, 180, 130]]
     .map(([x, y, w, h]) => ({ x, y, w, h, bld: true })),
-  // Điện Hội Ngộ
+  // Sảnh Hearthhold
   { x: HUB.x, y: 0, w: HUB.w, h: 28 }, { x: HUB.x, y: HUB.h - 28, w: HUB.w, h: 28 }, { x: HUB.x, y: 0, w: 28, h: HUB.h }, { x: HUB.x + HUB.w - 28, y: 0, w: 28, h: HUB.h },
 ];
 const LEVERS = [{ id: 'acad_sc', x: -1150, y: 40, name: 'Cửa tắt Học Viện' }, { id: 'cap_side', x: 2430, y: -1060, name: 'Cửa hông Kinh Thành' }];
@@ -234,17 +234,17 @@ function wallsNear(x, y, r) {
 
 // ───────────────────────── ân điển, vật phẩm, rương ─────────────────────────
 const GRACES = [
-  { id: 0, x: 1400, y: 3330, name: 'Ân Điển Nhà Nguyện' },
+  { id: 0, x: 1400, y: 3330, name: 'Ân Điển Nhà Nguyện Dawnrest' },
   { id: 1, x: 1850, y: 2950, name: 'Ân Điển Đồng Cỏ' },
   { id: 2, x: 700, y: 2320, name: 'Ân Điển Tàn Tích' },
   { id: 3, x: 1400, y: 1290, name: 'Ân Điển Cổng Varek' },
   { id: 4, x: 2000, y: 2350, name: 'Ân Điển Bờ Đầm' },
   { id: 5, x: 3600, y: 1700, name: 'Ân Điển Chân Pháo Đài' },
-  { id: 6, x: 3100, y: 2400, name: 'Ân Điển Rừng Linh Hồn' },
+  { id: 6, x: 3100, y: 2400, name: 'Ân Điển Rừng Wraithwood' },
   { id: 7, x: 3600, y: 2860, name: 'Ân Điển Đấu Trường' },
   { id: 8, x: 1300, y: 300, name: 'Ân Điển Cổng Bắc' },
   { id: 9, x: -450, y: 1800, name: 'Ân Điển Bờ Hồ Đông' },
-  { id: 10, x: -2300, y: 1450, name: 'Ân Điển Mỏ Pha Lê' },
+  { id: 10, x: -2300, y: 1450, name: 'Ân Điển Mỏ Shardvein' },
   { id: 11, x: -1250, y: 560, name: 'Ân Điển Chân Học Viện' },
   { id: 12, x: -1400, y: 300, name: 'Ân Điển Cổng Học Viện' },
   { id: 13, x: -1550, y: -460, name: 'Ân Điển Thư Viện' },
@@ -255,16 +255,16 @@ const GRACES = [
   { id: 18, x: 1400, y: -780, name: 'Ân Điển Cổng Kinh Thành' },
   { id: 19, x: 660, y: -960, name: 'Ân Điển Phố Vàng' },
   { id: 20, x: 1400, y: -1060, name: 'Ân Điển Trước Ngai' },
-  { id: 21, x: 1250, y: -1660, name: 'Ân Điển Cây Vàng' },
-  { id: 22, x: HUB.x + 500, y: 450, name: 'Điện Hội Ngộ', hub: true },
+  { id: 21, x: 1250, y: -1660, name: 'Ân Điển Cây Aurum' },
+  { id: 22, x: HUB.x + 500, y: 450, name: 'Sảnh Hearthhold', hub: true },
   ...DUNGEONS.map(d => ({ id: d.grace, x: d.area.x + 500, y: 1440, name: 'Ân Điển ' + d.name, dg: d.id })),
 ];
-// NPC ở Điện Hội Ngộ
+// NPC ở Sảnh Hearthhold
 const NPCS = [
-  { id: 'smith', x: HUB.x + 220, y: 250, name: 'Thợ Rèn Hùng', col: '#8a5a3a' },
-  { id: 'merchant', x: HUB.x + 780, y: 250, name: 'Lái Buôn Kha', col: '#6a5a3a' },
-  { id: 'scholar', x: HUB.x + 220, y: 660, name: 'Học Giả Ly', col: '#3a4a8a' },
-  { id: 'priestess', x: HUB.x + 780, y: 660, name: 'Nữ Tu Liên', col: '#b8952f' },
+  { id: 'smith', x: HUB.x + 220, y: 250, name: 'Thợ Rèn Hewen', col: '#8a5a3a' },
+  { id: 'merchant', x: HUB.x + 780, y: 250, name: 'Lái Buôn Kale', col: '#6a5a3a' },
+  { id: 'scholar', x: HUB.x + 220, y: 660, name: 'Học Giả Lyra', col: '#3a4a8a' },
+  { id: 'priestess', x: HUB.x + 780, y: 660, name: 'Nữ Tu Seraphine', col: '#b8952f' },
 ];
 const ITEMS = [
   { id: 'seed1', x: 470, y: 1710, loot: { seed: 1 } },
@@ -297,7 +297,7 @@ const CHESTS = [
   { id: 'c_hut', x: 3025, y: 3225, loot: { ash: 'flame', items: { stone1: 2 } } },
   { id: 'c_glade', x: 3650, y: 2300, loot: { seed: 1, tear: 1 }, req: () => S.glade },
   { id: 'c_colo', x: 3600, y: 3330, loot: { runes: 2500, items: { stone2: 2 }, tal: 'blade' }, req: () => S.coloDone, noObst: true },
-  // Hồ Pha Lê và bờ biển
+  // Hồ Crystalmere và bờ biển
   { id: 'c_isle1', x: -1750, y: 1250, loot: { items: { crystalkey: 1, stone2: 1 } } },
   { id: 'c_isle2', x: -950, y: 1700, loot: { tal: 'cerulean', runes: 600 } },
   { id: 'c_lake_w', x: -2600, y: 1100, loot: { weapon: 'rapier' } },
@@ -310,7 +310,7 @@ const CHESTS = [
   { id: 'c_lib', x: -900, y: -470, loot: { weapon: 'crystalsword' } },
   { id: 'c_lib2', x: -1780, y: -180, loot: { spell: 'shard', tear: 1 } },
   { id: 'c_wing', x: -2250, y: -300, loot: { armor: 'crystalset', items: { stone2: 2 } } },
-  // Cao Nguyên Hoàng Kim và Kinh Thành
+  // Cao Nguyên Aurelia và Kinh Thành
   { id: 'c_gold1', x: 300, y: -600, loot: { tal: 'feather', items: { stone3: 1 } } },
   { id: 'c_gold2', x: 2300, y: 150, loot: { seed: 1, items: { stone2: 2 } } },
   { id: 'c_high1', x: 4200, y: -1700, loot: { weapon: 'greataxe', items: { stone3: 1 } } },
@@ -327,31 +327,31 @@ const CHESTS = [
   ['d4', 860, 1200, { items: { grune2: 1, stone3: 1 } }], ['d4', 90, 700, { items: { stone3: 2, somber2: 1 } }]]
   .forEach(([id, x, y, loot], i) => { const d = DUNGEONS.find(q => q.id === id); CHESTS.push({ id: 'c_' + id + '_' + i, x: d.area.x + x, y, loot }); });
 const NOTES = [
-  { x: 1400, y: 3130, text: 'Phía trước có kẻ địch. Lăn né (Space) đúng lúc chúng vung vũ khí.' },
-  { x: 1470, y: 2300, text: 'Kẻ địch lảo đảo sau vài đòn. Đòn mạnh phá thế đứng nhanh hơn.' },
-  { x: 2120, y: 2560, text: 'Cẩn thận: bầy sói. Hãy lùi lại và đánh từng con.' },
-  { x: 700, y: 2230, text: 'Kho báu ở phía trước... và cả một kỵ sĩ. Khi hắn quỳ gối, hãy đâm chí mạng.' },
-  { x: 1320, y: 1220, text: 'Kẻ canh cổng thích đánh chậm một nhịp. Đừng lăn quá sớm.' },
-  { x: 1440, y: 330, text: 'Kinh Thành Vàng ở phía bắc. Cổng lớn chỉ mở cho kẻ mang đủ ba Đại Ấn.' },
-  { x: 2040, y: 2240, text: 'Con rồng ngủ trong đầm lầy phía bắc. Cưỡi ngựa để băng qua ao độc.' },
-  { x: 1480, y: 1240, text: 'Giơ khiên đúng lúc hắn vung kiếm... rồi đâm chí mạng.' },
-  { x: 3600, y: 1530, text: '“Mặt trời mọc ở phía đông, đứng bóng trên đỉnh, rồi lặn về phía tây.” Hãy thắp lửa theo đúng đường đi của nó.' },
-  { x: 3400, y: 1235, text: 'Bức tường phía tây này nghe rỗng tuếch... Hãy thử tấn công nó.' },
-  { x: 3160, y: 2330, text: 'Bốn tượng đá ngủ ở bốn góc rừng. Đánh thức cả bốn, kết giới sẽ tan.' },
-  { x: 3600, y: 3140, text: 'Chạm vào lá cờ để bắt đầu thử thách. Ba đợt kẻ thù, không đường lui.' },
-  { x: 3025, y: 3110, text: 'Một căn nhà không có cửa ra vào?' },
-  { x: 2830, y: 1360, text: 'Cẩn thận người khổng lồ đá. Lăn vào trong khi nó giơ chùy lên.' },
-  { x: 160, y: 1905, text: 'Qua vách đá là Hồ Pha Lê. Nước nông làm chậm bước chân, đừng để bị vây giữa hồ.' },
-  { x: -1500, y: 2260, text: 'Chìa khóa Học Viện... nằm trên hòn đảo phía tây bắc, giữa lũ người pha lê.' },
-  { x: -1450, y: 470, text: 'Cổng Học Viện Pha Lê. Chỉ mở cho kẻ mang chìa khóa pha lê.' },
-  { x: -1180, y: 140, text: 'Cánh cửa này bị khóa từ phía bên kia.' },
-  { x: -1080, y: 330, text: 'Góc sân này... có tiếng gió lùa qua tường.' },
-  { x: 1400, y: -860, text: 'Cổng Kinh Thành. Ba Đại Ấn: vệ binh Pháo Đài phía đông, con rồng trong đầm lầy, và nữ hoàng Học Viện phía tây.' },
-  { x: 1480, y: -1000, text: 'Kẻ canh cổng năm xưa... vẫn chờ ở Sân Ngai Vàng.' },
-  { x: 150, y: 3050, text: 'Lối xuống bờ biển phía tây. Có một hầm mộ cũ bên bờ nước.' },
-  { x: DUNGEONS[0].area.x + 500, y: 1250, text: 'Cánh cửa đá đóng chặt. Hẳn phải có cơ quan ở đâu đây.' },
-  { x: DUNGEONS[1].area.x + 780, y: 950, text: 'Vách pha lê phía đông này mỏng hơn hẳn...' },
-  { x: DUNGEONS[2].area.x + 500, y: 1130, text: 'Mặt đất nóng rực. Lửa phun lên theo nhịp, hãy đếm nhịp mà đi.' },
+  { x: 1400, y: 3130, text: 'Lưỡi gươm đang chờ phía trước. Hãy lăn mình (Space) đúng khoảnh khắc thép vung xuống.' },
+  { x: 1470, y: 2300, text: 'Kẻ thù nào rồi cũng lảo đảo. Đòn nặng tay bẻ gãy thế đứng nhanh hơn cả.' },
+  { x: 2120, y: 2560, text: 'Nghe tiếng tru? Bầy sói săn theo đàn. Lùi lại, và hạ từng con một.' },
+  { x: 700, y: 2230, text: 'Kho báu ở phía trước... cùng một kỵ sĩ không chịu chết. Khi hắn quỳ gối, hãy kết liễu hắn.' },
+  { x: 1320, y: 1220, text: 'Kẻ gác cổng thích giữ lưỡi kiếm lâu hơn một nhịp. Kẻ nào lăn vội sẽ chết.' },
+  { x: 1440, y: 330, text: 'Kinh Thành Aurumhold ngự trên đỉnh cao nguyên. Cổng lớn chỉ mở cho kẻ mang đủ ba Đại Ấn.' },
+  { x: 2040, y: 2240, text: 'Một con rồng cổ ngủ giữa đầm lầy phương bắc. Hãy phi ngựa qua những ao độc tím.' },
+  { x: 1480, y: 1240, text: 'Nâng khiên đúng lúc lưỡi kiếm chạm tới... rồi đâm xuyên kẻ đã mất thế.' },
+  { x: 3600, y: 1530, text: '“Mặt trời mọc ở phía đông, đứng bóng trên đỉnh, rồi lặn về phía tây.” Hãy thắp lửa theo đúng hành trình của nó.' },
+  { x: 3400, y: 1235, text: 'Bức tường phía tây nghe rỗng tuếch... Có lẽ nó chỉ là ảo ảnh. Thử vung kiếm xem.' },
+  { x: 3160, y: 2330, text: 'Bốn tượng canh ngủ ở bốn góc rừng. Đánh thức cả bốn, kết giới linh hồn sẽ tan.' },
+  { x: 3600, y: 3140, text: 'Chạm vào lá cờ máu để nhận lời thách đấu. Ba đợt kẻ thù, không có đường lui.' },
+  { x: 3025, y: 3110, text: 'Một căn nhà không có cửa ra vào... Ai đã xây nó, và để giấu điều gì?' },
+  { x: 2830, y: 1360, text: 'Gã khổng lồ đá chậm chạp mà chết chóc. Khi hắn giơ chùy, hãy lăn vào dưới chân hắn.' },
+  { x: 160, y: 1905, text: 'Qua khe đá là Hồ Crystalmere. Nước hồ níu chân kẻ lữ hành; đừng để bị vây giữa làn nước.' },
+  { x: -1500, y: 2260, text: 'Chìa khóa của Học Viện nằm trên hòn đảo phía tây bắc, giữa đám người pha lê không bao giờ ngủ.' },
+  { x: -1450, y: 470, text: 'Cổng Học Viện Starhollow. Chỉ kẻ mang Chìa Khóa Pha Lê mới được bước qua.' },
+  { x: -1180, y: 140, text: 'Cánh cửa này bị cài then từ phía bên kia.' },
+  { x: -1080, y: 330, text: 'Góc sân này... có tiếng gió luồn qua một bức tường lẽ ra phải kín.' },
+  { x: 1400, y: -860, text: 'Cổng Kinh Thành Aurumhold. Ba Đại Ấn nằm trong tay vệ binh Greystone phương đông, con rồng Ashmire, và nữ hoàng Starhollow phương tây.' },
+  { x: 1480, y: -1000, text: 'Kẻ gác cổng năm xưa chưa hề chết... Hắn đang chờ ở Sân Ngai Sunthrone.' },
+  { x: 150, y: 3050, text: 'Lối xuống bờ biển Saltreach. Sóng đã gặm mòn một hầm mộ cổ bên mép nước.' },
+  { x: DUNGEONS[0].area.x + 500, y: 1250, text: 'Cánh cửa đá im lìm. Hẳn phải có cơ quan ẩn đâu đó trong gian mộ.' },
+  { x: DUNGEONS[1].area.x + 780, y: 950, text: 'Vách pha lê phía đông mỏng như lớp băng đầu đông...' },
+  { x: DUNGEONS[2].area.x + 500, y: 1130, text: 'Nền đá nóng rực. Lửa ngầm phun theo nhịp; hãy đếm hơi thở của hang mà đi.' },
 ];
 const SPAWNS = [
   ['soldier', 1320, 2880], ['soldier', 1480, 2840],
@@ -373,28 +373,28 @@ const SPAWNS = [
   ['ghost', 3300, 2080], ['ghost', 3950, 2120], ['ghost', 3380, 2600], ['ghost', 3880, 2620], ['spider', 4120, 2380], ['spider', 3200, 2760],
   // phía nam
   ['bomber', 4200, 3300], ['shield', 4250, 3120], ['bat', 2900, 3050], ['bat', 2940, 3080], ['spider', 3050, 3420], ['knight', 4300, 2900],
-  // Hồ Pha Lê
+  // Hồ Crystalmere
   ['lakehound', -600, 2330], ['lakehound', -660, 2440], ['lakehound', -520, 2440],
   ['sorcerer', -300, 1250], ['sorcerer', -1900, 620], ['sorcerer', -2350, 1150],
   ['crystal', -1690, 1230], ['crystal', -1810, 1290], ['knight', -1030, 1650],
   ['lakehound', -2050, 2020], ['lakehound', -2150, 2060], ['soldier', -1200, 2240], ['soldier', -1350, 2300], ['archer', -1000, 2380],
   ['lakehound', -1300, 1050], ['lakehound', -1150, 1150], ['bat', -700, 600], ['bat', -740, 640], ['troll', -2500, 800], ['mage', -1700, 2400],
   ['crystal', -600, 1500], ['sorcerer', -2550, 1900],
-  // Bờ Biển Muối
+  // Bờ Biển Saltreach
   ['ghoul', -600, 3300], ['ghoul', -800, 3200], ['ghoul', -1300, 3420], ['soldier', -400, 3200], ['archer', -1900, 3320],
   ['lakehound', -2200, 3000], ['lakehound', -2260, 3060], ['knight', -1800, 2800], ['bomber', -1000, 3520], ['bat', -1500, 2950], ['bat', -1540, 2990],
-  // Học Viện Pha Lê
+  // Học Viện Starhollow
   ['sorcerer', -1900, 250], ['sorcerer', -1150, 200], ['crystal', -1700, 180], ['shield', -2000, 320],
   ['crystal', -2100, -100], ['sorcerer', -2150, -430], ['knight', -2150, 0],
   ['sorcerer', -1700, -340], ['sorcerer', -1300, -180], ['crystal', -1000, -340], ['sorcerer', -1000, -20], ['bat', -1500, -40],
   ['selvara', -1550, -740],
-  // Cao Nguyên Hoàng Kim
+  // Cao Nguyên Aurelia
   ['royal', 1500, -100], ['garcher', 1000, 100], ['lion', 900, -500], ['priest', 700, -150], ['royal', 2200, -500], ['garcher', 1800, -300],
   ['priest', 2600, 0], ['lion', 3200, -300], ['royal', 3800, 100], ['garcher', 4000, -200], ['soldier', 1200, -600], ['soldier', 1600, -650],
   ['garcher', 400, 100], ['troll', 3000, 200],
-  // Sườn Núi Hoàng Kim
+  // Sườn Núi Goldspire
   ['lion', 3300, -1500], ['royal', 3800, -1250], ['garcher', 4100, -1000], ['priest', 3100, -1100], ['troll', 2900, -1650], ['garcher', 4200, -1450],
-  // Kinh Thành Vàng
+  // Kinh Thành Aurumhold
   ['royal', 680, -1600], ['priest', 500, -1450], ['garcher', 850, -1370], ['lion', 650, -1340], ['garcher', 360, -1250],
   ['royal', 2000, -1420], ['priest', 2280, -1480], ['garcher', 2100, -1250], ['royal', 2300, -1220], ['garcher', 1810, -1500], ['knight', 2140, -1050],
   ['lion', 1700, -1010], ['royal', 1100, -990],
@@ -411,34 +411,34 @@ for (const d of DUNGEONS) {
   SPAWNS.push([d.boss, d.area.x + 500, 280]);
 }
 const REGIONS = [
-  { name: 'Cõi Vàng', test: x => x > 4800 && x < 6050 },
-  { name: 'Điện Hội Ngộ', test: x => x >= 6050 && x < 7150 },
+  { name: 'Cõi Aurum', test: x => x > 4800 && x < 6050 },
+  { name: 'Sảnh Hearthhold', test: x => x >= 6050 && x < 7150 },
   ...DUNGEONS.map(d => ({ name: d.name, test: x => x >= d.area.x - 50 && x < d.area.x + d.area.w + 50 })),
-  { name: 'Cây Vàng', test: (x, y) => y < ARENA2.y && x > 1000 && x < 1800 },
-  { name: 'Sân Ngai Vàng', test: (x, y) => inRect(x, y, ARENA2) },
-  { name: 'Kinh Thành Vàng', test: (x, y) => inRect(x, y, CAPITAL) },
-  { name: 'Sườn Núi Hoàng Kim', test: (x, y) => y < -900 && x > 2500 },
-  { name: 'Học Viện Pha Lê', test: (x, y) => inRect(x, y, ACAD) },
-  { name: 'Cao Nguyên Hoàng Kim', test: (x, y) => x >= 0 && y < 390 },
-  { name: 'Bờ Biển Muối', test: (x, y) => x < 0 && y >= 2600 },
-  { name: 'Hồ Pha Lê', test: x => x < 0 },
-  { name: 'Đấu Trường Cổng Varek', test: (x, y) => x > ARENA.x && x < ARENA.x + ARENA.w && y > ARENA.y && y < ARENA.y + ARENA.h },
-  { name: 'Đầm Lầy Tro Độc', test: (x, y) => x > SWAMP.x && x < SWAMP.x + SWAMP.w && y > SWAMP.y && y < SWAMP.y + SWAMP.h },
-  { name: 'Tàn Tích Phía Tây', test: (x, y) => x > 380 && x < 1020 && y > 1600 && y < 2200 },
-  { name: 'Nhà Nguyện Khởi Đầu', test: (x, y) => x > 1220 && x < 1580 && y > 3170 },
-  { name: 'Pháo Đài Đá Xám', test: (x, y) => inRect(x, y, FORT) },
-  { name: 'Đấu Trường Thử Thách', test: (x, y) => inRect(x, y, COLO.rect) },
-  { name: 'Rừng Linh Hồn', test: (x, y) => inRect(x, y, FOREST) },
-  { name: 'Cao Nguyên Tro Đông', test: (x) => x > 2800 },
-  { name: 'Đồng Cỏ Sương Mờ', test: () => true },
+  { name: 'Cây Aurum', test: (x, y) => y < ARENA2.y && x > 1000 && x < 1800 },
+  { name: 'Sân Ngai Sunthrone', test: (x, y) => inRect(x, y, ARENA2) },
+  { name: 'Kinh Thành Aurumhold', test: (x, y) => inRect(x, y, CAPITAL) },
+  { name: 'Sườn Núi Goldspire', test: (x, y) => y < -900 && x > 2500 },
+  { name: 'Học Viện Starhollow', test: (x, y) => inRect(x, y, ACAD) },
+  { name: 'Cao Nguyên Aurelia', test: (x, y) => x >= 0 && y < 390 },
+  { name: 'Bờ Biển Saltreach', test: (x, y) => x < 0 && y >= 2600 },
+  { name: 'Hồ Crystalmere', test: x => x < 0 },
+  { name: 'Cổng Gác Thornwall', test: (x, y) => x > ARENA.x && x < ARENA.x + ARENA.w && y > ARENA.y && y < ARENA.y + ARENA.h },
+  { name: 'Đầm Lầy Ashmire', test: (x, y) => x > SWAMP.x && x < SWAMP.x + SWAMP.w && y > SWAMP.y && y < SWAMP.y + SWAMP.h },
+  { name: 'Tàn Tích Hollowmere', test: (x, y) => x > 380 && x < 1020 && y > 1600 && y < 2200 },
+  { name: 'Nhà Nguyện Dawnrest', test: (x, y) => x > 1220 && x < 1580 && y > 3170 },
+  { name: 'Pháo Đài Greystone', test: (x, y) => inRect(x, y, FORT) },
+  { name: 'Đấu Trường Bloodsand', test: (x, y) => inRect(x, y, COLO.rect) },
+  { name: 'Rừng Wraithwood', test: (x, y) => inRect(x, y, FOREST) },
+  { name: 'Cao Nguyên Cinderreach', test: (x) => x > 2800 },
+  { name: 'Đồng Cỏ Mistveil', test: () => true },
 ];
 const regionAt = (x, y) => REGIONS.find(r => r.test(x, y)).name;
 // hệ số sức mạnh của quái theo vùng đất (như Elden Ring: mạnh theo vùng, không theo cấp người chơi)
 const REGION_MUL = {
-  'Cõi Vàng': 2.0, 'Điện Hội Ngộ': 1, 'Cây Vàng': 1.9, 'Sân Ngai Vàng': 1.9, 'Kinh Thành Vàng': 1.85, 'Sườn Núi Hoàng Kim': 1.8,
-  'Học Viện Pha Lê': 1.55, 'Cao Nguyên Hoàng Kim': 1.7, 'Bờ Biển Muối': 1.2, 'Hồ Pha Lê': 1.4, 'Đấu Trường Cổng Varek': 1.2,
-  'Đầm Lầy Tro Độc': 1.25, 'Tàn Tích Phía Tây': 1.1, 'Nhà Nguyện Khởi Đầu': 1, 'Pháo Đài Đá Xám': 1.45, 'Đấu Trường Thử Thách': 1.5,
-  'Rừng Linh Hồn': 1.4, 'Cao Nguyên Tro Đông': 1.35, 'Đồng Cỏ Sương Mờ': 1,
+  'Cõi Aurum': 2.0, 'Sảnh Hearthhold': 1, 'Cây Aurum': 1.9, 'Sân Ngai Sunthrone': 1.9, 'Kinh Thành Aurumhold': 1.85, 'Sườn Núi Goldspire': 1.8,
+  'Học Viện Starhollow': 1.55, 'Cao Nguyên Aurelia': 1.7, 'Bờ Biển Saltreach': 1.2, 'Hồ Crystalmere': 1.4, 'Cổng Gác Thornwall': 1.2,
+  'Đầm Lầy Ashmire': 1.25, 'Tàn Tích Hollowmere': 1.1, 'Nhà Nguyện Dawnrest': 1, 'Pháo Đài Greystone': 1.45, 'Đấu Trường Bloodsand': 1.5,
+  'Rừng Wraithwood': 1.4, 'Cao Nguyên Cinderreach': 1.35, 'Đồng Cỏ Mistveil': 1,
 };
 for (const d of DUNGEONS) REGION_MUL[d.name] = d.mul;
 
@@ -490,7 +490,7 @@ function spotBlocked(x, y, pad) {
   for (const n of NPCS) addObst({ kind: 'npc', x: n.x, y: n.y, r: 16, npc: n });
   addObst({ kind: 'flag', x: FLAG.x, y: FLAG.y, r: 8 });
   addObst({ kind: 'bigtree', x: TREE_POS.x, y: TREE_POS.y, r: 58 });
-  // cột đổ trong tàn tích, Học Viện, Sân Ngai Vàng và các hầm ngục
+  // cột đổ trong tàn tích, Học Viện, Sân Ngai Sunthrone và các hầm ngục
   const pillar = (x, y, rr) => addObst({ kind: 'rock', x, y, r: rr, seed: (x * 7 + y) | 0, pillar: true });
   [[560, 1760, 16], [820, 1800, 18], [520, 2040, 15], [880, 2080, 14], [760, 1720, 12]].forEach(p => pillar(...p));
   [[-2000, -760, 20], [-1100, -760, 20], [-2000, -620, 18], [-1100, -620, 18], [-1800, 250, 16], [-1300, 180, 16]].forEach(p => pillar(...p));
@@ -578,7 +578,7 @@ const GROUND = (function buildGround() {
     g.beginPath(); g.arc(WX0 + r() * GW, WY0 + r() * GH, 1.4 + r() * 1.6, 0, TAU); g.fill();
   }
   g.globalAlpha = 1;
-  // Cao Nguyên Hoàng Kim: đồng cỏ vàng óng
+  // Cao Nguyên Aurelia: đồng cỏ vàng óng
   g.fillStyle = 'rgba(176,146,70,.72)'; g.fillRect(0, WY0, MAPW, 380 - WY0);
   const ng = g.createLinearGradient(0, 300, 0, 470);
   ng.addColorStop(0, 'rgba(176,146,70,.72)'); ng.addColorStop(1, 'rgba(176,146,70,0)');
@@ -586,7 +586,7 @@ const GROUND = (function buildGround() {
   blobs(g, r, 1400, 0, WY0, MAPW, 380 - WY0, ['#a88a44', '#c4a256', '#96783a', '#d2b066'], 0.2, 0.25);
   for (let i = 0; i < 3000; i++) { g.globalAlpha = 0.75; g.fillStyle = r() < 0.5 ? '#f0d27a' : '#fff1b8'; g.beginPath(); g.arc(r() * MAPW, WY0 + r() * (380 - WY0), 1.5 + r() * 2, 0, TAU); g.fill(); }
   g.globalAlpha = 1;
-  // Hồ Pha Lê: cỏ xanh lam, bờ cát và nước nông
+  // Hồ Crystalmere: cỏ xanh lam, bờ cát và nước nông
   blobs(g, r, 1300, WX0, 400, -WX0, 2200, ['#3e5a4c', '#4a6a5a', '#35503f', '#56725e'], 0.25, 0.25);
   for (const [px, py, rx, ry] of LAKE) { g.fillStyle = '#8a8466'; g.beginPath(); g.ellipse(px, py, rx + 26, ry + 22, 0, 0, TAU); g.fill(); }
   for (const [px, py, rx, ry] of LAKE) { g.fillStyle = '#3a6078'; g.beginPath(); g.ellipse(px, py, rx, ry, 0, 0, TAU); g.fill(); }
@@ -608,7 +608,7 @@ const GROUND = (function buildGround() {
     g.fillStyle = '#4a6a52'; g.beginPath(); g.ellipse(px, py, rx, ry, 0, 0, TAU); g.fill();
     g.fillStyle = 'rgba(120,150,110,.35)'; g.beginPath(); g.ellipse(px - rx * 0.2, py - ry * 0.2, rx * 0.6, ry * 0.5, 0, 0, TAU); g.fill();
   }
-  // Bờ Biển Muối
+  // Bờ Biển Saltreach
   blobs(g, r, 700, WX0, 2600, -WX0, 1000, ['#6a6a48', '#77734e', '#5e5e40'], 0.3, 0.25);
   const sg = g.createLinearGradient(-2480, 0, -2050, 0);
   sg.addColorStop(0, '#c8b684'); sg.addColorStop(1, 'rgba(200,182,132,0)');
@@ -676,13 +676,13 @@ const GROUND = (function buildGround() {
   g.fillStyle = '#7d6d4f'; g.fillRect(3210, 2960, 780, 540);
   g.strokeStyle = 'rgba(60,48,30,.35)'; g.lineWidth = 3;
   for (const rr of [60, 140, 220]) { g.beginPath(); g.ellipse(COLO.x, COLO.y, rr * 1.3, rr, 0, 0, TAU); g.stroke(); }
-  // Học Viện Pha Lê: đá lát xanh lam, thảm thư viện
+  // Học Viện Starhollow: đá lát xanh lam, thảm thư viện
   g.fillStyle = '#2a2f3a'; g.fillRect(ACAD.x, ACAD.y, ACAD.w, ACAD.h);
   floor(ACAD.x, ACAD.y, ACAD.w, ACAD.h, 44, 0.02, 50, [0, 6, 18]);
   g.fillStyle = 'rgba(60,70,120,.45)'; g.fillRect(-1560, -500, 120, 572);
   g.strokeStyle = 'rgba(170,210,255,.25)'; g.lineWidth = 4;
   for (const rr of [80, 160]) { g.beginPath(); g.arc(-1550, -720, rr, 0, TAU); g.stroke(); }
-  // Kinh Thành Vàng: đá lát màu cát vàng, Sân Ngai Vàng và gốc Cây Vàng
+  // Kinh Thành Aurumhold: đá lát màu cát vàng, Sân Ngai Sunthrone và gốc Cây Aurum
   floor(CAPITAL.x, CAPITAL.y, CAPITAL.w, CAPITAL.h, 50, 0.01, 96, [22, 14, -4]);
   floor(ARENA2.x, ARENA2.y, ARENA2.w, ARENA2.h, 50, 0.02, 80, [18, 10, -6]);
   g.strokeStyle = 'rgba(255,214,120,.3)'; g.lineWidth = 4;
@@ -706,7 +706,7 @@ const GROUND = (function buildGround() {
   edge(-800, -900, -660, 400, -800, 0, -660, 0); edge(-2440, -900, -2300, 400, -2300, 0, -2440, 0); edge(0, -900, 140, 400, 0, 0, 140, 0);
   return c;
 })();
-// nền cho các khu biệt lập (Cõi Vàng, Điện Hội Ngộ, hầm ngục)
+// nền cho các khu biệt lập (Cõi Aurum, Sảnh Hearthhold, hầm ngục)
 const IX0 = 5000, IH = 1600;
 const GROUND2 = (function buildInstanceGround() {
   const GW = W - IX0, c = makeCanvas(GW / 2, IH / 2), g = c.getContext('2d'), r = mulberry32(99);
@@ -721,7 +721,7 @@ const GROUND2 = (function buildInstanceGround() {
   for (const rr of [RC.r - 10, RC.r * 0.62, RC.r * 0.3]) { g.beginPath(); g.arc(RC.x, RC.y, rr, 0, TAU); g.stroke(); }
   g.lineWidth = 2;
   for (let i = 0; i < 12; i++) { const a = i / 12 * TAU; g.beginPath(); g.moveTo(RC.x + Math.cos(a) * RC.r * 0.3, RC.y + Math.sin(a) * RC.r * 0.3); g.lineTo(RC.x + Math.cos(a) * (RC.r - 10), RC.y + Math.sin(a) * (RC.r - 10)); g.stroke(); }
-  // Điện Hội Ngộ: sàn đá ấm, thảm đỏ, bàn tròn
+  // Sảnh Hearthhold: sàn đá ấm, thảm đỏ, bàn tròn
   paintFloor(g, r, HUB.x, 0, HUB.w, HUB.h, 50, 0, 62, [14, 8, 0]);
   g.fillStyle = 'rgba(110,30,26,.75)'; g.fillRect(HUB.x + 440, 28, 120, HUB.h - 56); g.fillRect(HUB.x + 28, 400, HUB.w - 56, 100);
   g.strokeStyle = 'rgba(214,178,94,.4)'; g.lineWidth = 3; g.beginPath(); g.arc(HUB.x + 500, 450, 110, 0, TAU); g.stroke();

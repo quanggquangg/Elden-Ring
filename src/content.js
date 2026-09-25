@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Nội dung thế giới: phòng boss, hầm ngục, bẫy, cần gạt, cổng lớn, NPC và vật phẩm rơi
+// Gravebound — Nội dung thế giới: phòng boss, hầm ngục, bẫy, cần gạt, cổng lớn, NPC và vật phẩm rơi
 // ───────────────────────── phòng boss (Học Viện và hầm ngục) ─────────────────────────
 ACAD_BOSS.boss = 'selvara';
 const BOSS_ROOMS = [ACAD_BOSS, ...DUNGEONS];
@@ -28,7 +28,7 @@ function bossRoomCleared(e) {
   const d = DUNGEONS.find(q => q.id === e.room);
   if (d && !S.dg[d.id]) { S.dg[d.id] = true; later(4.4, () => grant(d.reward, e.x, e.y)); }
 }
-// ───────────────────────── bẫy lửa trong Hang Tro ─────────────────────────
+// ───────────────────────── bẫy lửa trong Hang Emberdeep ─────────────────────────
 function updateTraps(dt) {
   const d = dungeonAt(P.x, P.y);
   if (!d || d.theme !== 'fire') return;
@@ -74,7 +74,7 @@ function gatePrompt() {
   if (!S.greatOpen && dist(P.x, P.y, GREAT_GATE.x, GREAT_GATE.y) < 190) {
     if (S.gr.length >= 3) {
       S.greatOpen = true; save(); SFX.felled(); shake(10);
-      banner('grace', 'BA ĐẠI ẤN CỘNG HƯỞNG', 'Cổng Kinh Thành Vàng đã mở', 4.5);
+      banner('grace', 'BA ĐẠI ẤN CỘNG HƯỞNG', 'Cổng Kinh Thành Aurumhold đã mở', 4.5);
       burst(GREAT_GATE.x, GREAT_GATE.y, 60, '#ffe39a', 220, 4, 'mote', 1.4);
       return null;
     }

@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Dữ liệu trang bị, phép thuật, lớp nhân vật, cửa hàng và kẻ địch
+// Gravebound — Dữ liệu trang bị, phép thuật, lớp nhân vật, cửa hàng và kẻ địch
 // ───────────────────────── vật phẩm ─────────────────────────
 const ITEMDEF = {
   stone1: { name: 'Đá Rèn I', desc: 'Cường hóa vũ khí thường từ +1 tới +3', kind: 'mat' },
@@ -13,7 +13,7 @@ const ITEMDEF = {
   grease: { name: 'Dầu Thánh', desc: 'Phủ vũ khí sức mạnh thánh trong 40 giây', kind: 'use', max: 10, col: '#ffe08a' },
   grune1: { name: 'Rune Vàng Nhỏ', desc: 'Bóp vỡ để nhận 400 rune', kind: 'use', max: 99, col: '#f3cf6e' },
   grune2: { name: 'Rune Vàng Lớn', desc: 'Bóp vỡ để nhận 1500 rune', kind: 'use', max: 99, col: '#ffd76a' },
-  crystalkey: { name: 'Chìa Khóa Pha Lê', desc: 'Mở cổng Học Viện Pha Lê', kind: 'key' },
+  crystalkey: { name: 'Chìa Khóa Pha Lê', desc: 'Mở cổng Học Viện Starhollow', kind: 'key' },
 };
 const USE_ORDER = ['firepot', 'knife', 'cure', 'grease', 'grune1', 'grune2'];
 
@@ -202,10 +202,10 @@ const CLASSES = [
   { id: 'hunter', name: 'Thợ Săn', desc: 'Khéo Léo và Bền Bỉ. Cung ngắn cũ và dao mẻ.', stats: { vig: 11, mnd: 9, end: 12, str: 9, dex: 13, int: 8, fai: 8 }, weapons: ['shortbow', 'dagger'], equipped: 'shortbow', off: 'shield', armor: 'leather', spells: [], flaskFp: 0 },
 ];
 
-// ───────────────────────── cửa hàng ở Điện Hội Ngộ ─────────────────────────
+// ───────────────────────── cửa hàng ở Sảnh Hearthhold ─────────────────────────
 const SHOPS = {
   merchant: {
-    name: 'Lái Buôn Kha', line: '“Rune đổi hàng, hàng đổi mạng. Cứ xem thoải mái.”', stock: [
+    name: 'Lái Buôn Kale', line: '“Rune đổi hàng, hàng đổi mạng. Cứ xem thoải mái.”', stock: [
       { item: 'stone1', price: 220 }, { item: 'stone2', price: 700, req: () => S.bossDead, lock: 'Sau khi hạ Varek' }, { item: 'firepot', price: 140 }, { item: 'knife', price: 50 },
       { item: 'cure', price: 90 }, { item: 'grease', price: 220 }, { weapon: 'kite', price: 1400 }, { weapon: 'shortbow', price: 600 },
       { armor: 'leather', price: 900 }, { tal: 'green', price: 1800 }, { quiver: 1, price: 1500, id: 'quiver', name: 'Ống Tên Lớn', desc: 'Mang thêm 20 mũi tên' },
@@ -213,13 +213,13 @@ const SHOPS = {
     ],
   },
   scholar: {
-    name: 'Học Giả Ly', line: '“Tinh tú không nói dối. Muốn học phép thì đưa rune đây.”', stock: [
+    name: 'Học Giả Lyra', line: '“Tinh tú không nói dối. Muốn học phép thì đưa rune đây.”', stock: [
       { spell: 'pebble', price: 300 }, { spell: 'shard', price: 1600 }, { spell: 'blade', price: 3200 }, { spell: 'meteor', price: 9000, req: () => S.gr.includes('west'), lock: 'Cần Đại Ấn Trăng Pha Lê' },
       { weapon: 'staff0', price: 400 }, { weapon: 'staff1', price: 2400 }, { armor: 'robe', price: 800 }, { tal: 'star', price: 3000 },
     ],
   },
   priestess: {
-    name: 'Nữ Tu Liên', line: '“Ánh vàng soi đường cho kẻ có lòng tin.”', stock: [
+    name: 'Nữ Tu Seraphine', line: '“Ánh vàng soi đường cho kẻ có lòng tin.”', stock: [
       { spell: 'heal', price: 800 }, { spell: 'flame', price: 800 }, { spell: 'bolt', price: 2000 }, { spell: 'bless', price: 3600 },
       { spell: 'judge', price: 9000, req: () => S.gr.length >= 2, lock: 'Cần hai Đại Ấn' }, { weapon: 'seal0', price: 400 }, { weapon: 'seal1', price: 2400 },
       { armor: 'priest', price: 800 }, { tal: 'sun', price: 3000 }, { tal: 'guard', price: 2600 },
@@ -228,7 +228,7 @@ const SHOPS = {
 };
 // Đại Ấn: phần thưởng từ ba boss lớn, cần đủ ba để mở cổng Kinh Thành
 const GREAT_RUNES = {
-  east: { name: 'Đại Ấn Pháo Đài', desc: 'Máu tối đa +10%', col: '#9fb4ff' },
+  east: { name: 'Đại Ấn Greystone', desc: 'Máu tối đa +10%', col: '#9fb4ff' },
   swamp: { name: 'Đại Ấn Rồng Tro', desc: 'Mọi sát thương +8%', col: '#ff9a4a' },
   west: { name: 'Đại Ấn Trăng Pha Lê', desc: 'FP +15%, phép +8%', col: '#bfe4ff' },
 };
@@ -304,7 +304,7 @@ const ETYPES = {
     pick: (e, d) => (d < 60 ? 1 : d > 130 && d < 320 ? 0 : -1), drops: [['cure', 0.15, 1]],
   },
   warden: {
-    name: 'Dornach, Vệ Binh Pháo Đài', hp: 1150, r: 26, speed: 100, aggro: 300, runes: 2400, poise: 230, elite: true, miniboss: true, bar: true,
+    name: 'Dornach, Vệ Binh Greystone', hp: 1150, r: 26, speed: 100, aggro: 300, runes: 2400, poise: 230, elite: true, miniboss: true, bar: true,
     atkRange: 90, cd: [0.6, 1.3], track: 2.6, leash: 420, loot: { weapon: 'hammer', gr: 'east' },
     look: { body: '#3c4250', trim: '#7d8fb0', head: '#4a5060', cloak: '#1d2438', weapon: 'club', wlen: 44, wcol: '#9aa3b5', scale: 1.8 },
     attacks: [
@@ -419,7 +419,7 @@ const ETYPES = {
       },
     },
   },
-  // ─── Cao Nguyên Hoàng Kim và Kinh Thành ───
+  // ─── Cao Nguyên Aurelia và Kinh Thành ───
   royal: {
     name: 'Kỵ Sĩ Hoàng Gia', hp: 380, r: 18, speed: 102, aggro: 320, runes: 480, poise: 110, elite: true, atkRange: 72, cd: [0.6, 1.3], track: 3, res: { holy: 0.6 },
     look: { body: '#8a7440', trim: '#f0d27a', head: '#a08a50', cloak: '#6a1f1a', weapon: 'sword', wlen: 42, wcol: '#f0e0b0', scale: 1.3, glow: '#ffd76a' },

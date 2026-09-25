@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Người chơi: di chuyển, đánh, cung, kỹ năng, phép, vật phẩm và gây sát thương
+// Gravebound — Người chơi: di chuyển, đánh, cung, kỹ năng, phép, vật phẩm và gây sát thương
 // ───────────────────────── người chơi ─────────────────────────
 function toggleLock() {
   if (P.lock) { P.lock = null; return; }

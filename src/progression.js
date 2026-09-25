@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Phát triển nhân vật: túi đồ, nhận vật phẩm, lên cấp, cường hóa, cửa hàng, trang bị
+// Gravebound — Phát triển nhân vật: túi đồ, nhận vật phẩm, lên cấp, cường hóa, cửa hàng, trang bị
 // ───────────────────────── túi đồ và nhận vật phẩm ─────────────────────────
 function invAdd(id, n = 1) {
   const max = (ITEMDEF[id] && ITEMDEF[id].max) || 999;
@@ -46,7 +46,7 @@ function grant(L, x = P.x, y = P.y, quiet = false) {
     const R = GREAT_RUNES[L.gr];
     if (!quiet) {
       banner('grace', 'ĐẠI ẤN · ' + R.name, R.desc + ' · ' + S.gr.length + '/3', 5);
-      if (S.gr.length === 3) later(5.2, () => subtitle('Ba Đại Ấn đã hội tụ. Cổng Kinh Thành Vàng đang chờ ở phương bắc.', 5));
+      if (S.gr.length === 3) later(5.2, () => subtitle('Ba Đại Ấn cộng hưởng trong lồng ngực ngươi. Cổng Kinh Thành Aurumhold đang chờ ở phương bắc.', 5));
       if (got.length) later(5.4, () => banner('item', big ? big[0] : 'Nhận được', got.join(' · '), 4));
     }
     save();

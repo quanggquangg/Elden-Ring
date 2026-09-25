@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Trạng thái, chỉ số nhân vật, kẻ địch, va chạm và hiệu ứng
+// Gravebound — Trạng thái, chỉ số nhân vật, kẻ địch, va chạm và hiệu ứng
 // ───────────────────────── trạng thái ─────────────────────────
 const SAVE_KEY = 'vong-vang-vo-save-v2';
 function defaultSave() {
@@ -11,6 +11,7 @@ function defaultSave() {
     ashes: [], ash: {}, inv: {}, quick: 0, arrows: 0, arrowMax: 40, dragonDead: false, finalDead: false, chests: [],
     fortOpen: false, statues: [], glade: false, illusory: [], coloDone: false, mb: {}, explored: '', frags: [],
     gr: [], greatOpen: false, acadOpen: false, levers: [], dg: {}, bought: [], name: '', submitted: false, runId: null, marker: null,
+    readN: [], tips: {},
   };
 }
 let S = defaultSave();
@@ -79,7 +80,7 @@ const fpFlaskAmt = () => Math.round(P.maxFp * (0.4 + 0.05 * S.tears) + 10);
 // Như Elden Ring: quái mạnh theo vùng đất, không theo cấp người chơi.
 function regionMul(x, y) {
   const n = regionAt(x, y);
-  if (n === 'Đồng Cỏ Sương Mờ' && y < 1600) return 1.1;
+  if (n === 'Đồng Cỏ Mistveil' && y < 1600) return 1.1;
   return REGION_MUL[n] || 1;
 }
 const levelCost = () => Math.floor(150 + 60 * S.level + 6 * S.level * S.level);
@@ -87,7 +88,7 @@ const levelCost = () => Math.floor(150 + 60 * S.level + 6 * S.level * S.level);
 const G = {
   mode: 'title', clock: 0, hitStop: 0, shake: 0, flash: 0, fade: 0, bossFight: false,
   banner: null, region: null, regionT: 0, sub: null, prompt: null, deathT: 0, runeGain: 0, runeGainT: 0,
-  touch: false, timers: [], hintT: 0, toast: null, dragonFight: false, fpWarn: 0,
+  touch: false, timers: [], hintT: 0, tipCd: 0, toast: null, dragonFight: false, fpWarn: 0,
   colo: { active: false, wave: 0, cool: 0 }, braziers: [], finalFight: false, white: 0, dfight: null,
 };
 const P = {
@@ -134,7 +135,7 @@ function spawnEnemies() {
 }
 function makeBoss(v = 1) {
   const A = v === 1 ? ARENA : ARENA2, hp = v === 1 ? 1300 : 5400;
-  return { isBoss: true, v, A, name: v === 1 ? 'Varek, Kẻ Canh Cổng Phản Trắc' : 'Varek, Vua Ẩn Mặt', x: A.x + A.w / 2, y: v === 1 ? 640 : A.y + 130, r: v === 1 ? 28 : 30,
+  return { isBoss: true, v, A, name: v === 1 ? 'Varek, Kẻ Gác Cổng Bội Thề' : 'Varek, Vua Ẩn Mặt', x: A.x + A.w / 2, y: v === 1 ? 640 : A.y + 130, r: v === 1 ? 28 : 30,
     hp, maxHp: hp, ghost: hp, face: Math.PI / 2, state: 'dormant', t: 0, cd: 1, vx: 0, vy: 0, poise: v === 1 ? 170 : 240, poiseAcc: 0, lastHit: 9, hurtFlash: 0,
     phase: 1, atk: null, dead: false, z: 0, elite: true, invuln: 0, anim: 0, stagDur: 0.8, lastMove: '', bleedMax: v === 1 ? 180 : 300, res: { holy: 0.8 },
     look: v === 1 ? { body: '#4d4234', trim: '#c9a34a', head: '#2c2721', cloak: '#2a241b', weapon: 'greatsword', wlen: 40, wcol: '#dcc06a', scale: 1.9, hood: true, glow: true }
@@ -218,4 +219,4 @@ function shake(n) { G.shake = Math.max(G.shake, n); }
 function banner(kind, title, sub, dur = 3.4) { G.banner = { kind, title, sub, t: 0, dur }; }
 function subtitle(text, dur = 4.2) { G.sub = { text, t: 0, dur }; }
 function later(t, fn) { G.timers.push({ t, fn }); }
-function toast(text) { G.toast = { text, t: 0 }; }
+function toast(text, dur = 2.4) { G.toast = { text, t: 0, dur }; }

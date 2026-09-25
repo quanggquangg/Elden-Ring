@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Vẽ thế giới, ánh sáng và thời tiết
+// Gravebound — Vẽ thế giới, ánh sáng và thời tiết
 // ───────────────────────── vẽ ─────────────────────────
 let VIEW = { x0: 0, y0: 0, x1: 0, y1: 0 };
 const inView = (x, y, m) => x > VIEW.x0 - m && x < VIEW.x1 + m && y > VIEW.y0 - m && y < VIEW.y1 + m;
@@ -903,6 +903,66 @@ function drawGraceBeams() {
     ctx.fillStyle = gr; ctx.fillRect(g.x - 3, g.y - 170, 6, 170);
   }
 }
+// ───────────────────────── gợi ý tương tác ─────────────────────────
+// mọi thứ bấm E được ở gần người chơi đều có dấu nổi phía trên, kèm tên khi lại gần
+function interactables() {
+  const L = [];
+  const add = (x, y, label, col, r, oy, beam) => {
+    if (Math.abs(x - P.x) > r || Math.abs(y - P.y) > r) return;
+    const d = dist(P.x, P.y, x, y);
+    if (d < r) L.push({ x, y: y - oy, label, col, r, d, beam });
+  };
+  for (const f of MAP_FRAGS) if (!S.frags.includes(f.id)) add(f.x, f.y, 'Bia Bản Đồ', '190,215,255', 460, 44, true);
+  for (const c of CHESTS) if (!S.chests.includes(c.id) && (!c.req || c.req())) add(c.x, c.y, 'Rương', '255,210,120', 260, 20);
+  for (const it of ITEMS) if (!S.taken.includes(it.id)) add(it.x, it.y, 'Vật phẩm', '255,240,200', 230, 14);
+  for (const l of loot) add(l.x, l.y, 'Vật phẩm', '255,240,200', 160, 14);
+  for (const l of LEVERS) if (!S.levers.includes(l.id)) add(l.x, l.y, 'Cần gạt', '230,210,170', 260, 28);
+  for (const n of NPCS) add(n.x, n.y, n.name, '255,225,150', 240, 44);
+  for (const d of DOORS) add(d.x, d.y, d.kind === 'enter' ? d.dg.name : 'Lối ra', '255,214,140', 240, 34);
+  if (!S.fortOpen) for (const b of BRAZIERS) if (!G.braziers.includes(b.id)) add(b.x, b.y, 'Lò lửa', '255,170,90', 240, 26);
+  for (const st of STATUES) if (!S.statues.includes(st.id)) add(st.x, st.y, 'Tượng đá', '150,250,235', 240, 32);
+  if (!S.coloDone && !G.colo.active) add(FLAG.x, FLAG.y, 'Cờ máu', '255,130,110', 240, 44);
+  for (let i = 0; i < NOTES.length; i++) if (!S.readN.includes(i)) add(NOTES[i].x, NOTES[i].y, 'Lời nhắn', '255,170,90', 210, 12);
+  for (const g of GRACES) if (S.discovered.includes(g.id)) add(g.x, g.y, 'Ân Điển', '255,214,120', 150, 40);
+  return L;
+}
+function drawInteractHints() {
+  if (G.mode !== 'play' || P.state === 'dead' || G.bossFight || G.dfight || G.finalFight) return;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const t = G.clock, small = CW < 520;
+  for (const h of interactables()) {
+    const sx = (h.x - VIEW.x0) * ZOOM, sy = (h.y - VIEW.y0) * ZOOM;
+    if (sx < -60 || sx > CW + 60 || sy < -200 || sy > CH + 60) continue;
+    const close = h.d < 62, a = close ? 1 : clamp((h.r - h.d) / (h.r * 0.45), 0, 1) * 0.9;
+    if (a <= 0.02) continue;
+    // cột sáng cho bia chưa đọc, nhìn thấy từ xa
+    if (h.beam) {
+      const pulse = 0.65 + Math.sin(t * 2.2 + h.x) * 0.35, bh = 150 * ZOOM;
+      const gr = ctx.createLinearGradient(0, sy + 30, 0, sy - bh);
+      gr.addColorStop(0, `rgba(${h.col},${0.42 * pulse})`); gr.addColorStop(1, `rgba(${h.col},0)`);
+      ctx.fillStyle = gr; ctx.fillRect(sx - 7, sy - bh, 14, bh + 30);
+      ctx.fillStyle = `rgba(255,255,255,${0.35 * pulse})`; ctx.fillRect(sx - 1.5, sy - bh * 0.8, 3, bh * 0.8 + 30);
+    }
+    const by = sy - 18 - Math.sin(t * 3.2 + h.x * 0.01) * 3;
+    ctx.globalAlpha = a;
+    if (close) {
+      // phím bấm nổi trên đầu vật đang có thể tương tác
+      const k = G.touch ? '!' : 'E', s = 22;
+      ctx.fillStyle = 'rgba(12,10,7,.85)'; ctx.shadowColor = `rgb(${h.col})`; ctx.shadowBlur = 12;
+      ctx.fillRect(sx - s / 2, by - s, s, s); ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#f2dc97'; ctx.lineWidth = 1.5; ctx.strokeRect(sx - s / 2 + 0.5, by - s + 0.5, s - 1, s - 1);
+      textC(k, sx, by - 6, `700 13px ${FONT_U}`, '#f2dc97', 0);
+    } else {
+      // dấu kim cương phát sáng
+      ctx.save(); ctx.translate(sx, by - 8); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = `rgb(${h.col})`; ctx.shadowColor = `rgb(${h.col})`; ctx.shadowBlur = 10;
+      ctx.fillRect(-4, -4, 8, 8); ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(20,16,10,.8)'; ctx.lineWidth = 1; ctx.strokeRect(-4, -4, 8, 8); ctx.restore();
+    }
+    if (h.d < h.r * 0.6 || h.beam) textC(h.label, sx, by - (close ? 28 : 18), `600 ${small ? 11 : 12}px ${FONT_U}`, `rgb(${h.col})`, 0.9);
+    ctx.globalAlpha = 1;
+  }
+}
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.shadowBlur = 0;
   ctx.fillStyle = '#0b0a07'; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -958,6 +1018,7 @@ function render() {
   ctx.fillStyle = top; ctx.fillRect(0, 0, CW, CH * 0.5);
   ctx.fillStyle = VIGNETTE; ctx.fillRect(0, 0, CW, CH);
   if (G.flash > 0) { ctx.fillStyle = `rgba(150,10,10,${G.flash * 0.35})`; ctx.fillRect(0, 0, CW, CH); }
+  drawInteractHints();
   if (G.mode !== 'title') drawHUD();
   if (G.mode === 'map') drawMap();
   if (G.white > 0) { ctx.fillStyle = `rgba(255,246,220,${G.white})`; ctx.fillRect(0, 0, CW, CH); }
@@ -967,31 +1028,31 @@ function render() {
 // ───────────────────────── ánh sáng, không khí và thời tiết ─────────────────────────
 // [độ tối, màu tối r,g,b, màu tông r,g,b, độ tông] cho từng vùng
 const AMB = {
-  'Nhà Nguyện Khởi Đầu': [0.22, 14, 12, 20, 255, 210, 150, 0.08],
-  'Đồng Cỏ Sương Mờ': [0.14, 12, 16, 28, 255, 225, 170, 0.07],
-  'Tàn Tích Phía Tây': [0.3, 14, 12, 22, 200, 180, 150, 0.08],
-  'Đấu Trường Cổng Varek': [0.3, 16, 12, 10, 255, 200, 120, 0.1],
-  'Đầm Lầy Tro Độc': [0.42, 24, 10, 32, 150, 80, 170, 0.2],
-  'Cao Nguyên Tro Đông': [0.3, 22, 16, 12, 210, 150, 90, 0.14],
-  'Pháo Đài Đá Xám': [0.4, 10, 12, 24, 110, 130, 190, 0.14],
-  'Rừng Linh Hồn': [0.55, 4, 20, 28, 80, 200, 190, 0.2],
-  'Đấu Trường Thử Thách': [0.24, 20, 14, 10, 230, 170, 110, 0.12],
-  'Hồ Pha Lê': [0.2, 8, 16, 34, 150, 200, 255, 0.14],
-  'Bờ Biển Muối': [0.1, 16, 20, 28, 255, 230, 190, 0.08],
-  'Học Viện Pha Lê': [0.46, 6, 10, 30, 140, 170, 255, 0.18],
-  'Cao Nguyên Hoàng Kim': [0.04, 30, 22, 8, 255, 215, 120, 0.1],
-  'Sườn Núi Hoàng Kim': [0.08, 26, 20, 12, 255, 210, 130, 0.1],
-  'Kinh Thành Vàng': [0.08, 30, 22, 8, 255, 210, 110, 0.12],
-  'Sân Ngai Vàng': [0.16, 30, 20, 6, 255, 200, 100, 0.14],
-  'Cây Vàng': [0.02, 30, 20, 8, 255, 210, 110, 0.08],
-  'Cõi Vàng': [0.5, 10, 6, 2, 255, 200, 110, 0.16],
-  'Điện Hội Ngộ': [0.5, 12, 8, 4, 255, 190, 120, 0.12],
-  'Hầm Mộ Ven Biển': [0.62, 8, 10, 16, 180, 190, 210, 0.12],
-  'Mỏ Pha Lê': [0.56, 4, 12, 30, 140, 200, 255, 0.18],
-  'Hang Tro': [0.58, 24, 8, 4, 255, 140, 70, 0.18],
-  'Hầm Mộ Hoàng Gia': [0.5, 20, 14, 6, 255, 210, 130, 0.14],
+  'Nhà Nguyện Dawnrest': [0.22, 14, 12, 20, 255, 210, 150, 0.08],
+  'Đồng Cỏ Mistveil': [0.14, 12, 16, 28, 255, 225, 170, 0.07],
+  'Tàn Tích Hollowmere': [0.3, 14, 12, 22, 200, 180, 150, 0.08],
+  'Cổng Gác Thornwall': [0.3, 16, 12, 10, 255, 200, 120, 0.1],
+  'Đầm Lầy Ashmire': [0.42, 24, 10, 32, 150, 80, 170, 0.2],
+  'Cao Nguyên Cinderreach': [0.3, 22, 16, 12, 210, 150, 90, 0.14],
+  'Pháo Đài Greystone': [0.4, 10, 12, 24, 110, 130, 190, 0.14],
+  'Rừng Wraithwood': [0.55, 4, 20, 28, 80, 200, 190, 0.2],
+  'Đấu Trường Bloodsand': [0.24, 20, 14, 10, 230, 170, 110, 0.12],
+  'Hồ Crystalmere': [0.2, 8, 16, 34, 150, 200, 255, 0.14],
+  'Bờ Biển Saltreach': [0.1, 16, 20, 28, 255, 230, 190, 0.08],
+  'Học Viện Starhollow': [0.46, 6, 10, 30, 140, 170, 255, 0.18],
+  'Cao Nguyên Aurelia': [0.04, 30, 22, 8, 255, 215, 120, 0.1],
+  'Sườn Núi Goldspire': [0.08, 26, 20, 12, 255, 210, 130, 0.1],
+  'Kinh Thành Aurumhold': [0.08, 30, 22, 8, 255, 210, 110, 0.12],
+  'Sân Ngai Sunthrone': [0.16, 30, 20, 6, 255, 200, 100, 0.14],
+  'Cây Aurum': [0.02, 30, 20, 8, 255, 210, 110, 0.08],
+  'Cõi Aurum': [0.5, 10, 6, 2, 255, 200, 110, 0.16],
+  'Sảnh Hearthhold': [0.5, 12, 8, 4, 255, 190, 120, 0.12],
+  'Hầm Mộ Tidewrack': [0.62, 8, 10, 16, 180, 190, 210, 0.12],
+  'Mỏ Shardvein': [0.56, 4, 12, 30, 140, 200, 255, 0.18],
+  'Hang Emberdeep': [0.58, 24, 8, 4, 255, 140, 70, 0.18],
+  'Hầm Mộ Kingsrest': [0.5, 20, 14, 6, 255, 210, 130, 0.14],
 };
-const AMB_DEFAULT = AMB['Đồng Cỏ Sương Mờ'];
+const AMB_DEFAULT = AMB['Đồng Cỏ Mistveil'];
 G.amb = AMB_DEFAULT.slice();
 function updateAmbient(dt) {
   const tgt = AMB[G.region] || AMB_DEFAULT, k = 1 - Math.exp(-1.4 * dt);
@@ -1035,7 +1096,7 @@ function collectLights() {
   if (!S.acadOpen) light(-1550, 400, 150, 0.8, '170,220,255');
   for (const [px, py, rx, ry] of POOLS) light(px, py, Math.max(rx, ry) * 1.2, 0.3, '170,110,200');
   for (const q of puddles) light(q.x, q.y, 70, 0.35 * Math.min(1, (q.life - q.t) / 1.2), '150,220,90');
-  if (!inst && (G.region === 'Hồ Pha Lê' || G.region === 'Học Viện Pha Lê')) for (const o of OBST) if (o.crystal) light(o.x, o.y, 80, 0.5, '160,220,255');
+  if (!inst && (G.region === 'Hồ Crystalmere' || G.region === 'Học Viện Starhollow')) for (const o of OBST) if (o.crystal) light(o.x, o.y, 80, 0.5, '160,220,255');
   if (A && A.dg && A.dg.theme === 'crystal') for (let i = 0; i < 6; i++) light(A.x + 150 + (i % 3) * 350, 300 + Math.floor(i / 3) * 800, 200, 0.7, '140,200,255');
   if (A && A.dg && A.dg.theme === 'fire') for (const tr of TRAPS) if (tr.ph !== undefined) light(tr.x, tr.y, 120, 0.3 + (tr.ph < 0.4 ? 0.7 : 0), '255,120,50');
   if (A && A.dg) for (const y of [300, 800, 1300]) { light(A.x + 60, y, 180, 0.8, '255,170,90'); light(A.x + A.w - 60, y, 180, 0.8, '255,170,90'); }
@@ -1105,22 +1166,22 @@ function drawGodRays() {
   ctx.globalCompositeOperation = 'source-over';
 }
 // thời tiết và sinh vật nhỏ theo vùng
-const FOG_COL = { 'Đầm Lầy Tro Độc': '190,150,210', 'Rừng Linh Hồn': '160,230,220', 'Cao Nguyên Tro Đông': '200,185,170', 'Hồ Pha Lê': '190,220,245', 'Học Viện Pha Lê': '170,190,240', 'Bờ Biển Muối': '230,235,240', 'Hầm Mộ Ven Biển': '180,190,200', 'Mỏ Pha Lê': '160,210,250' };
+const FOG_COL = { 'Đầm Lầy Ashmire': '190,150,210', 'Rừng Wraithwood': '160,230,220', 'Cao Nguyên Cinderreach': '200,185,170', 'Hồ Crystalmere': '190,220,245', 'Học Viện Starhollow': '170,190,240', 'Bờ Biển Saltreach': '230,235,240', 'Hầm Mộ Tidewrack': '180,190,200', 'Mỏ Shardvein': '160,210,250' };
 function weather(dt, x0, y0, vw, vh) {
-  const reg = G.mode === 'title' ? 'Đồng Cỏ Sương Mờ' : G.region;
+  const reg = G.mode === 'title' ? 'Đồng Cỏ Mistveil' : G.region;
   let fog = 0, ff = 0;
   for (const p of parts) { if (p.kind === 'fog') fog++; else if (p.kind === 'firefly') ff++; }
   const fogCol = FOG_COL[reg] || '225,230,235';
-  const foggy = ['Đồng Cỏ Sương Mờ', 'Nhà Nguyện Khởi Đầu', 'Đầm Lầy Tro Độc', 'Rừng Linh Hồn', 'Tàn Tích Phía Tây', 'Hồ Pha Lê', 'Bờ Biển Muối', 'Học Viện Pha Lê', 'Hầm Mộ Ven Biển', 'Mỏ Pha Lê'].includes(reg);
+  const foggy = ['Đồng Cỏ Mistveil', 'Nhà Nguyện Dawnrest', 'Đầm Lầy Ashmire', 'Rừng Wraithwood', 'Tàn Tích Hollowmere', 'Hồ Crystalmere', 'Bờ Biển Saltreach', 'Học Viện Starhollow', 'Hầm Mộ Tidewrack', 'Mỏ Shardvein'].includes(reg);
   if (!FX_LOW && foggy && fog < 12 && Math.random() < dt * 1.3)
-    addPart(x0 - 150 + Math.random() * (vw + 150), y0 + Math.random() * vh, rand(6, 16), rand(-3, 3), rand(10, 16), rand(120, 240), fogCol, 'fog', { alpha: reg === 'Đồng Cỏ Sương Mờ' || reg === 'Nhà Nguyện Khởi Đầu' || reg === 'Bờ Biển Muối' ? rand(0.05, 0.08) : rand(0.07, 0.11) });
-  if (['Cao Nguyên Tro Đông', 'Pháo Đài Đá Xám', 'Đấu Trường Thử Thách', 'Đấu Trường Cổng Varek', 'Hang Tro'].includes(reg) && Math.random() < dt * (FX_LOW ? 8 : 22))
+    addPart(x0 - 150 + Math.random() * (vw + 150), y0 + Math.random() * vh, rand(6, 16), rand(-3, 3), rand(10, 16), rand(120, 240), fogCol, 'fog', { alpha: reg === 'Đồng Cỏ Mistveil' || reg === 'Nhà Nguyện Dawnrest' || reg === 'Bờ Biển Saltreach' ? rand(0.05, 0.08) : rand(0.07, 0.11) });
+  if (['Cao Nguyên Cinderreach', 'Pháo Đài Greystone', 'Đấu Trường Bloodsand', 'Cổng Gác Thornwall', 'Hang Emberdeep'].includes(reg) && Math.random() < dt * (FX_LOW ? 8 : 22))
     addPart(x0 + Math.random() * vw, y0 - 10, rand(5, 20), rand(18, 36), 7, rand(1, 2), Math.random() < 0.8 ? '#b8b0a4' : '#e09060', 'ash');
-  if ((reg === 'Rừng Linh Hồn' || reg === 'Đầm Lầy Tro Độc') && ff < 40 && Math.random() < dt * (reg === 'Rừng Linh Hồn' ? 10 : 4))
-    addPart(x0 + Math.random() * vw, y0 + Math.random() * vh, rand(-10, 10), rand(-10, 10), rand(4, 7), rand(1.4, 2.2), reg === 'Rừng Linh Hồn' ? '#9ff5e6' : '#d4f07a', 'firefly', { seed: rand(0, 10) });
-  if ((reg === 'Hồ Pha Lê' || reg === 'Học Viện Pha Lê' || reg === 'Mỏ Pha Lê') && Math.random() < dt * 6)
+  if ((reg === 'Rừng Wraithwood' || reg === 'Đầm Lầy Ashmire') && ff < 40 && Math.random() < dt * (reg === 'Rừng Wraithwood' ? 10 : 4))
+    addPart(x0 + Math.random() * vw, y0 + Math.random() * vh, rand(-10, 10), rand(-10, 10), rand(4, 7), rand(1.4, 2.2), reg === 'Rừng Wraithwood' ? '#9ff5e6' : '#d4f07a', 'firefly', { seed: rand(0, 10) });
+  if ((reg === 'Hồ Crystalmere' || reg === 'Học Viện Starhollow' || reg === 'Mỏ Shardvein') && Math.random() < dt * 6)
     addPart(x0 + Math.random() * vw, y0 + Math.random() * vh, rand(-4, 4), rand(-14, -4), rand(3, 5), rand(1, 1.8), '#cfeaff', 'mote');
-  if (['Cao Nguyên Hoàng Kim', 'Sườn Núi Hoàng Kim', 'Kinh Thành Vàng', 'Sân Ngai Vàng', 'Cây Vàng', 'Cõi Vàng'].includes(reg) && Math.random() < dt * 7)
+  if (['Cao Nguyên Aurelia', 'Sườn Núi Goldspire', 'Kinh Thành Aurumhold', 'Sân Ngai Sunthrone', 'Cây Aurum', 'Cõi Aurum'].includes(reg) && Math.random() < dt * 7)
     addPart(x0 + Math.random() * vw, y0 - 10, 0, rand(22, 38), rand(8, 12), 3, Math.random() < 0.5 ? '#f0cf72' : '#ffe39a', 'leaf', { seed: rand(0, 10) });
 }
 // cỏ lay theo gió, rẽ sang khi nhân vật đi qua

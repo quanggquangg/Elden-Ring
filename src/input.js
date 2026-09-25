@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Bàn phím, chuột, cảm ứng và tay cầm
+// Gravebound — Bàn phím, chuột, cảm ứng và tay cầm
 // ───────────────────────── nhập liệu ─────────────────────────
 const keys = new Set();
 let buf = null, aimMode = 'keys';
@@ -87,7 +87,7 @@ function moveInput() {
 const PB = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 window.addEventListener('gamepadconnected', () => { audioInit(); toast('Đã kết nối tay cầm'); });
 function padMenuNav(dir) {
-  const ov = [UI.board, UI.name, UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
+  const ov = [UI.lore, UI.controls, UI.board, UI.name, UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
   if (!ov) return;
   const els = [...ov.querySelectorAll('button:not([disabled])')].filter(el => el.offsetParent !== null);
   if (!els.length) return;
@@ -117,7 +117,7 @@ function pollPad() {
       if (down(PB.UP) || down(PB.LEFT)) padMenuNav(-1);
       if (down(PB.DOWN) || down(PB.RIGHT)) padMenuNav(1);
       if (down(PB.A) && document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.click();
-      if (down(PB.START) || down(PB.B)) { if (G.mode === 'title') { if (!document.activeElement || document.activeElement.tagName !== 'BUTTON') padMenuNav(1); } else togglePause(); }
+      if (down(PB.START) || down(PB.B)) { if (G.mode === 'title' && UI.lore.hidden && UI.controls.hidden && UI.board.hidden) { if (!document.activeElement || document.activeElement.tagName !== 'BUTTON') padMenuNav(1); } else togglePause(); }
     }
   }
   pad.prev = gp.buttons.map((_, i) => btn(i));

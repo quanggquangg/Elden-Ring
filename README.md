@@ -1,8 +1,14 @@
-# Vòng Vàng Vỡ
+# Gravebound
 
 Game hành động **souls-like 2D** chạy trên trình duyệt, lấy cảm hứng từ Elden Ring. Code viết tay bằng HTML5 Canvas và JavaScript thuần: không cần thư viện, không cần bước build, và âm thanh được tổng hợp bằng WebAudio.
 
 > Game do người hâm mộ tự làm. Không liên quan tới FromSoftware hay Bandai Namco.
+
+## Truyền thuyết
+
+Suốt một ngàn năm, Cây Aurum giữ Vòng Aurum, và mọi linh hồn khi chết đều trở về với rễ cây. Rồi một đêm không trăng, Vòng vỡ tan. Những mảnh lớn nhất, gọi là Đại Ấn, rơi vào tay những kẻ mạnh nhất vùng đất. Từ đó người chết không còn đường về: họ bị trói lại nơi nấm mồ, rồi một ngày lại bò lên từ đất lạnh. Người ta gọi họ là **Gravebound**.
+
+Người chơi là một Gravebound được Ân Điển đánh thức. Màn hình chính không giải thích mục tiêu: cốt truyện được kể dần trong game qua lời thoại, lời nhắn trên mặt đất và Nhật ký hành trình. Toàn bộ truyền thuyết nằm ở nút **Truyền thuyết** trên màn hình chính và trong menu tạm dừng.
 
 ## Chơi thế nào
 
@@ -13,13 +19,13 @@ python3 -m http.server 8000
 # rồi mở http://localhost:8000
 ```
 
-**Mục tiêu:** chọn xuất thân, rời Nhà Nguyện, hạ **Varek** ở cổng phía bắc, rồi thu thập đủ **ba Đại Ấn**:
+**Mục tiêu (có tiết lộ nội dung):** chọn xuất thân, rời Nhà Nguyện Dawnrest, hạ **Varek** ở cổng phía bắc, rồi thu thập đủ **ba Đại Ấn**:
 
-- **Đại Ấn Pháo Đài** từ Dornach trong Pháo Đài Đá Xám (phía đông, giải đố lò lửa để vào).
-- **Đại Ấn Rồng Tro** từ rồng Ignarth trong Đầm Lầy Tro Độc.
-- **Đại Ấn Trăng Pha Lê** từ Selvara, nữ hoàng của Học Viện Pha Lê bên Hồ Pha Lê (phía tây, cần Chìa Khóa Pha Lê trên một hòn đảo giữa hồ).
+- **Đại Ấn Greystone** từ Dornach trong Pháo Đài Greystone (phía đông, giải đố lò lửa để vào).
+- **Đại Ấn Rồng Tro** từ rồng Ignarth trong Đầm Lầy Ashmire.
+- **Đại Ấn Trăng Pha Lê** từ Selvara, nữ hoàng của Học Viện Starhollow bên Hồ Crystalmere (phía tây, cần Chìa Khóa Pha Lê trên một hòn đảo giữa hồ).
 
-Đủ ba Đại Ấn thì cổng **Kinh Thành Vàng** trên Cao Nguyên Hoàng Kim mở ra. Trong Kinh Thành, Varek trở lại với hình dạng thật là **Vua Ẩn Mặt**. Hạ hắn để tới **Cây Vàng**, rồi vượt qua trận cuối hai giai đoạn ở Cõi Vàng.
+Đủ ba Đại Ấn thì cổng **Kinh Thành Aurumhold** trên Cao Nguyên Aurelia mở ra. Trong Kinh Thành, Varek trở lại với hình dạng thật là **Vua Ẩn Mặt**. Hạ hắn để tới **Cây Aurum**, rồi vượt qua trận cuối hai giai đoạn ở Cõi Aurum.
 
 ## Điều khiển
 
@@ -65,20 +71,22 @@ Chỉ dùng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để
 - **Bình Máu và Bình FP:** chia tổng số bình giữa máu và FP ở Ân Điển. Hạt Vàng thêm bình (tối đa 10), Nước Mắt Thánh tăng lượng hồi (tối đa 5).
 - **Vật phẩm dùng nhanh:** Bình Lửa, Dao Ném, Thuốc Giải Độc, Dầu Thánh, Rune Vàng.
 - **Kẻ địch rơi đồ:** đá rèn, vật phẩm, đôi khi cả bộ giáp hiếm. Nhặt bằng `E`.
-- **Điện Hội Ngộ:** nơi tụ họp, dịch chuyển tới từ bất kỳ Ân Điển nào. Có Thợ Rèn (cường hóa), Lái Buôn (vật phẩm, khiên, đá rèn), Học Giả (phép Trí Tuệ, gậy), Nữ Tu (phép Đức Tin, ấn).
+- **Sảnh Hearthhold:** nơi tụ họp, dịch chuyển tới từ bất kỳ Ân Điển nào. Có Thợ Rèn (cường hóa), Lái Buôn (vật phẩm, khiên, đá rèn), Học Giả (phép Trí Tuệ, gậy), Nữ Tu (phép Đức Tin, ấn).
 
 ## Thế giới
 
-- **Miền trung:** Đồng Cỏ Sương Mờ, Tàn Tích Phía Tây, Đấu Trường Cổng Varek, Đầm Lầy Tro Độc.
-- **Miền đông:** Cao Nguyên Tro Đông, Pháo Đài Đá Xám (giải đố lò lửa, tường ảo), Rừng Linh Hồn (bốn tượng đá, kết giới), Đấu Trường Thử Thách (ba đợt kẻ thù).
-- **Miền tây:** Hồ Pha Lê (nước nông làm chậm bước, đảo nhỏ giữa hồ), Học Viện Pha Lê (hầm ngục lớn có cửa tắt mở bằng cần gạt, tường ảo, thư viện), Bờ Biển Muối.
-- **Miền bắc:** Cao Nguyên Hoàng Kim và Sườn Núi Hoàng Kim; Kinh Thành Vàng (cổng lớn cần ba Đại Ấn, cửa hông mở bằng cần gạt bên trong, Sân Ngai Vàng), Cây Vàng ở tận cùng.
-- **4 hầm ngục phụ**, mỗi hầm có ân điển, câu đố riêng và boss ở phòng cuối sau cửa sương: Hầm Mộ Ven Biển (cần gạt mở cửa đá), Mỏ Pha Lê (tường pha lê ảo), Hang Tro (bẫy lửa phun theo nhịp), Hầm Mộ Hoàng Gia (tường ảo).
-- **Boss:** Varek (2 phase), Varek Vua Ẩn Mặt (2 phase), rồng Ignarth, Dornach (2 phase), Seluna, Selvara (2 phase, triệu hồi pháp sư, mưa thiên thạch), Kỵ Sĩ Mộ Phần, Khổng Lồ Pha Lê, Hộ Vệ Đá Cổ, Nhà Vô Địch Hoàng Gia, và trận cuối Aurel / Thú Vàng.
+- **Miền trung:** Đồng Cỏ Mistveil, Tàn Tích Hollowmere, Cổng Gác Thornwall, Đầm Lầy Ashmire.
+- **Miền đông:** Cao Nguyên Cinderreach, Pháo Đài Greystone (giải đố lò lửa, tường ảo), Rừng Wraithwood (bốn tượng đá, kết giới), Đấu Trường Bloodsand (ba đợt kẻ thù).
+- **Miền tây:** Hồ Crystalmere (nước nông làm chậm bước, đảo nhỏ giữa hồ), Học Viện Starhollow (hầm ngục lớn có cửa tắt mở bằng cần gạt, tường ảo, thư viện), Bờ Biển Saltreach.
+- **Miền bắc:** Cao Nguyên Aurelia và Sườn Núi Goldspire; Kinh Thành Aurumhold (cổng lớn cần ba Đại Ấn, cửa hông mở bằng cần gạt bên trong, Sân Ngai Sunthrone), Cây Aurum ở tận cùng.
+- **4 hầm ngục phụ**, mỗi hầm có ân điển, câu đố riêng và boss ở phòng cuối sau cửa sương: Hầm Mộ Tidewrack (cần gạt mở cửa đá), Mỏ Shardvein (tường pha lê ảo), Hang Emberdeep (bẫy lửa phun theo nhịp), Hầm Mộ Kingsrest (tường ảo).
+- **Boss:** Varek (2 phase), Varek Vua Ẩn Mặt (2 phase), rồng Ignarth, Dornach (2 phase), Seluna, Selvara (2 phase, triệu hồi pháp sư, mưa thiên thạch), Kỵ Sĩ Mộ Phần, Khổng Lồ Pha Lê, Hộ Vệ Đá Cổ, Nhà Vô Địch Hoàng Gia, và trận cuối Aurel / Thú Aurum.
 - **Kẻ địch mới:** Pháp Sư Học Viện (bắn mảnh pha lê, dịch chuyển né), Người Pha Lê, Chó Hồ, Kỵ Sĩ Hoàng Gia (sóng ánh thánh, nhảy bổ), Tu Sĩ Vàng (cột sáng, hồi máu cho đồng đội), Sư Tử Vàng, Cung Thủ Hoàng Gia (mưa tên).
-- **Quái mạnh theo vùng đất**, không theo cấp người chơi (giống Elden Ring): từ +0% ở đồng cỏ tới +85–100% ở Kinh Thành và Cõi Vàng. Vùng khó hơn rơi nhiều rune hơn hẳn.
+- **Quái mạnh theo vùng đất**, không theo cấp người chơi (giống Elden Ring): từ +0% ở đồng cỏ tới +85–100% ở Kinh Thành và Cõi Aurum. Vùng khó hơn rơi nhiều rune hơn hẳn.
 - **Bản đồ mở dần:** nơi tự đi qua mới hiện rõ. 11 **Bia Bản Đồ** đặt ở lối vào mỗi vùng chỉ mở bản đồ dạng phác thảo. Bí mật không bao giờ hiện trên bản đồ.
-- **Ánh sáng và không khí theo vùng:** sương, tro, đom đóm, lá vàng, mặt hồ gợn sóng, sóng biển, tia nắng gần Cây Vàng. Chỉnh **Đồ họa: cao/thấp** trong menu tạm dừng.
+- **Gợi ý tương tác:** mọi thứ bấm `E` được (bia, rương, vật phẩm, lời nhắn, cần gạt, lò lửa, NPC, cửa hầm) đều có dấu sáng nổi phía trên kèm tên, và hiện phím `E` khi đứng đủ gần. Bia Bản Đồ chưa đọc có cột sáng xanh nhìn thấy từ xa và được đánh dấu trên bản đồ. Lần đầu gặp mỗi loại, game nhắc cách dùng một lần.
+- **Nhật ký hành trình** chỉ hiện những mục tiêu nhân vật đã nghe nói tới; phần còn lại lộ dần theo cốt truyện.
+- **Ánh sáng và không khí theo vùng:** sương, tro, đom đóm, lá vàng, mặt hồ gợn sóng, sóng biển, tia nắng gần Cây Aurum. Chỉnh **Đồ họa: cao/thấp** trong menu tạm dừng.
 - **Chết thì mất rune** tại chỗ; quay lại nhặt trước khi chết lần nữa. **Tự động lưu** vào `localStorage`.
 - **Tên người chơi và bảng xếp hạng:** nhập tên khi bắt đầu hành trình mới. Hạ boss cuối thì kết quả được ghi vào bảng xếp hạng, xếp theo số lần chết (ít hơn đứng trên), bằng nhau thì ai phá đảo nhanh hơn đứng trên. Khi đã cấu hình Firebase (xem bên dưới) thì mọi người chung một bảng; nếu chưa, bảng chỉ lưu trên trình duyệt đó.
 

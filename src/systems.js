@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Đạn, vùng sát thương, tương tác thế giới, vòng lặp chính
+// Gravebound — Đạn, vùng sát thương, tương tác thế giới, vòng lặp chính
 // ───────────────────────── đạn và vùng sát thương ─────────────────────────
 const PTRAIL = { glint: '#bcd6ff', orb: '#8fb0ff', fireball: '#ff8a3a', shard: '#cfefff', comet: '#bfe4ff', bolt: '#fff3a0', hwave: '#ffe39a', hbolt: '#fff0b0', cwave: '#bfe4ff', gwave: '#f3cf6e', parrow: null, arrow: null, knife: null, dagger: '#f3cf6e', spit: '#9fd05a', porb: '#b9a8ff', horb: '#ffe08a' };
 function updateProjs(dt) {
@@ -123,7 +123,7 @@ function interact() {
   const it = nearItem();
   if (it) { takeItem(it); return; }
   const nt = nearNote();
-  if (nt) { subtitle('“' + nt.text + '”', 5.5); SFX.glint(); }
+  if (nt) { subtitle('“' + nt.text + '”', 5.5); SFX.glint(); const i = NOTES.indexOf(nt); if (!S.readN.includes(i)) { S.readN.push(i); save(); } }
 }
 function lightBrazier(b) {
   G.braziers.push(b.id); SFX.fire(0.5);
@@ -140,7 +140,7 @@ function lightBrazier(b) {
   }
   if (G.braziers.length === BRAZIER_ORDER.length) {
     S.fortOpen = true; shake(8); SFX.felled(); save();
-    banner('grace', 'CÁNH CỔNG ĐÃ MỞ', 'Pháo Đài Đá Xám');
+    banner('grace', 'CÁNH CỔNG ĐÃ MỞ', 'Pháo Đài Greystone');
     burst(3600, 1286, 50, 'rgba(120,110,95,.7)', 200, 6, 'dot', 1);
   }
 }
@@ -150,7 +150,7 @@ function wakeStatue(st) {
   toast('Tượng đá đã thức tỉnh (' + S.statues.length + '/4)');
   if (S.statues.length === STATUES.length) {
     S.glade = true;
-    banner('grace', 'KẾT GIỚI ĐÃ TAN', 'Rừng Linh Hồn');
+    banner('grace', 'KẾT GIỚI ĐÃ TAN', 'Rừng Wraithwood');
     for (let k = 0; k < 60; k++) { const a = Math.random() * TAU; addPart(BARRIER.x + Math.cos(a) * BARRIER.r, BARRIER.y + Math.sin(a) * BARRIER.r, 0, rand(-60, -20), rand(0.8, 1.6), rand(2, 4), '#bff5ee', 'mote'); }
     if (!S.mb.wraith) later(1.6, () => {
       enemies.push(makeEnemy('wraith', BARRIER.x, BARRIER.y));
@@ -169,7 +169,7 @@ function spawnWave(n) {
     e.challenge = true; e.state = 'chase'; e.hx = COLO.x; e.hy = COLO.y;
     enemies.push(e); burst(e.x, e.y, 20, 'rgba(120,100,80,.7)', 120, 5, 'dot', 0.7);
   });
-  banner('grace', 'ĐỢT ' + n + ' / ' + WAVES.length, 'Đấu Trường Thử Thách', 2.4);
+  banner('grace', 'ĐỢT ' + n + ' / ' + WAVES.length, 'Đấu Trường Bloodsand', 2.4);
 }
 function startColo() {
   G.colo.active = true; G.colo.wave = 1; G.colo.cool = 0;
@@ -203,6 +203,25 @@ function restAtGrace(g) {
   burst(g.x, g.y, 30, '#f3d27a', 80, 3, 'mote', 1.4);
   openGrace(g);
 }
+// lần đầu nhìn thấy mỗi loại vật tương tác, nhắc người chơi mới cách dùng nó (mỗi loại chỉ nhắc một lần)
+const TIP_TEXT = {
+  stele: k => 'Một Bia Bản Đồ đang tỏa sáng xanh gần đây. Lại gần và ' + k + ' để đọc; bản đồ vùng này sẽ hiện ra.',
+  chest: k => 'Có một chiếc rương gần đây. Lại gần và ' + k + ' để mở.',
+  item: k => 'Đốm sáng trên mặt đất là vật phẩm. Lại gần và ' + k + ' để nhặt.',
+  note: k => 'Vòng lửa cam trên đất là lời nhắn của kẻ đi trước. Lại gần và ' + k + ' để đọc.',
+};
+function firstSightTips() {
+  if (G.mode !== 'play' || G.hintT < 16 || G.tipCd > G.clock) return;
+  const k = G.touch ? 'chạm nút Tương tác' : 'nhấn E';
+  const seen = (kind, x, y, r) => {
+    if (S.tips[kind] || dist(P.x, P.y, x, y) > r) return false;
+    S.tips[kind] = 1; G.tipCd = G.clock + 8; toast(TIP_TEXT[kind](k), 6); return true;
+  };
+  for (const f of MAP_FRAGS) if (!S.frags.includes(f.id) && seen('stele', f.x, f.y, 440)) return;
+  for (const c of CHESTS) if (!S.chests.includes(c.id) && (!c.req || c.req()) && seen('chest', c.x, c.y, 260)) return;
+  for (const it of ITEMS) if (!S.taken.includes(it.id) && seen('item', it.x, it.y, 240)) return;
+  for (let i = 0; i < NOTES.length; i++) if (!S.readN.includes(i) && seen('note', NOTES[i].x, NOTES[i].y, 220)) return;
+}
 function worldChecks(dt) {
   if (P.state === 'dead') return;
   for (const g of GRACES) {
@@ -210,6 +229,7 @@ function worldChecks(dt) {
       S.discovered.push(g.id); banner('grace', 'ĐÃ TÌM THẤY ÂN ĐIỂN', g.name); SFX.grace(); save();
     }
   }
+  firstSightTips();
   const key = G.touch ? '' : 'E', gp = gatePrompt();
   let nd;
   if (nearGrace()) G.prompt = { key, text: 'Nghỉ ngơi tại Ân Điển' };
@@ -285,7 +305,7 @@ function tick(dt) {
   G.fade = Math.max(0, G.fade - dt * 1.4);
   if (G.banner) { G.banner.t += dt; if (G.banner.t > G.banner.dur) G.banner = null; }
   if (G.sub) { G.sub.t += dt; if (G.sub.t > G.sub.dur) G.sub = null; }
-  if (G.toast) { G.toast.t += dt; if (G.toast.t > 2.4) G.toast = null; }
+  if (G.toast) { G.toast.t += dt; if (G.toast.t > G.toast.dur) G.toast = null; }
   G.regionT += dt; G.hintT += dt;
   if (G.runeGainT > 0) { G.runeGainT -= dt; if (G.runeGainT <= 0) G.runeGain = 0; }
 }

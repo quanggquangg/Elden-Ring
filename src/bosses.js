@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — Boss: Varek, rồng Ignarth, trận cuối
+// Gravebound — Boss: Varek, rồng Ignarth, trận cuối
 // ───────────────────────── boss: Varek ─────────────────────────
 const sw = (wind, act, rec, dmg, range, arc, lunge, swing) => ({ k: 'swing', wind, act, rec, dmg, range, arc, lunge, swing });
 const BOSS_MOVES = {
@@ -141,7 +141,7 @@ function updateBoss(dt) {
     case 'phase':
       if (!b.fx && b.t > 0.7) {
         b.fx = true; SFX.roar(); addRing(b.x, b.y, 30, 260, 0.6, 35); shake(14);
-        subtitle(b.v === 2 ? '“Ta là Vua Ẩn Mặt... kẻ đã giữ Kinh Thành này suốt ngàn năm!”' : '“Quỳ xuống! Ánh vàng này không dành cho kẻ nhạt phai!”');
+        subtitle(b.v === 2 ? '“Ta là Vua Ẩn Mặt... kẻ đã một mình giữ Aurumhold suốt ngàn năm!”' : '“Quỳ xuống! Ánh vàng này chưa bao giờ thuộc về lũ Gravebound!”');
         burst(b.x, b.y, 60, '#f3cf6e', 240, 4, 'dot', 1.1);
       }
       if (b.t > 2) { b.phase = 2; b.state = 'chase'; b.t = 0; b.cd = 0.3; }
@@ -161,7 +161,7 @@ function startBossFight() {
   G.bossFight = true; boss.state = 'intro'; boss.t = 0;
   if (P.mounted) P.mounted = false;
   SFX.roar(); shake(8);
-  subtitle(boss.v === 2 ? '“Lại là ngươi... Lần này ta sẽ không nương tay nữa.”' : '“Kẻ nhạt phai... ngươi không xứng đáng chạm tới Cây Vàng.”');
+  subtitle(boss.v === 2 ? '“Lại là ngươi... Lần này, ta sẽ không giấu mặt nữa.”' : '“Gravebound... ngươi không xứng đáng chạm tới Cây Aurum.”');
 }
 function bossDefeated() {
   const b = boss;
@@ -172,14 +172,15 @@ function bossDefeated() {
     S.bossDead = true;
     gainRunes(2500, b.x, b.y);
     later(9.2, () => grant({ weapon: 'varek', pouch: 1 }, b.x, b.y));
-    subtitle('“Ánh vàng... đã chọn... ngươi...”', 3.6);
-    later(4.4, () => subtitle('Cánh cổng phía bắc đã mở. Cao Nguyên Hoàng Kim ở phía trước.', 4.5));
+    subtitle('“Ánh vàng... đã chọn... kẻ như ngươi sao...”', 3.6);
+    later(4.2, () => subtitle('“Muốn chạm tới Cây... ngươi phải gom ba mảnh Vòng... Greystone phương đông... con rồng dưới đầm Ashmire... và nữ hoàng Starhollow...”', 6));
+    later(10.6, () => subtitle('Cổng phía bắc đã mở. Cao Nguyên Aurelia trải vàng phía trước.', 4.5));
   } else {
     S.boss2Dead = true;
     gainRunes(20000, b.x, b.y);
     later(5, () => grant({ items: { somber2: 2 }, tal: 'guard' }, b.x, b.y));
-    subtitle('“Kẻ nhạt phai... hãy thắp lên... ngọn lửa cuối cùng...”', 4);
-    later(9.5, () => subtitle('Lối lên Cây Vàng đã mở.', 4));
+    subtitle('“Gravebound... hãy mang ngọn lửa... tới nơi ta không thể tới...”', 4);
+    later(9.5, () => subtitle('Lối lên Cây Aurum đã mở. Ánh vàng đang gọi tên ngươi.', 4));
   }
   save();
 }
@@ -370,7 +371,7 @@ function dragonDefeated() {
   save();
 }
 
-// ───────────────────────── trận cuối: Aurel (phase 1) và Thú Vàng (phase 2) ─────────────────────────
+// ───────────────────────── trận cuối: Aurel (phase 1) và Thú Aurum (phase 2) ─────────────────────────
 function makeFinal() {
   const hp = 3400;
   return { isFinal: true, res: { holy: 0.6 }, name: 'Aurel, Vị Vua Tro Tàn', x: RC.x, y: RC.y - 170, r: 26, hp, maxHp: hp, ghost: hp, face: Math.PI / 2, state: 'intro', t: 0, cd: 1.2,
@@ -386,7 +387,7 @@ const FINAL_MOVES = {
   pillars: () => [{ k: 'pillars', wind: 0.7, rec: 0.9, n: 6 }],
   blink: () => [{ k: 'blink' }, sw(0.35, 0.14, 0.7, 52, 110, 2.4, 200, 1)],
   rings: () => [{ k: 'rings', wind: 0.8, rec: 0.9, n: 2 }],
-  // phase 2: Thú Vàng
+  // phase 2: Thú Aurum
   horbs: () => [{ k: 'horbs', wind: 0.7, rec: 0.9, n: finalEnraged() ? 8 : 6 }],
   beam: () => [{ k: 'beam', wind: 0.9, dur: finalEnraged() ? 2.0 : 1.5, rec: 0.9, range: 480, cone: 0.14, sweep: 0.85 }],
   waves: () => [{ k: 'rings', wind: 0.7, rec: 1.0, n: 3 }],
@@ -563,8 +564,8 @@ function updateFinal(dt) {
         f.fx = true; SFX.roar(); shake(18); G.white = 0.85;
         burst(f.x, f.y, 90, '#fff1c2', 320, 5, 'dot', 1.4);
         const hp = 4400;
-        Object.assign(f, { phase: 2, name: 'Thú Vàng, Hiện Thân Vòng Vàng', r: 44, hp, maxHp: hp, ghost: hp, poise: 330, poiseAcc: 0, noParry: true, bleed: 0, bleedMax: 320 });
-        subtitle('“Vòng Vàng tự phán xét kẻ nhạt phai.”', 4);
+        Object.assign(f, { phase: 2, name: 'Thú Aurum, Hiện Thân Vòng Aurum', r: 44, hp, maxHp: hp, ghost: hp, poise: 330, poiseAcc: 0, noParry: true, bleed: 0, bleedMax: 320 });
+        subtitle('“Vòng Aurum tự phán xét những Gravebound.”', 4);
       }
       if (f.t > 3.8) { f.state = 'chase'; f.t = 0; f.cd = 0.8; f.invuln = 0; }
       break;
@@ -585,13 +586,13 @@ function enterRealm() {
   fb = makeFinal(); G.finalFight = true; projs.length = 0; aoes.length = 0;
   cam.x = P.x; cam.y = P.y; clampCam(); G.white = 1;
   SFX.grace(); save();
-  later(1.0, () => subtitle('“Kẻ nhạt phai... ngươi đã tới được Cây Vàng. Nhưng ngai vàng này không dành cho ngươi.”', 5));
+  later(1.0, () => subtitle('“Gravebound... ngươi đã tới được Cây Aurum. Nhưng ngai vàng này không dành cho ngươi.”', 5));
 }
 function finalTransform() {
   const f = fb;
   f.hp = 0; f.state = 'transform'; f.t = 0; f.fx = false; f.invuln = 4; f.atk = null; f.beaming = false; f.z = 0;
   P.lock = null; SFX.felled();
-  subtitle('“Ngươi... đã vượt qua ta. Nhưng Vòng Vàng vẫn còn đó.”', 3.5);
+  subtitle('“Ngươi... đã vượt qua ta. Nhưng Vòng Aurum vẫn còn đó.”', 3.5);
 }
 function finalDefeated() {
   S.finalDead = true; G.finalFight = false;

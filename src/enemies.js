@@ -1,5 +1,5 @@
 'use strict';
-// Vòng Vàng Vỡ — AI kẻ địch thường và miniboss
+// Gravebound — AI kẻ địch thường và miniboss
 // ───────────────────────── AI kẻ địch thường ─────────────────────────
 const PROJ_DT = { orb: 'magic', shard: 'magic', comet: 'magic', porb: 'magic', hwave: 'holy', hbolt: 'holy' };
 function startEnemyAtk(e, idx) {

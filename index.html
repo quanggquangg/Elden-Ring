@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Vòng Vàng Vỡ</title>
+<title>Gravebound</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,500&family=Cormorant+SC:wght@500;600;700&display=swap">
@@ -33,12 +33,20 @@ body{font:15px/1.55 var(--ui);-webkit-user-select:none;user-select:none;touch-ac
 .overlay.title{background:
   radial-gradient(ellipse 70% 55% at 50% -8%,rgba(226,186,96,.34),rgba(226,186,96,0) 70%),
   linear-gradient(rgba(8,7,5,.35),rgba(8,7,5,.88) 70%)}
-.title-inner{width:100%;max-width:640px;text-align:center;display:grid;gap:18px;justify-items:center}
-.ring{width:118px;height:118px;color:var(--gold);filter:drop-shadow(0 0 14px rgba(226,186,96,.45))}
+.title-inner{width:100%;max-width:640px;text-align:center;display:grid;gap:clamp(8px,1.8vh,16px);justify-items:center}
+.ring{width:clamp(60px,11vh,104px);height:clamp(60px,11vh,104px);color:var(--gold);filter:drop-shadow(0 0 14px rgba(226,186,96,.45))}
 .eyebrow{margin:0;font:600 12px/1.2 var(--ui);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
-h1{margin:0;font:700 clamp(46px,10vw,104px)/.95 var(--display);letter-spacing:.04em;text-wrap:balance;
+h1{margin:0;font:700 clamp(44px,min(11vw,13vh),112px)/.95 var(--display);letter-spacing:.04em;text-wrap:balance;
   background:linear-gradient(180deg,#fff3c9 0%,var(--gold) 55%,#9b7b3c 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 h2{margin:0;font:600 34px/1.1 var(--display);letter-spacing:.03em;color:var(--parch);text-wrap:balance}
+.subactions{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;margin-top:6px}
+.sbtn{appearance:none;background:none;border:0;border-top:1px solid var(--line);color:var(--muted);font:600 15px/1.2 var(--display);letter-spacing:.08em;padding:10px 14px;cursor:pointer}
+.sbtn:hover,.sbtn:focus-visible{color:var(--gold-hi);outline:none}
+.lore h3{margin:18px 0 6px;font:600 20px/1.2 var(--display);color:var(--gold-hi);letter-spacing:.04em}
+.lore h3:first-child{margin-top:0}
+.lore p{margin:0;font:500 18px/1.6 "Cormorant Garamond",Georgia,serif;color:var(--parch);text-wrap:pretty}
+.lore b{color:var(--gold-hi);font-weight:600}
+.lorepanel .scroll{max-height:min(60vh,540px)}
 .lede{margin:0;max-width:52ch;color:var(--muted);font:500 italic 20px/1.45 "Cormorant Garamond",Georgia,serif;text-wrap:pretty}
 .actions{display:grid;gap:2px;justify-items:center;margin-top:6px}
 .mbtn{appearance:none;background:none;border:0;color:var(--parch);font:600 23px/1.2 var(--display);letter-spacing:.05em;
@@ -189,14 +197,44 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <path d="M60 30 A30 30 0 1 1 59.9 30" stroke-width="1.2" opacity=".6"/>
         <path d="M60 4 V116 M26 36 L94 84" stroke-width="1" opacity=".55"/>
       </svg>
-      <p class="eyebrow">Hành trình souls-like 2D</p>
-      <h1>Vòng Vàng Vỡ</h1>
-      <p class="lede">Vòng Vàng đã vỡ. Hỡi Kẻ Nhạt Phai, hãy thu thập ba Đại Ấn từ Pháo Đài phía đông, đầm lầy của rồng tro và Học Viện bên Hồ Pha Lê, rồi vượt qua Kinh Thành Vàng để chạm tới Cây Vàng. Ngươi bắt đầu với trang bị tồi tàn; mọi thứ tốt hơn phải tự đi tìm.</p>
+      <p class="eyebrow">Một trường ca souls-like</p>
+      <h1>Gravebound</h1>
       <div class="actions">
         <button id="btnContinue" class="mbtn" hidden>Tiếp tục</button>
         <button id="btnNew" class="mbtn">Hành trình mới</button>
-        <button id="btnBoard" class="mbtn">Bảng xếp hạng</button>
+        <div class="subactions">
+          <button id="btnLore" class="sbtn">Truyền thuyết</button>
+          <button id="btnControls" class="sbtn">Điều khiển</button>
+          <button id="btnBoard" class="sbtn">Bảng xếp hạng</button>
+        </div>
       </div>
+      <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring. Không liên quan tới FromSoftware hay Bandai Namco.</p>
+    </div>
+  </section>
+
+  <section id="lore" class="overlay title" hidden>
+    <div class="panel wide lorepanel">
+      <header><p class="eyebrow" id="loreEyebrow">Truyền thuyết</p><h2>Vòng Aurum</h2></header>
+      <div class="scroll lore">
+        <h3>I. Thuở Ánh Vàng</h3>
+        <p>Khi thế giới còn non, Cây Aurum mọc lên ở tận cùng phương bắc. Rễ cây ôm lấy Vòng Aurum, chiếc vòng vàng giữ trật tự giữa sự sống và cái chết. Dưới tán lá vàng, vua Aurel dựng nên Kinh Thành Aurumhold. Suốt một ngàn năm, không linh hồn nào lạc lối: kẻ chết đều trở về với rễ cây, và ánh vàng soi khắp vùng đất.</p>
+        <h3>II. Đêm Vỡ Vòng</h3>
+        <p>Rồi một đêm không trăng, Vòng Aurum vỡ tan. Không ai biết bàn tay nào đã đập vỡ nó. Những mảnh lớn nhất, được gọi là Đại Ấn, rơi vào tay những kẻ mạnh nhất vùng đất. Lá vàng bắt đầu rụng thành tro. Người chết không còn đường về với rễ cây: họ bị trói lại nơi nấm mồ của mình, rồi một ngày lại bò lên từ đất lạnh. Dân gian gọi họ là <b>Gravebound</b>, những kẻ bị nấm mồ cầm giữ.</p>
+        <h3>III. Những Kẻ Giữ Ấn</h3>
+        <p><b>Dornach</b>, vệ binh trung thành nhất của nhà vua, khóa mình trong Pháo Đài Greystone cùng mảnh ấn phương đông, vẫn chờ một mệnh lệnh không bao giờ tới. Rồng cổ <b>Ignarth</b> nuốt mảnh ấn thứ hai rồi chìm vào giấc ngủ độc giữa Đầm Lầy Ashmire. Nữ hoàng <b>Selvara</b> của Học Viện Starhollow dùng mảnh thứ ba để kéo các vì sao xuống trần, mong đọc được tương lai trong ánh trăng pha lê.</p>
+        <h3>IV. Kẻ Gác Cổng</h3>
+        <p><b>Varek</b> từng đứng gác trước ngai vàng. Khi Vòng vỡ, hắn đeo mặt nạ, trấn giữ con đường duy nhất lên phương bắc và thề rằng không một Gravebound nào được chạm vào Cây. Người ta thì thầm rằng sau lớp mặt nạ ấy là một gương mặt mà cả Aurumhold đều biết.</p>
+        <h3>V. Gravebound</h3>
+        <p>Phần lớn Gravebound đã quên mất tên mình, lang thang vô định cho tới khi hóa thành bóng ma trên đồng cỏ Mistveil. Ngươi cũng là một Gravebound. Nhưng khác với họ, ngươi được Ân Điển đánh thức tại Nhà Nguyện Dawnrest, không vũ khí, không danh phận, chỉ còn tia sáng mờ dẫn lối. Con đường phía trước sẽ tự hé lộ. Còn việc ngươi sẽ hàn gắn Vòng để giải thoát cho những kẻ như mình, hay tự mình đội lấy nó, chỉ Cây Aurum mới biết.</p>
+      </div>
+      <div class="row"><button id="btnLoreClose" class="pbtn">Đóng</button></div>
+    </div>
+  </section>
+
+  <section id="controlsBox" class="overlay title" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow">Hướng dẫn</p><h2>Điều khiển</h2></header>
+      <div class="scroll">
       <dl class="controls">
         <div><dt>Di chuyển</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd></div>
         <div><dt>Lăn né / chạy nhanh</dt><dd><kbd>Space</kbd> nhấn / giữ</dd></div>
@@ -207,7 +245,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <div><dt>Kỹ năng vũ khí</dt><dd><kbd>Shift</kbd> + chuột phải</dd></div>
         <div><dt>Dùng đồ / đổi đồ</dt><dd><kbd>R</kbd> / <kbd>↓</kbd></dd></div>
         <div><dt>Đổi phép</dt><dd><kbd>↑</kbd></dd></div>
-        <div><dt>Tương tác / mở rương</dt><dd><kbd>E</kbd></dd></div>
+        <div><dt>Tương tác, mở rương, đọc bia</dt><dd><kbd>E</kbd></dd></div>
         <div><dt>Khóa mục tiêu</dt><dd><kbd>Q</kbd> / chuột giữa</dd></div>
         <div><dt>Đổi vũ khí</dt><dd><kbd>←</kbd> <kbd>→</kbd></dd></div>
         <div><dt>Gọi ngựa</dt><dd><kbd>F</kbd></dd></div>
@@ -217,7 +255,9 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <div><dt>Chỉ dùng bàn phím</dt><dd><kbd>J</kbd> <kbd>K</kbd> <kbd>X</kbd> <kbd>C</kbd></dd></div>
       </dl>
       <p class="fine">Tay cầm (giống Elden Ring): R1 đánh · R2 đánh mạnh · L1 đỡ / niệm phép · L2 kỹ năng · ○/B lăn (giữ để chạy) · □/X dùng đồ · △/Y tương tác · ×/A ngựa · R3 khóa · ←→ vũ khí · ↑ phép · ↓ đồ · Share/Back bản đồ</p>
-      <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring. Không liên quan tới FromSoftware hay Bandai Namco.</p>
+      <p class="fine">Trên điện thoại, cần điều khiển ảo và các nút bấm tự hiện ra.</p>
+      </div>
+      <div class="row"><button id="btnControlsClose" class="pbtn">Đóng</button></div>
     </div>
   </section>
 
@@ -238,6 +278,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <button id="btnSound" class="pbtn">Âm thanh: bật</button>
         <button id="btnFx" class="pbtn">Đồ họa: cao</button>
         <button id="btnInv" class="pbtn">Hành trang</button>
+        <button id="btnPauseLore" class="pbtn">Truyền thuyết</button>
         <button id="btnQuit" class="pbtn ghost">Về màn hình chính</button>
       </div>
     </div>
@@ -279,7 +320,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 
   <section id="shop" class="overlay" hidden>
     <div class="panel wide">
-      <header><p class="eyebrow">Điện Hội Ngộ</p><h2 id="shopName">Cửa hàng</h2><p class="note" id="shopLine"></p></header>
+      <header><p class="eyebrow">Sảnh Hearthhold</p><h2 id="shopName">Cửa hàng</h2><p class="note" id="shopLine"></p></header>
       <div class="lvtop"><div><span class="k">Rune đang có</span><b id="shopRunes">0</b></div></div>
       <div class="scroll"><ul class="travel" id="shopList"></ul></div>
       <div class="row"><button id="btnShopLeave" class="pbtn">Rời đi</button></div>
@@ -291,7 +332,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       <header><p class="eyebrow">Hành trình mới</p><h2>Ngươi tên là gì?</h2><p class="note">Tên này sẽ hiện trên bảng xếp hạng khi ngươi phá đảo.</p></header>
       <form id="nameForm" class="field" autocomplete="off">
         <label class="k" for="nameInput">Tên người chơi</label>
-        <input id="nameInput" maxlength="20" spellcheck="false" placeholder="Kẻ Nhạt Phai">
+        <input id="nameInput" maxlength="20" spellcheck="false" placeholder="Gravebound">
         <p id="nameErr" class="err" hidden>Hãy nhập một cái tên.</p>
         <div class="row"><button type="submit" class="pbtn">Tiếp tục</button><button type="button" id="btnNameBack" class="pbtn ghost">Quay lại</button></div>
       </form>
@@ -300,7 +341,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 
   <section id="board" class="overlay title" hidden>
     <div class="panel wide">
-      <header><p class="eyebrow">Những Kẻ Nhạt Phai đã chạm tới Cây Vàng</p><h2>Bảng xếp hạng</h2><p class="note" id="boardNote"></p></header>
+      <header><p class="eyebrow">Những Gravebound đã chạm tới Cây Aurum</p><h2>Bảng xếp hạng</h2><p class="note" id="boardNote"></p></header>
       <div class="scroll"><table class="board"><thead><tr><th>#</th><th>Tên</th><th>Chết</th><th>Thời gian</th><th>Cấp</th><th>Xuất thân</th></tr></thead><tbody id="boardBody"></tbody></table></div>
       <div class="row"><button id="btnBoardClose" class="pbtn">Đóng</button></div>
     </div>
@@ -316,8 +357,8 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 
   <section id="ending" class="overlay title" hidden>
     <div class="panel center">
-      <header><p class="eyebrow">Gốc Cây Vàng</p><h2>Ngươi đã chạm tới Cây Vàng</h2></header>
-      <p class="lede">Ánh vàng phủ lên đôi tay của Kẻ Nhạt Phai. Vòng Vàng vẫn còn vỡ, nhưng giờ nó đã có người để hàn gắn.</p>
+      <header><p class="eyebrow">Gốc Cây Aurum</p><h2>Ngươi đã chạm tới Cây Aurum</h2></header>
+      <p class="lede">Ngươi quỳ dưới tán Cây Aurum, và những mảnh Vòng vỡ lặng lẽ tìm về lòng bàn tay ngươi. Kỷ nguyên tro tàn khép lại. Kỷ nguyên của ngươi bắt đầu.</p>
       <div class="endstats">
         <div><span class="k">Cấp</span><b id="endLv">1</b></div>
         <div><span class="k">Số lần chết</span><b id="endDeaths">0</b></div>
