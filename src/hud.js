@@ -1,12 +1,23 @@
 'use strict';
 // Gravebound — HUD, bản đồ và menu HTML
 // ───────────────────────── HUD ─────────────────────────
+// thanh máu / FP / thể lực kiểu Elden Ring: khung tối viền vàng có góc nhọn, phần đã mất ánh vàng,
+// màu chính đổ dọc từ sáng xuống tối, vệt bóng phía trên và đầu thanh sáng
 function bar(x, y, w, h, frac, ghost, col) {
-  ctx.fillStyle = 'rgba(8,7,5,.78)'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
-  ctx.strokeStyle = 'rgba(214,178,94,.42)'; ctx.lineWidth = 1; ctx.strokeRect(x - 2.5, y - 2.5, w + 5, h + 5);
+  const f = clamp(frac, 0, 1);
+  ctx.fillStyle = 'rgba(8,7,5,.82)'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+  ctx.strokeStyle = 'rgba(214,178,94,.55)'; ctx.lineWidth = 1; ctx.strokeRect(x - 2.5, y - 2.5, w + 5, h + 5);
+  ctx.fillStyle = 'rgba(214,178,94,.8)';
+  for (const ex of [x - 2.5, x + w + 2.5]) { ctx.beginPath(); ctx.moveTo(ex, y + h / 2 - 3); ctx.lineTo(ex + (ex < x ? -3 : 3), y + h / 2); ctx.lineTo(ex, y + h / 2 + 3); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = 'rgba(40,34,26,.9)'; ctx.fillRect(x, y, w, h);
   if (ghost != null) { ctx.fillStyle = '#d9b85c'; ctx.fillRect(x, y, w * clamp(ghost, 0, 1), h); }
-  ctx.fillStyle = col; ctx.fillRect(x, y, w * clamp(frac, 0, 1), h);
-  ctx.fillStyle = 'rgba(255,255,255,.16)'; ctx.fillRect(x, y, w * clamp(frac, 0, 1), Math.max(1, h * 0.3));
+  if (f > 0) {
+    const g = ctx.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, tone(col, 1.35)); g.addColorStop(0.5, col); g.addColorStop(1, tone(col, 0.6));
+    ctx.fillStyle = g; ctx.fillRect(x, y, w * f, h);
+    ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(x, y, w * f, Math.max(1, h * 0.28));
+    ctx.fillStyle = 'rgba(255,245,220,.55)'; ctx.fillRect(x + w * f - 1.5, y, 1.5, h);
+  }
 }
 function textC(str, x, y, font, col, shadowA = 0.8) {
   ctx.font = font; ctx.textAlign = 'center';
