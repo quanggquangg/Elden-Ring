@@ -120,6 +120,18 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 .cls .cs{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
 .cls .cs b{color:var(--parch)}
 .panel.wide{max-width:720px}
+.field{display:grid;gap:6px}
+.field input{font:600 22px/1.2 var(--display);color:var(--parch);background:rgba(8,7,5,.6);border:1px solid var(--gold-dim);padding:12px 14px;outline:none;width:100%;box-sizing:border-box;-webkit-user-select:text;user-select:text}
+.field input:focus{border-color:var(--gold)}
+.err{margin:0;color:#f0a58f;font-size:13px}
+.board{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.board th{font:600 11px/1.2 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.board td{padding:8px;border-bottom:1px solid rgba(214,178,94,.1)}
+.board td:nth-child(2){font:600 17px/1.2 var(--display);color:var(--parch);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board tr:nth-child(-n+3) td:first-child{color:var(--gold-hi);font-weight:700}
+.board tr.me td{background:rgba(214,178,94,.16)}
+.board td.empty{text-align:center;color:var(--muted);padding:18px}
+@media (max-width:520px){.board th:nth-child(5),.board td:nth-child(5),.board th:nth-child(6),.board td:nth-child(6){display:none}}
 @media (max-width:520px){
   .controls{grid-template-columns:1fr}
   .lvtop b{font-size:18px}
@@ -167,6 +179,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
       <div class="actions">
         <button id="btnContinue" class="mbtn" hidden>Tiếp tục</button>
         <button id="btnNew" class="mbtn">Hành trình mới</button>
+        <button id="btnBoard" class="mbtn">Bảng xếp hạng</button>
       </div>
       <dl class="controls">
         <div><dt>Di chuyển</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd></div>
@@ -250,6 +263,26 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
     </div>
   </section>
 
+  <section id="name" class="overlay title" hidden>
+    <div class="panel">
+      <header><p class="eyebrow">Hành trình mới</p><h2>Ngươi tên là gì?</h2><p class="note">Tên này sẽ hiện trên bảng xếp hạng khi ngươi phá đảo.</p></header>
+      <form id="nameForm" class="field" autocomplete="off">
+        <label class="k" for="nameInput">Tên người chơi</label>
+        <input id="nameInput" maxlength="20" spellcheck="false" placeholder="Kẻ Nhạt Phai">
+        <p id="nameErr" class="err" hidden>Hãy nhập một cái tên.</p>
+        <div class="row"><button type="submit" class="pbtn">Tiếp tục</button><button type="button" id="btnNameBack" class="pbtn ghost">Quay lại</button></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="board" class="overlay title" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow">Những Kẻ Nhạt Phai đã chạm tới Cây Vàng</p><h2>Bảng xếp hạng</h2><p class="note" id="boardNote"></p></header>
+      <div class="scroll"><table class="board"><thead><tr><th>#</th><th>Tên</th><th>Chết</th><th>Thời gian</th><th>Cấp</th><th>Xuất thân</th></tr></thead><tbody id="boardBody"></tbody></table></div>
+      <div class="row"><button id="btnBoardClose" class="pbtn">Đóng</button></div>
+    </div>
+  </section>
+
   <section id="cls" class="overlay title" hidden>
     <div class="panel wide">
       <header><p class="eyebrow">Hành trình mới</p><h2>Chọn xuất thân</h2><p class="note">Mọi lớp đều bắt đầu ở cấp 1 với trang bị tồi tàn. Lớp chỉ quyết định chỉ số ban đầu; sau này có thể tăng bất kỳ chỉ số nào.</p></header>
@@ -267,7 +300,8 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <div><span class="k">Số lần chết</span><b id="endDeaths">0</b></div>
         <div><span class="k">Thời gian</span><b id="endTime">0:00</b></div>
       </div>
-      <div class="row"><button id="btnEndClose" class="pbtn">Tiếp tục khám phá</button></div>
+      <p class="note" style="text-align:center"><b id="endName" style="color:var(--gold-hi);font:600 20px var(--display)"></b><br><span id="endRank"></span></p>
+      <div class="row"><button id="btnEndBoard" class="pbtn">Xem bảng xếp hạng</button><button id="btnEndClose" class="pbtn ghost">Tiếp tục khám phá</button></div>
     </div>
   </section>
 </div>
@@ -284,5 +318,6 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 <script src="src/systems.js"></script>
 <script src="src/render.js"></script>
 <script src="src/hud.js"></script>
+<script src="src/leaderboard.js"></script>
 </body>
 </html>

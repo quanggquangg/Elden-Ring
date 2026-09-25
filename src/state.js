@@ -10,7 +10,7 @@ function defaultSave() {
     armor: 'rags', armors: ['rags'], tals: [], tal: [], talSlots: 1, spells: [], att: [], slots: 2, spellIdx: 0,
     ashes: [], ash: {}, inv: {}, quick: 0, arrows: 0, arrowMax: 40, dragonDead: false, finalDead: false, chests: [],
     fortOpen: false, statues: [], glade: false, illusory: [], coloDone: false, mb: {}, explored: '', frags: [],
-    gr: [], greatOpen: false, acadOpen: false, levers: [], dg: {}, bought: [],
+    gr: [], greatOpen: false, acadOpen: false, levers: [], dg: {}, bought: [], name: '', submitted: false, runId: null,
   };
 }
 let S = defaultSave();

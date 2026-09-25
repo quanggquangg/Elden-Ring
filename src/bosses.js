@@ -595,6 +595,7 @@ function finalTransform() {
 }
 function finalDefeated() {
   S.finalDead = true; G.finalFight = false;
+  submitRun();
   gainRunes(8000, fb.x, fb.y);
   banner('felled', 'VÒNG VÀNG ĐÃ ĐƯỢC HÀN GẮN', '', 5); SFX.felled(); G.white = 1;
   burst(fb.x, fb.y, 120, '#fff1c2', 360, 5, 'dot', 2);

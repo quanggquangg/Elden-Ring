@@ -257,7 +257,7 @@ function drawDeath() {
 }
 
 // ───────────────────────── menu HTML ─────────────────────────
-const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls') };
+const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name') };
 const STAT_INFO = [
   ['vig', 'Tăng máu tối đa'], ['mnd', 'Tăng FP'], ['end', 'Tăng thể lực và sức mang vác'],
   ['str', 'Vũ khí nặng, sát thương theo Sức Mạnh'], ['dex', 'Vũ khí nhanh, cung, theo Khéo Léo'],
@@ -410,7 +410,9 @@ function togglePause() {
   else if (G.mode === 'menu' && !UI.shop.hidden) closeShop();
   else if (G.mode === 'menu' && !UI.grace.hidden) closeGrace();
   else if (G.mode === 'menu' && !UI.ending.hidden) closeEnding();
-  else if (G.mode === 'title' && !UI.cls.hidden) { UI.cls.hidden = true; UI.title.hidden = false; }
+  else if (!UI.board.hidden) closeBoard();
+  else if (G.mode === 'title' && !UI.name.hidden) { UI.name.hidden = true; UI.title.hidden = false; }
+  else if (G.mode === 'title' && !UI.cls.hidden) { UI.cls.hidden = true; UI.name.hidden = false; }
 }
 function toggleMute() { muted = !muted; $('btnSound').textContent = 'Âm thanh: ' + (muted ? 'tắt' : 'bật'); toast(muted ? 'Đã tắt âm thanh' : 'Đã bật âm thanh'); }
 $('btnResume').onclick = togglePause;
@@ -428,7 +430,9 @@ $('btnQuit').onclick = () => {
 };
 function openEnding() {
   setMode('menu');
-  $('endLv').textContent = S.level; $('endDeaths').textContent = S.deaths;
+  $('endLv').textContent = S.level; $('endDeaths').textContent = S.deaths; $('endName').textContent = cleanName(S.name) || 'Kẻ Nhạt Phai';
+  const showRank = () => { const r = myRank(); $('endRank').textContent = r ? 'Hạng #' + r + ' trên bảng xếp hạng' + (boardShared ? ' chung' : ' của máy này') : 'Kết quả đã được ghi vào bảng xếp hạng'; };
+  showRank(); later(1.5, showRank);
   const m = Math.floor(S.time / 60), s = Math.floor(S.time % 60);
   $('endTime').textContent = Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   UI.ending.hidden = false; SFX.felled();
@@ -441,7 +445,7 @@ $('btnEndClose').onclick = closeEnding;
 let confirmNew = false;
 function startGame(data, cls) {
   S = data ? Object.assign(defaultSave(), data) : defaultSave();
-  if (!data) applyClass(cls);
+  if (!data) { applyClass(cls); S.name = pendingName || 'Kẻ Nhạt Phai'; }
   S.flaskMax = Math.min(S.flaskMax, FLASK_CAP);
   expDecode(S.explored);
   UI.title.hidden = true; UI.cls.hidden = true; parts.length = 0;
@@ -459,12 +463,12 @@ function openClassSelect() {
   setTimeout(() => { const b = $('clsList').querySelector('button'); if (b) b.focus({ preventScroll: true }); }, 30);
 }
 $('clsList').addEventListener('click', e => { const b = e.target.closest('[data-cls]'); if (b) { audioInit(); startGame(null, b.dataset.cls); } });
-$('btnClsBack').onclick = () => { UI.cls.hidden = true; UI.title.hidden = false; };
+$('btnClsBack').onclick = () => { UI.cls.hidden = true; UI.name.hidden = false; };
 $('btnContinue').onclick = () => { audioInit(); startGame(loadSave()); };
 $('btnNew').onclick = () => {
   audioInit();
   if (loadSave() && !confirmNew) { confirmNew = true; $('btnNew').textContent = 'Xoá tiến trình cũ và bắt đầu?'; $('btnNew').classList.add('warn'); return; }
-  openClassSelect();
+  openNameEntry();
 };
 if (loadSave()) $('btnContinue').hidden = false;
 window.addEventListener('pagehide', () => { if (G.mode !== 'title') save(); });

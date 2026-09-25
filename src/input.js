@@ -28,6 +28,7 @@ function act(a) {
 const peekBuf = () => (buf && G.clock - buf.t < 0.32 ? buf.a : null);
 function takeBuf() { const a = peekBuf(); buf = null; return a; }
 window.addEventListener('keydown', e => {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return; // đang gõ tên
   if (e.code === 'Escape') { e.preventDefault(); togglePause(); return; }
   if (e.code === 'KeyM' && !e.repeat) { toggleMute(); return; }
   if (e.code === 'KeyG' && !e.repeat && G.mode === 'map') { toggleMap(); return; }
@@ -74,7 +75,7 @@ function moveInput() {
 const PB = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 window.addEventListener('gamepadconnected', () => { audioInit(); toast('Đã kết nối tay cầm'); });
 function padMenuNav(dir) {
-  const ov = [UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
+  const ov = [UI.board, UI.name, UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
   if (!ov) return;
   const els = [...ov.querySelectorAll('button:not([disabled])')].filter(el => el.offsetParent !== null);
   if (!els.length) return;

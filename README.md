@@ -73,6 +73,7 @@ Chỉ dùng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để
 - **Bản đồ mở dần:** nơi tự đi qua mới hiện rõ. 11 **Bia Bản Đồ** đặt ở lối vào mỗi vùng chỉ mở bản đồ dạng phác thảo. Bí mật không bao giờ hiện trên bản đồ.
 - **Ánh sáng và không khí theo vùng:** sương, tro, đom đóm, lá vàng, mặt hồ gợn sóng, sóng biển, tia nắng gần Cây Vàng. Chỉnh **Đồ họa: cao/thấp** trong menu tạm dừng.
 - **Chết thì mất rune** tại chỗ; quay lại nhặt trước khi chết lần nữa. **Tự động lưu** vào `localStorage`.
+- **Tên người chơi và bảng xếp hạng:** nhập tên khi bắt đầu hành trình mới. Hạ boss cuối thì kết quả được ghi vào bảng xếp hạng, xếp theo số lần chết (ít hơn đứng trên), bằng nhau thì ai phá đảo nhanh hơn đứng trên. Khi trang được cấp kho dữ liệu dùng chung (`db`) thì mọi người chung một bảng; nếu không, bảng chỉ lưu trên trình duyệt đó.
 
 ## Cấu trúc
 
@@ -93,4 +94,5 @@ src/content.js      phòng boss, bẫy, cần gạt, cửa hầm ngục, cổng 
 src/systems.js      đạn, vùng sát thương, tương tác, vòng lặp chính
 src/render.js       vẽ thế giới, ánh sáng, thời tiết
 src/hud.js          HUD, bản đồ, menu Ân Điển, cửa hàng, khởi động
+src/leaderboard.js  nhập tên, bảng xếp hạng
 ```
