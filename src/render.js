@@ -751,18 +751,31 @@ function drawObjects() {
     if (!inView(l.x, l.y, 40)) continue;
     const on = S.levers.includes(l.id);
     shadow(l.x + 2, l.y + 6, 12, 5, 0.35);
-    ctx.fillStyle = '#4a4540'; ctx.fillRect(l.x - 10, l.y - 4, 20, 10);
-    ctx.strokeStyle = '#8a8070'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x + (on ? 12 : -12), l.y - 22); ctx.stroke();
-    ctx.fillStyle = on ? '#8a8070' : '#d8b45a'; ctx.beginPath(); ctx.arc(l.x + (on ? 12 : -12), l.y - 22, 4, 0, TAU); ctx.fill();
+    // bệ sắt có đinh tán và rãnh gạt, cần có viền, núm đồng sáng
+    ctx.fillStyle = '#4a4540'; ctx.strokeStyle = OL; ctx.lineWidth = 1.4; ctx.fillRect(l.x - 11, l.y - 5, 22, 11); ctx.strokeRect(l.x - 11, l.y - 5, 22, 11);
+    ctx.fillStyle = '#1a1814'; ctx.fillRect(l.x - 7, l.y - 1, 14, 3);
+    ctx.fillStyle = '#9a9080'; for (const dx of [-8.5, 8.5]) for (const dy of [-2.5, 3.5]) { ctx.beginPath(); ctx.arc(l.x + dx, l.y + dy, 0.9, 0, TAU); ctx.fill(); }
+    olLine(l.x, l.y, l.x + (on ? 12 : -12), l.y - 22, 3, '#8a8070');
+    ctx.fillStyle = on ? '#8a8070' : '#d8b45a'; ctx.strokeStyle = OL; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(l.x + (on ? 12 : -12), l.y - 22, 4.2, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(l.x + (on ? 11 : -13), l.y - 23.5, 1.3, 0, TAU); ctx.fill();
   }
   for (const d of DOORS) {
     if (!inView(d.x, d.y, 60)) continue;
     const pulse = 0.6 + Math.sin(t * 2 + d.x) * 0.4;
     if (d.kind === 'enter') {
       shadow(d.x, d.y + 8, 40, 14, 0.4);
+      // cổng hầm mộ: khối đá xây, vòm có đá khóa, lòng tối sâu dần, hai ngọn đuốc
       ctx.fillStyle = '#5a554c'; ctx.fillRect(d.x - 34, d.y - 26, 68, 34);
-      ctx.fillStyle = '#0e0c0a'; ctx.beginPath(); ctx.moveTo(d.x - 20, d.y + 8); ctx.lineTo(d.x - 20, d.y - 10); ctx.quadraticCurveTo(d.x, d.y - 30, d.x + 20, d.y - 10); ctx.lineTo(d.x + 20, d.y + 8); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#8a8474'; ctx.lineWidth = 2; ctx.strokeRect(d.x - 34, d.y - 26, 68, 34);
+      ctx.strokeStyle = 'rgba(28,24,18,.55)'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let y = d.y - 26 + 8.5; y < d.y + 8; y += 8.5) { ctx.moveTo(d.x - 34, y); ctx.lineTo(d.x + 34, y); }
+      for (let r0 = 0; r0 < 4; r0++) for (let x = d.x - 34 + (r0 % 2 ? 8 : 0); x < d.x + 34; x += 16) { const y = d.y - 26 + r0 * 8.5; ctx.moveTo(x, y); ctx.lineTo(x, y + 8.5); }
+      ctx.stroke();
+      const dg = ctx.createLinearGradient(0, d.y - 24, 0, d.y + 8); dg.addColorStop(0, '#000'); dg.addColorStop(1, '#241e18');
+      ctx.fillStyle = dg; ctx.beginPath(); ctx.moveTo(d.x - 20, d.y + 8); ctx.lineTo(d.x - 20, d.y - 10); ctx.quadraticCurveTo(d.x, d.y - 30, d.x + 20, d.y - 10); ctx.lineTo(d.x + 20, d.y + 8); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#8a8474'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(d.x - 21, d.y + 8); ctx.lineTo(d.x - 21, d.y - 10); ctx.quadraticCurveTo(d.x, d.y - 31, d.x + 21, d.y - 10); ctx.lineTo(d.x + 21, d.y + 8); ctx.stroke();
+      ctx.fillStyle = '#a8a090'; ctx.fillRect(d.x - 3, d.y - 24, 6, 7);
+      ctx.strokeStyle = OL; ctx.lineWidth = 1.6; ctx.strokeRect(d.x - 34, d.y - 26, 68, 34);
+      for (const sx of [-27, 27]) { ctx.fillStyle = '#3a2f24'; ctx.fillRect(d.x + sx - 1.5, d.y - 14, 3, 10); ctx.fillStyle = FIRE_COLS[((t * 12) | 0) % 4]; ctx.beginPath(); ctx.ellipse(d.x + sx, d.y - 17, 3, 4.5 + Math.sin(t * 20 + sx) * 1, 0, 0, TAU); ctx.fill(); }
       ctx.fillStyle = `rgba(255,214,140,${0.25 * pulse})`; ctx.beginPath(); ctx.arc(d.x, d.y - 4, 12, 0, TAU); ctx.fill();
     } else {
       ctx.fillStyle = '#2a2622'; ctx.fillRect(d.x - 40, d.y - 12, 80, 26);
