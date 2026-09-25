@@ -2,7 +2,7 @@
 
 *Một trường ca souls-like 2D, chơi ngay trên trình duyệt.*
 
-**▶ Chơi ngay:** https://quanggquangg.github.io/Elden-Ring/
+**▶ Chơi ngay:** https://quanggquangg.github.io/Gravebound/
 
 Chơi được trên máy tính, điện thoại và tay cầm. Không cần cài đặt.
 
