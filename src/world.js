@@ -758,12 +758,24 @@ function makeCanopy(cr, golden, seed) {
   const pal = golden === 'spirit' ? ['#1c3534', '#27494a', '#34605d', '#4a7f78'] : golden === 'dead' ? ['#2f2a2b', '#3d3536', '#4b4144', '#5a4e50']
     : golden === 'lake' ? ['#1f3a3a', '#2a4d4c', '#386460', '#4d7d74'] : golden === 'coast' ? ['#2e3a22', '#3c4a2a', '#4d5c32', '#65703d']
     : golden ? ['#9a7526', '#b8912f', '#d4ab45', '#e8c761'] : ['#26331a', '#33431f', '#415227', '#50622d'];
-  g.fillStyle = 'rgba(0,0,0,.28)'; g.beginPath(); g.arc(cx + cr * 0.12, cx + cr * 0.16, cr, 0, TAU); g.fill();
-  g.fillStyle = pal[0]; g.beginPath(); g.arc(cx, cx, cr, 0, TAU); g.fill();
-  for (let i = 0; i < 16; i++) {
-    const a = r() * TAU, d = r() * cr * 0.5, rr = cr * (0.28 + r() * 0.3);
-    g.globalAlpha = 0.9; g.fillStyle = pal[1 + ((r() * 3) | 0)];
-    g.beginPath(); g.arc(cx + Math.cos(a) * d - cr * 0.06, cx + Math.sin(a) * d - cr * 0.08, rr, 0, TAU); g.fill();
+  // tán lá nhiều thùy: bóng đổ, viền tối, rồi từng chùm lá có mặt sáng và mép tối, cuối cùng là lá lấm tấm
+  const lobes = [[0, 0, cr * 0.74]];
+  for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + r() * 0.4, d = cr * (0.58 + r() * 0.12); lobes.push([Math.cos(a) * d, Math.sin(a) * d, cr * (0.34 + r() * 0.1)]); }
+  const blob = (dx, dy, grow, col) => { g.fillStyle = col; g.beginPath(); for (const [x, y, rr] of lobes) { g.moveTo(cx + dx + x + rr + grow, cx + dy + y); g.arc(cx + dx + x, cx + dy + y, rr + grow, 0, TAU); } g.fill(); };
+  blob(cr * 0.12, cr * 0.16, 0, 'rgba(0,0,0,.3)');
+  blob(0, 0, 2.2, 'rgba(10,12,6,.85)');
+  blob(0, 0, 0, pal[0]);
+  for (let i = 0; i < 20; i++) {
+    const a = r() * TAU, d = r() * cr * 0.62, rr = cr * (0.2 + r() * 0.2), x = cx + Math.cos(a) * d - cr * 0.05, y = cx + Math.sin(a) * d - cr * 0.07;
+    g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.arc(x + rr * 0.18, y + rr * 0.22, rr, 0, TAU); g.fill();
+    const lg = g.createRadialGradient(x - rr * 0.4, y - rr * 0.45, rr * 0.1, x, y, rr);
+    lg.addColorStop(0, pal[3]); lg.addColorStop(0.55, pal[1 + ((r() * 2) | 0)]); lg.addColorStop(1, pal[0]);
+    g.fillStyle = lg; g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill();
+  }
+  for (let i = 0; i < 70; i++) {
+    const a = r() * TAU, d = Math.sqrt(r()) * cr * 0.85, x = cx + Math.cos(a) * d, y = cx + Math.sin(a) * d;
+    g.globalAlpha = 0.35 + r() * 0.35; g.fillStyle = r() < 0.7 ? pal[3] : pal[0];
+    g.beginPath(); g.ellipse(x, y, 1.6 + r() * 1.6, 1 + r(), r() * TAU, 0, TAU); g.fill();
   }
   g.globalAlpha = 1;
   const hg = g.createRadialGradient(cx - cr * 0.35, cx - cr * 0.4, 0, cx - cr * 0.35, cx - cr * 0.4, cr * 1.1);

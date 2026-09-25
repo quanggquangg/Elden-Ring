@@ -364,11 +364,26 @@ function drawFinal() {
     const x = 26 - i * 13, y = Math.sin(t * 2 + i * 0.5) * (3 + i * 1.3), r = 24 - i * 1.4;
     const gr = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 1, x, y, r);
     gr.addColorStop(0, '#fffbe8'); gr.addColorStop(0.6, '#f0cf72'); gr.addColorStop(1, 'rgba(170,120,40,.85)');
-    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = gr; ctx.strokeStyle = 'rgba(110,70,15,.75)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); ctx.stroke();
+    // vảy vàng và gai lưng
+    ctx.strokeStyle = 'rgba(150,100,30,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x - r * 0.2, y, r * 0.6, -1.1, 1.1); ctx.stroke();
+    if (i % 2 === 0) { ctx.fillStyle = '#fff1b8'; ctx.strokeStyle = 'rgba(110,70,15,.8)'; ctx.beginPath(); ctx.moveTo(x + r * 0.5, y); ctx.lineTo(x - r * 0.4, y - r * 0.22); ctx.lineTo(x - r * 0.4, y + r * 0.22); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   }
-  ctx.fillStyle = 'rgba(255,236,170,.55)';
-  for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(14, sd * 18); ctx.quadraticCurveTo(-10, sd * (60 + Math.sin(t * 3) * 6), -40, sd * 26); ctx.closePath(); ctx.fill(); }
-  ctx.fillStyle = '#fff4d0'; ctx.beginPath(); ctx.ellipse(44, 0, 22, 15, 0, 0, TAU); ctx.fill();
+  // vây ánh sáng: dải sáng có tia
+  for (const sd of [-1, 1]) {
+    const fl = 60 + Math.sin(t * 3) * 6, fg = ctx.createLinearGradient(0, sd * 18, 0, sd * fl);
+    fg.addColorStop(0, 'rgba(255,236,170,.75)'); fg.addColorStop(1, 'rgba(255,236,170,.1)');
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(14, sd * 18); ctx.quadraticCurveTo(-10, sd * fl, -40, sd * 26); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,248,215,.55)'; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let k = 1; k <= 5; k++) { const u = k / 6; ctx.moveTo(14 - u * 54, sd * (18 + u * 8)); ctx.lineTo(10 - u * 42, sd * (22 + (fl - 22) * Math.sin(u * Math.PI) * 0.9)); }
+    ctx.stroke();
+  }
+  // đầu: vương miện gai, hàm và gờ mắt
+  ctx.fillStyle = '#e8c060'; ctx.strokeStyle = 'rgba(110,70,15,.85)'; ctx.lineWidth = 1.4;
+  for (const [hx, hy] of [[30, -14], [26, 0], [30, 14]]) { ctx.beginPath(); ctx.moveTo(hx + 10, hy * 0.6); ctx.lineTo(hx - 12, hy * 1.25); ctx.lineTo(hx + 4, hy * 0.2 + (hy ? 0 : 4)); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  const hg = ctx.createRadialGradient(50, -5, 2, 44, 0, 24); hg.addColorStop(0, '#fffdf0'); hg.addColorStop(0.6, '#fff0c0'); hg.addColorStop(1, '#d8b060');
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(44, 0, 22, 15, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(140,95,30,.7)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(50, -10); ctx.lineTo(58, -8); ctx.moveTo(50, 10); ctx.lineTo(58, 8); ctx.moveTo(60, -3); ctx.quadraticCurveTo(64, 0, 60, 3); ctx.stroke();
   const glow = f.beaming ? 1 : f.charge;
   if (glow > 0) { const gr = ctx.createRadialGradient(62, 0, 1, 62, 0, 30); gr.addColorStop(0, `rgba(255,250,220,${glow})`); gr.addColorStop(1, 'rgba(255,220,120,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(62, 0, 30, 0, TAU); ctx.fill(); }
   ctx.fillStyle = '#6ad0ff'; ctx.shadowColor = '#6ad0ff'; ctx.shadowBlur = 10;
@@ -800,6 +815,27 @@ function drawChest(c) {
   ctx.fillRect(c.x - 10, c.y - (open ? 18 : 12), 3, open ? 8 : 22); ctx.fillRect(c.x + 7, c.y - (open ? 18 : 12), 3, open ? 8 : 22);
   if (open) { ctx.fillRect(c.x - 10, c.y - 6, 3, 16); ctx.fillRect(c.x + 7, c.y - 6, 3, 16); }
   else { ctx.fillRect(c.x - 2, c.y - 5, 4, 5); }
+  // ván gỗ, đinh tán, ổ khóa có lỗ khóa
+  ctx.strokeStyle = 'rgba(30,18,8,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(c.x - 14, c.y - 1); ctx.lineTo(c.x + 14, c.y - 1); ctx.moveTo(c.x - 14, c.y + 4); ctx.lineTo(c.x + 14, c.y + 4); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,240,200,.18)'; ctx.fillRect(c.x - 14, c.y - (open ? 17 : 11), 28, 2);
+  ctx.fillStyle = '#f0d890'; for (const bx of [-8.5, 8.5]) for (const by of open ? [-15, 0, 7] : [-9, 0, 7]) { ctx.beginPath(); ctx.arc(c.x + bx, c.y + by, 0.9, 0, TAU); ctx.fill(); }
+  if (!open) { ctx.fillStyle = '#e0bc5a'; ctx.strokeStyle = '#3a2810'; ctx.lineWidth = 1; ctx.fillRect(c.x - 3.5, c.y - 6, 7, 7); ctx.strokeRect(c.x - 3.5, c.y - 6, 7, 7); ctx.fillStyle = '#1a120a'; ctx.fillRect(c.x - 0.8, c.y - 4, 1.6, 3); }
+}
+// gốc cây: rễ tỏa ra, thân có vỏ sần và vòng gỗ (lộ ra khi tán lá mờ đi lúc người chơi đứng dưới)
+function drawTrunk(o) {
+  const rr = o.r * 0.7, rnd = mulberry32(o.seed || (o.x * 7 + o.y) | 0);
+  shadow(o.x, o.y + 3, o.r, o.r * 0.6, 0.35);
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 5; i++) {
+    const a = i / 5 * TAU + rnd() * 0.6, l = rr * (1.3 + rnd() * 0.5);
+    ctx.strokeStyle = 'rgba(10,8,6,.8)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(o.x + Math.cos(a) * rr * 0.6, o.y + Math.sin(a) * rr * 0.6); ctx.quadraticCurveTo(o.x + Math.cos(a + 0.2) * l * 0.8, o.y + Math.sin(a + 0.2) * l * 0.8, o.x + Math.cos(a + 0.35) * l, o.y + Math.sin(a + 0.35) * l); ctx.stroke();
+    ctx.strokeStyle = '#4a3824'; ctx.lineWidth = 3; ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  ctx.save(); ctx.translate(o.x, o.y);
+  ctx.fillStyle = litGrad('#4a3824', -Math.round(rr * 0.3), -Math.round(rr * 0.35), Math.round(rr)); ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
+  ctx.strokeStyle = 'rgba(30,20,10,.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(o.x, o.y, rr * 0.55, 0, TAU); ctx.moveTo(o.x + rr * 0.25, o.y); ctx.arc(o.x, o.y, rr * 0.25, 0, TAU); ctx.stroke();
 }
 function drawRock(o) {
   const r = mulberry32(o.seed);
@@ -850,14 +886,23 @@ function drawWall(w) {
     return;
   }
   const pal = w.dgw ? WALL_PAL[w.dgw] : w.acad ? ['#4a5268', '#6a7490'] : w.cliff ? ['#3d382e', '#4c463a'] : ['#6f6a5b', '#8c8672'];
-  ctx.fillStyle = pal[0]; ctx.fillRect(w.x, w.y, w.w, w.h);
-  ctx.fillStyle = pal[1]; ctx.fillRect(w.x, w.y, w.w, Math.min(6, w.h * 0.3));
-  ctx.strokeStyle = 'rgba(28,24,18,.5)'; ctx.lineWidth = 1;
-  ctx.beginPath();
-  if (w.w > w.h) { for (let x = w.x + 22; x < w.x + w.w; x += 22) { ctx.moveTo(x, w.y); ctx.lineTo(x, w.y + w.h); } ctx.moveTo(w.x, w.y + w.h / 2); ctx.lineTo(w.x + w.w, w.y + w.h / 2); }
-  else { for (let y = w.y + 22; y < w.y + w.h; y += 22) { ctx.moveTo(w.x, y); ctx.lineTo(w.x + w.w, y); } ctx.moveTo(w.x + w.w / 2, w.y); ctx.lineTo(w.x + w.w / 2, w.y + w.h); }
-  ctx.stroke();
-  ctx.strokeStyle = 'rgba(12,10,8,.7)'; ctx.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
+  // tường đá xây so le: mỗi viên có màu hơi khác, cạnh trên sáng, cạnh dưới tối, mạch vữa sẫm
+  ctx.fillStyle = tone(pal[0], 0.6); ctx.fillRect(w.x, w.y, w.w, w.h);
+  const bw = 22, bh = 11, x0 = Math.max(w.x, VIEW.x0 - bw), x1 = Math.min(w.x + w.w, VIEW.x1 + bw), y0 = Math.max(w.y, VIEW.y0 - bh), y1 = Math.min(w.y + w.h, VIEW.y1 + bh);
+  const tones = [pal[0], tone(pal[0], 0.88), tone(pal[0], 1.1), tone(pal[0], 0.95)], hi = tone(pal[1], 1.12), lo = tone(pal[0], 0.55);
+  for (let row = Math.floor((y0 - w.y) / bh); w.y + row * bh < y1; row++) {
+    const by = w.y + row * bh, h = Math.min(bh, w.y + w.h - by) - 1, off = row % 2 ? bw / 2 : 0;
+    if (h <= 0) continue;
+    for (let col = Math.floor((x0 - w.x + off) / bw); w.x - off + col * bw < x1; col++) {
+      const bx = Math.max(w.x, w.x - off + col * bw), bx1 = Math.min(w.x + w.w, w.x - off + (col + 1) * bw), ww = bx1 - bx - 1;
+      if (ww <= 0) continue;
+      ctx.fillStyle = tones[(((row * 7 + col * 13) % 4) + 4) % 4]; ctx.fillRect(bx + 0.5, by + 0.5, ww, h);
+      ctx.fillStyle = hi; ctx.fillRect(bx + 0.5, by + 0.5, ww, 1.2);
+      ctx.fillStyle = lo; ctx.fillRect(bx + 0.5, by + h - 0.7, ww, 1.2);
+    }
+  }
+  ctx.fillStyle = pal[1]; ctx.fillRect(w.x, w.y, w.w, Math.min(3, w.h * 0.2));
+  ctx.strokeStyle = 'rgba(12,10,8,.85)'; ctx.lineWidth = 1.6; ctx.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
 }
 function drawGates() {
   const t = G.clock;
@@ -1196,7 +1241,7 @@ function render() {
   for (const o of OBST) if (o.kind === 'rock' && inView(o.x, o.y, 40)) drawRock(o);
   for (const c of CHESTS) if ((!c.req || c.req()) && inView(c.x, c.y, 40)) drawChest(c);
   drawPuzzles();
-  for (const o of OBST) if (o.kind === 'tree' && inView(o.x, o.y, 30)) { shadow(o.x, o.y + 3, o.r, o.r * 0.6, 0.35); ctx.fillStyle = '#3b2d1c'; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.7, 0, TAU); ctx.fill(); }
+  for (const o of OBST) if (o.kind === 'tree' && inView(o.x, o.y, 30)) drawTrunk(o);
   for (const w of WALLS) if (inView(w.x + w.w / 2, w.y + w.h / 2, Math.max(w.w, w.h))) drawWall(w);
   drawGates(); drawGates2(); drawObjects();
   const list = enemies.filter(e => inView(e.x, e.y, 80));
