@@ -77,6 +77,8 @@ Trên điện thoại, cần điều khiển và các nút bấm tự hiện ra.
 - **Phản đòn:** giơ khiên đúng lúc đòn chạm tới, kẻ địch sẽ mất thế.
 - **Kết liễu:** bấm đánh thường trước kẻ địch đang mất thế để ra đòn chí mạng.
 - **Đâm lưng:** đứng sau lưng kẻ địch chưa ra đòn rồi bấm đánh thường.
+- **Lén lút:** kẻ địch chỉ nhìn về phía trước và không nhìn xuyên tường. Đi bộ thì rất êm; chạy nhanh, lăn, vung vũ khí hay cưỡi ngựa sẽ gây tiếng động. Một con phát hiện ngươi thì cả nhóm quanh đó sẽ kéo tới.
+- **Đừng uống bình trước mặt kẻ địch:** chúng sẽ chớp lấy sơ hở để ra đòn.
 - **Phản công:** vừa đỡ trúng một đòn thì bấm đánh mạnh ngay.
 
 ---

@@ -11,6 +11,8 @@ const BOSS_MOVES = {
   hammer: () => [{ k: 'hammer', wind: 1.05, rec: 1.0 }],
   rain: () => [{ k: 'rain', dur: 1.7, rec: 0.5 }],
 };
+// sau chuỗi đòn dài boss thở dốc một nhịp: cửa sổ phản công rõ ràng như boss trong game souls
+const restAfter = A => (A.steps.length >= 3 ? 0.8 : A.steps.length === 2 ? 0.3 : 0);
 function aoeBlast(x, y, r, dmg, col) {
   if (dist(x, y, P.x, P.y) < r + P.r) hurtPlayer(dmg, x, y, true, null, 'aoe');
   aoes.push({ kind: 'flash', x, y, r, t: 0, dur: 0.35, col });
@@ -36,7 +38,7 @@ function bossAtk(dt, ang) {
   const t = A.t, cross = x => pt < x && t >= x;
   const done = () => {
     A.i++; A.t = 0; A.hit = false; A.flag = 0; A.acc = 0;
-    if (A.i >= A.steps.length) { b.state = 'chase'; b.t = 0; b.atk = null; b.cd = b.v === 2 && b.phase === 2 ? rand(0.15, 0.55) : b.phase === 2 || b.v === 2 ? rand(0.25, 0.8) : rand(0.6, 1.3); }
+    if (A.i >= A.steps.length) { b.state = 'chase'; b.t = 0; b.atk = null; b.cd = (b.v === 2 && b.phase === 2 ? rand(0.15, 0.55) : b.phase === 2 || b.v === 2 ? rand(0.25, 0.8) : rand(0.6, 1.3)) + restAfter(A); }
   };
   switch (s.k) {
     case 'swing':
@@ -238,7 +240,7 @@ function dragonAtk(dt, ang) {
   const t = A.t, cross = x => pt < x && t >= x;
   const done = () => {
     A.i++; A.t = 0; A.hit = false; A.flag = 0; A.acc = 0;
-    if (A.i >= A.steps.length) { d.state = 'chase'; d.t = 0; d.atk = null; d.cd = enraged() ? rand(0.4, 1) : rand(0.8, 1.6); }
+    if (A.i >= A.steps.length) { d.state = 'chase'; d.t = 0; d.atk = null; d.cd = (enraged() ? rand(0.4, 1) : rand(0.8, 1.6)) + restAfter(A); }
   };
   switch (s.k) {
     case 'melee':
@@ -413,7 +415,7 @@ function finalAtk(dt, ang) {
   const t = A.t, cross = x => pt < x && t >= x;
   const done = () => {
     A.i++; A.t = 0; A.hit = false; A.flag = 0; A.acc = 0; f.beaming = false; f.charge = 0;
-    if (A.i >= A.steps.length) { f.state = 'chase'; f.t = 0; f.atk = null; f.cd = finalEnraged() ? rand(0.3, 0.7) : f.phase === 2 ? rand(0.5, 1.0) : rand(0.6, 1.2); }
+    if (A.i >= A.steps.length) { f.state = 'chase'; f.t = 0; f.atk = null; f.cd = (finalEnraged() ? rand(0.3, 0.7) : f.phase === 2 ? rand(0.5, 1.0) : rand(0.6, 1.2)) + restAfter(A); }
   };
   switch (s.k) {
     case 'swing':

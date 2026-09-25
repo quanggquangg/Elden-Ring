@@ -2,6 +2,97 @@
 // Gravebound — AI kẻ địch thường và miniboss
 // ───────────────────────── AI kẻ địch thường ─────────────────────────
 const PROJ_DT = { orb: 'magic', shard: 'magic', comet: 'magic', porb: 'magic', hwave: 'holy', hbolt: 'holy', ember: 'fire' };
+// ───────────────────────── giác quan, lượt tấn công, tránh vật cản ─────────────────────────
+// Như game souls: quái nhìn về phía trước (~120°), bị tường che thì không thấy; ở gần thì nghe tiếng động.
+// Đi bộ rất êm (lén đâm lưng được), chạy nhanh, lăn, vung vũ khí và cưỡi ngựa thì ồn hơn nhiều.
+const RANGED_KINDS = new Set(['shot', 'lob', 'orbs', 'rain', 'pillars', 'nova', 'summon', 'healall']);
+const TOK = { melee: 0, ranged: 0 };
+let NOISE = 0.1;
+function playerNoise() {
+  if (P.state === 'dead') return 0;
+  if (P.mounted) return 0.8;
+  if (P.state === 'roll' || P.state === 'attack') return 0.55;
+  if (P.sprinting) return 0.75;
+  return Math.hypot(P.mvx || 0, P.mvy || 0) > 20 ? 0.12 : 0.07;
+}
+// tường, cổng đóng chắn tầm nhìn; mép biển, vách đá thấp và cây thì không
+function losClear(x0, y0, x1, y1) {
+  const d = Math.hypot(x1 - x0, y1 - y0), n = Math.ceil(d / 18);
+  for (let i = 1; i < n; i++) {
+    const x = x0 + (x1 - x0) * i / n, y = y0 + (y1 - y0) * i / n, c = WALL_GRID.get(Math.floor(x / WCELL) * 1000 + Math.floor(y / WCELL));
+    if (c) for (const w of c) if (!w.sea && !w.void && !w.cliff && wallOn(w, false) && x > w.x && x < w.x + w.w && y > w.y && y < w.y + w.h) return false;
+  }
+  return true;
+}
+function onScreen(x, y, m = 16) { return Math.abs(x - cam.x) < CW / ZOOM / 2 - m && Math.abs(y - cam.y) < CH / ZOOM / 2 - m; }
+function seesPlayer(e, d, ang) {
+  const T = e.T;
+  if (d < T.aggro * NOISE) return true;
+  if (d > T.aggro) return false;
+  if (T.miniboss) return true; // chủ phòng boss luôn cảnh giác
+
+  if (!(T.flier || T.floats) && Math.abs(angDiff(e.face, ang)) > 1.05) return false;
+  return e.los;
+}
+// một con phát hiện thì cả nhóm quanh đó lần lượt tỉnh dậy
+function alertGroup(e) {
+  e.alertT = 0.7;
+  for (const o of enemies) {
+    if (o === e || o.dead || o.state !== 'idle' || o.wakeAt || (o.room && G.dfight !== o.room) || o.T.miniboss) continue;
+    if (dist(o.x, o.y, e.x, e.y) < 260 && losClear(o.x, o.y, e.x, e.y)) o.wakeAt = G.clock + rand(0.15, 0.5);
+  }
+}
+function wake(e, group) { e.state = 'chase'; e.t = 0; e.wakeAt = 0; e.alertT = 0.7; if (group) alertGroup(e); }
+// quái thường chỉ được ra đòn khi còn lượt: mỗi lúc tối đa 2 con cận chiến và 2 con bắn xa (theo độ khó);
+// boss, quái tinh anh và Kẻ Xâm Nhập không bị giới hạn. Đòn bắn xa chỉ bắn khi đã vào khung hình và không bị tường chắn.
+const tokExempt = e => e.elite || e.T.miniboss || e.invader || e.punish;
+const atkClass = A => (RANGED_KINDS.has(A.kind) ? 'ranged' : A.kind === 'warp' ? null : 'melee');
+function countTokens() {
+  TOK.melee = TOK.ranged = 0;
+  for (const e of enemies) if (!e.dead && e.state === 'atk' && e.atk && !tokExempt(e) && Math.abs(e.x - P.x) < 1000 && Math.abs(e.y - P.y) < 1000) { const c = atkClass(e.atk); if (c) TOK[c]++; }
+}
+function canShoot(e) { return e.los && onScreen(e.x, e.y); }
+function tryAttack(e, idx) {
+  const A = e.T.attacks[idx], c = atkClass(A);
+  if (c === 'ranged' && !canShoot(e)) { e.cd = rand(0.2, 0.4); return false; }
+  if (c && !tokExempt(e)) {
+    if (TOK[c] >= DIFF.tok[c === 'melee' ? 0 : 1]) { e.cd = rand(0.3, 0.7); e.waiting = 0.8; return false; }
+    TOK[c]++;
+  }
+  e.punish = false; startEnemyAtk(e, idx); return true;
+}
+// đi vòng vật cản: dò trước mặt, bị chắn thì lệch dần sang một phía (giữ phía đã chọn để khỏi lắc qua lại)
+function steer(e, a) {
+  const probe = e.r + 16, free = b => !pointBlocked(e.x + Math.cos(b) * probe, e.y + Math.sin(b) * probe);
+  if (free(a)) return a;
+  const s = e.side || (e.side = Math.random() < 0.5 ? 1 : -1);
+  for (const k of [0.5, 1, 1.5, 2.1]) { if (free(a + k * s)) return a + k * s; if (free(a - k * s)) { e.side = -s; return a - k * s; } }
+  return a;
+}
+// bị kẹt quá lâu thì bỏ cuộc quay về; đang quay về mà vẫn kẹt và ở ngoài màn hình thì về thẳng chỗ cũ
+function trackProgress(e, dt, target) {
+  e.progT = (e.progT || 0) + dt;
+  if (e.progT < 0.6) return;
+  e.progT = 0;
+  const d = dist(e.x, e.y, target[0], target[1]);
+  if (e.progD !== undefined && d > e.progD - 8) e.stuckN = (e.stuckN || 0) + 1; else e.stuckN = 0;
+  e.progD = d;
+  if (e.stuckN >= 5) {
+    e.stuckN = 0; e.progD = undefined;
+    if (e.state === 'chase') { e.state = 'return'; e.t = 0; }
+    else if (e.state === 'return' && !onScreen(e.x, e.y, -80)) { e.x = e.hx; e.y = e.hy; }
+  }
+}
+// uống bình trước mặt kẻ địch là sơ hở: con ở gần có thể ra đòn ngay, boss gần như chắc chắn
+function punishHeal() {
+  for (const e of enemies) {
+    if (e.dead || e.state !== 'chase' || e.T.ranged || e.T.miniboss && e.room && G.dfight !== e.room) continue;
+    if (dist(e.x, e.y, P.x, P.y) < (e.T.atkRange || 50) + 110 && Math.random() < (e.elite || e.T.miniboss ? 0.75 : 0.45)) { e.cd = 0; e.punish = true; }
+  }
+  if (boss && G.bossFight && boss.state === 'chase' && Math.random() < 0.75) boss.cd = 0;
+  if (dragon && G.dragonFight && dragon.state === 'chase' && Math.random() < 0.6) dragon.cd = 0;
+  if (fb && G.finalFight && fb.state === 'chase' && Math.random() < 0.75) fb.cd = 0;
+}
 function startEnemyAtk(e, idx) {
   e.state = 'atk'; e.atk = e.T.attacks[idx]; e.t = 0; e.atkHit = false; e.lunged = false; e.fired = false; e.glinted = false; e.fade = 0; e.landed = false;
 }
@@ -171,6 +262,7 @@ function enterPhase2(e) {
 function updateEnemies(dt) {
   const alive = P.state !== 'dead';
   const pInArena = inArena(P.x, P.y);
+  NOISE = playerNoise(); countTokens();
   for (const e of enemies) {
     e.t += dt;
     if (e.dead) continue;
@@ -179,6 +271,11 @@ function updateEnemies(dt) {
     e.cd -= dt; e.anim += dt; e.lastHit += dt; e.moving = false;
     if (e.invuln > 0) e.invuln -= dt;
     if (e.hurtFlash > 0) e.hurtFlash -= dt;
+    if (e.waiting > 0) e.waiting -= dt;
+    if (e.alertT > 0) e.alertT -= dt;
+    // tầm nhìn không bị tường chắn: tính lại vài lần mỗi giây cho nhẹ
+    e.losT = (e.losT || rand(0, 0.2)) - dt;
+    if (e.losT <= 0 && d < 900) { e.losT = 0.2; e.los = losClear(e.x, e.y, P.x, P.y); }
     if (e.lastHit > 2.5) e.poiseAcc = Math.max(0, e.poiseAcc - dt * e.poise * 0.5);
     if (e.bleed && e.lastHit > 2) e.bleed = Math.max(0, e.bleed - 12 * dt);
     if (T.ghost && Math.random() < dt * 4) addPart(e.x + rand(-10, 10), e.y + rand(-10, 10), 0, -20, 0.7, 2, 'rgba(200,235,255,.7)', 'mote');
@@ -192,47 +289,59 @@ function updateEnemies(dt) {
     const ang = Math.atan2(P.y - e.y, P.x - e.x), homeD = dist(e.x, e.y, e.hx, e.hy);
     const wet = !T.swim && !T.flier && !T.floats && inWater(e.x, e.y), spd = T.speed * e.spd * (wet ? 0.6 : 1);
     const go = (a, s) => { moveCircle(e, Math.cos(a) * s * dt, Math.sin(a) * s * dt, true); e.moving = true; };
+    const goTo = (a, s) => go(steer(e, a), s);
     // miniboss trong phòng boss chỉ tỉnh dậy khi trận đấu bắt đầu
     const asleep = e.room && G.dfight !== e.room;
     if (e.aff) updateAffix(e, dt, d);
     if (T.p2 && !e.p2 && e.state !== 'phase' && e.hp <= e.maxHp * T.p2.at && e.state !== 'broken') enterPhase2(e);
     switch (e.state) {
       case 'idle': {
-        if (alive && !asleep && (d < T.aggro || e.challenge) && !(pInArena && !e.arena)) { e.state = 'chase'; e.t = 0; break; }
+        if (alive && !asleep && !(pInArena && !e.arena)) {
+          if (e.challenge || (e.wakeAt && G.clock >= e.wakeAt)) { wake(e, false); break; }
+          if (seesPlayer(e, d, ang)) { wake(e, true); break; }
+        }
         if (!e.wander || e.t > e.wander.until) e.wander = { x: e.hx + rand(-70, 70), y: e.hy + rand(-70, 70), until: e.t + rand(2, 5) };
         if (!e.room && dist(e.x, e.y, e.wander.x, e.wander.y) > 10) { const a = Math.atan2(e.wander.y - e.y, e.wander.x - e.x); e.face = turn(e.face, a, 4 * dt); go(a, spd * 0.32); }
         break;
       }
       case 'return': {
-        if (alive && !asleep && d < T.aggro * 0.6 && homeD < 400 && !(pInArena && !e.arena)) { e.state = 'chase'; break; }
-        const a = Math.atan2(e.hy - e.y, e.hx - e.x); e.face = turn(e.face, a, 6 * dt); go(a, spd);
+        if (alive && !asleep && homeD < 400 && !(pInArena && !e.arena) && seesPlayer(e, d, ang) && d < T.aggro * 0.6) { e.state = 'chase'; e.stuckN = 0; break; }
+        const a = Math.atan2(e.hy - e.y, e.hx - e.x); e.face = turn(e.face, a, 6 * dt); goTo(a, spd);
+        trackProgress(e, dt, [e.hx, e.hy]);
         e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.3 * dt);
         if (homeD < 14) { e.state = 'idle'; e.t = 0; }
         break;
       }
       case 'chase': {
         if (!alive || asleep || (homeD > (T.leash || 680) && !e.challenge) || (pInArena && !e.arena)) { e.state = 'return'; e.t = 0; break; }
+        // mất dấu: không thấy người chơi đủ lâu và đã ở xa thì quay về
+        e.lostT = !e.los && d > T.aggro * 0.5 && !e.challenge ? (e.lostT || 0) + dt : 0;
+        if (e.lostT > 4) { e.state = 'return'; e.t = 0; e.lostT = 0; break; }
         e.face = turn(e.face, ang, 7 * dt);
         const pick = e.p2 && T.p2.pick ? T.p2.pick : T.pick;
         if (T.flier) {
           e.orbit = (e.orbit || rand(0, TAU)) + dt * 2.2 * e.strafe;
           const tx = P.x + Math.cos(e.orbit) * 95, ty = P.y + Math.sin(e.orbit) * 95;
-          go(Math.atan2(ty - e.y, tx - e.x), spd);
-          if (e.cd <= 0 && d < 140) startEnemyAtk(e, 0);
+          goTo(Math.atan2(ty - e.y, tx - e.x), spd);
+          if (e.cd <= 0 && d < 140) tryAttack(e, 0);
         } else if (T.ranged) {
           let mv = 0, side = 0;
-          if (d > T.keep + 50) mv = 1; else if (d < T.keep - 70) mv = -1; else side = e.strafe;
+          // chưa bắn được (ngoài khung hình hoặc bị tường chắn) thì tiến lại gần tìm góc bắn
+          if (d > T.keep + 50 || (!canShoot(e) && d > 90)) mv = 1; else if (d < T.keep - 70) mv = -1; else side = e.strafe;
           if (Math.random() < dt * 0.4) e.strafe *= -1;
-          if (mv) go(mv > 0 ? ang : ang + Math.PI, spd);
-          else if (side) go(ang + Math.PI / 2 * side, spd * 0.6);
-          if (e.cd <= 0 && d < T.aggro + 40) { const idx = pick ? pick(e, d) : 0; if (idx >= 0) startEnemyAtk(e, idx); }
+          if (mv > 0) { goTo(ang, spd); trackProgress(e, dt, [P.x, P.y]); }
+          else if (mv < 0) goTo(ang + Math.PI, spd);
+          else if (side) goTo(ang + Math.PI / 2 * side, spd * 0.6);
+          if (e.cd <= 0 && d < T.aggro + 40) { const idx = pick ? pick(e, d) : 0; if (idx >= 0) tryAttack(e, idx); }
         } else {
-          const reach = (T.atkRange || 50) + P.r;
-          if (d > reach * 0.85) go(ang, spd);
-          else if (e.cd > 0) { go(ang + Math.PI / 2 * e.strafe, spd * 0.45); if (Math.random() < dt * 0.5) e.strafe *= -1; }
+          // đang chờ lượt thì giữ khoảng cách, lượn quanh người chơi thay vì cùng lao vào
+          const reach = (T.atkRange || 50) + P.r, hold = e.waiting > 0, ring = reach * 0.85 + (hold ? 50 : 0);
+          if (d > ring) { goTo(ang, spd * (hold && d < ring + 80 ? 0.5 : 1)); trackProgress(e, dt, [P.x, P.y]); }
+          else if (hold && d < reach + 25) go(ang + Math.PI + Math.PI / 3 * e.strafe, spd * 0.4);
+          else if (e.cd > 0 || hold) { go(ang + Math.PI / 2 * e.strafe, spd * 0.45); if (Math.random() < dt * 0.5) e.strafe *= -1; }
           if (e.cd <= 0) {
             const idx = pick ? pick(e, d) : d < reach ? (e.type === 'knight' && Math.random() < 0.35 ? 2 : 0) : -1;
-            if (idx >= 0) startEnemyAtk(e, idx);
+            if (idx >= 0) tryAttack(e, idx);
           }
         }
         break;

@@ -8,10 +8,10 @@ const WX0 = -2800, WY0 = -1800, MAPW = 4400, H = 3600, W = 11600;
 // hp/dmg: máu và sát thương quái thường · boss: máu boss lớn · elite: tỉ lệ quái tinh anh có thuộc tính
 // aff: số thuộc tính tối đa · inv: số Kẻ Xâm Nhập · cd: nhịp nghỉ giữa các đòn của quái (nhỏ hơn là dồn dập hơn)
 const DIFFS = {
-  easy: { name: 'Dễ', desc: 'Kẻ địch yếu hơn, ra đòn thưa hơn. Dành cho ai muốn tận hưởng câu chuyện.', hp: 0.85, dmg: 0.8, boss: 0.8, runes: 1, elite: 0, aff: 0, inv: 0, cd: 1.12 },
-  normal: { name: 'Thường', desc: 'Trải nghiệm souls-like như dự định: khó nhưng công bằng.', hp: 1.25, dmg: 1.3, boss: 1, runes: 1, elite: 0, aff: 0, inv: 0, cd: 1 },
-  hard: { name: 'Khó', desc: 'Chu kỳ thứ hai. Quái tinh anh mang thuộc tính lạ, Gravebound Đỏ xâm nhập thế giới của ngươi, boss gọi thêm tay sai. Rune nhận được ×1.5.', hp: 1.8, dmg: 1.75, boss: 1.45, runes: 1.5, elite: 0.22, aff: 1, inv: 2, cd: 0.9, locked: true },
-  expert: { name: 'Chuyên gia', desc: 'Chu kỳ cuối. Gần một nửa số quái là tinh anh, có kẻ mang hai thuộc tính. Thêm một Kẻ Xâm Nhập nữa. Rune nhận được ×2.', hp: 2.3, dmg: 2.2, boss: 1.85, runes: 2, elite: 0.4, aff: 2, inv: 3, cd: 0.8, locked: true },
+  easy: { name: 'Dễ', desc: 'Kẻ địch yếu hơn, ra đòn thưa hơn. Dành cho ai muốn tận hưởng câu chuyện.', hp: 0.85, dmg: 0.8, boss: 0.8, runes: 1, elite: 0, aff: 0, inv: 0, cd: 1.12, tok: [1, 1] },
+  normal: { name: 'Thường', desc: 'Trải nghiệm souls-like như dự định: khó nhưng công bằng.', hp: 1.25, dmg: 1.3, boss: 1, runes: 1, elite: 0, aff: 0, inv: 0, cd: 1, tok: [2, 2] },
+  hard: { name: 'Khó', desc: 'Chu kỳ thứ hai. Quái tinh anh mang thuộc tính lạ, Gravebound Đỏ xâm nhập thế giới của ngươi, boss gọi thêm tay sai. Rune nhận được ×1.5.', hp: 1.8, dmg: 1.75, boss: 1.45, runes: 1.5, elite: 0.22, aff: 1, inv: 2, cd: 0.9, tok: [3, 2], locked: true },
+  expert: { name: 'Chuyên gia', desc: 'Chu kỳ cuối. Gần một nửa số quái là tinh anh, có kẻ mang hai thuộc tính. Thêm một Kẻ Xâm Nhập nữa. Rune nhận được ×2.', hp: 2.3, dmg: 2.2, boss: 1.85, runes: 2, elite: 0.4, aff: 2, inv: 3, cd: 0.8, tok: [3, 3], locked: true },
 };
 const DIFF_ORDER = ['easy', 'normal', 'hard', 'expert'];
 const DIFF = Object.assign({ id: 'normal' }, DIFFS.normal);
@@ -360,6 +360,7 @@ const NOTES = [
   { x: -1500, y: 2260, text: 'Chìa khóa của Học Viện nằm trên hòn đảo phía tây bắc, giữa đám người pha lê không bao giờ ngủ.' },
   { x: -1450, y: 470, text: 'Cổng Học Viện Starhollow. Chỉ kẻ mang Chìa Khóa Pha Lê mới được bước qua.' },
   { x: -1180, y: 140, text: 'Cánh cửa này bị cài then từ phía bên kia.' },
+  { x: 1400, y: 3060, text: 'Kẻ địch chỉ nhìn về phía trước. Đi chậm sau lưng chúng, đừng chạy, rồi đâm lén.' },
   { x: 700, y: 1770, text: 'Xương cốt nơi đây không chịu nằm yên. Chỉ lửa hay ánh sáng thánh mới cho chúng được ngủ hẳn.' },
   { x: -700, y: 1060, text: 'Mai cua pha lê cứng như khiên. Hãy vòng ra sau lưng, hoặc dùng đòn mạnh mà phá.' },
   { x: 2330, y: 1330, text: 'Lũ cóc thè lưỡi xa hơn ngươi nghĩ. Khi cổ chúng phồng tím, hãy né sang ngang.' },
@@ -418,7 +419,7 @@ const SPAWNS = [
   ['lion', 1700, -1010], ['royal', 1100, -990],
   // quái đặc trưng từng vùng
   ['boar', 1850, 3000], ['boar', 1900, 3060], ['boar', 800, 2500], ['boar', 2100, 2300], ['boar', 1020, 3200], ['boar', 2000, 2600],
-  ['skeleton', 520, 1700], ['skeleton', 900, 1700], ['skeleton', 640, 2100], ['skeleton', 780, 1820], ['skeleton', 470, 1950],
+  ['skeleton', 520, 1700], ['skeleton', 900, 1700], ['skeleton', 640, 2100],
   ['toad', 2400, 1500], ['toad', 2500, 1850], ['toad', 2250, 1750], ['toad', 2650, 1650],
   ['salamander', 3040, 1400], ['salamander', 4360, 1300], ['salamander', 3600, 1700], ['salamander', 4350, 3000], ['salamander', 2930, 3300],
   ['warhound', 3500, 1200], ['warhound', 3700, 1210], ['warhound', 3300, 700], ['warhound', 3850, 700],

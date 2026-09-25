@@ -6,7 +6,7 @@ function toggleLock() {
   let best = null, bd = 1e9;
   for (const e of targets()) {
     const d = dist(P.x, P.y, e.x, e.y);
-    if (d > 470) continue;
+    if (d > 470 || !onScreen(e.x, e.y, 0) || !losClear(P.x, P.y, e.x, e.y)) continue;
     const score = d + Math.abs(angDiff(P.face, Math.atan2(e.y - P.y, e.x - P.x))) * 90;
     if (score < bd) { bd = score; best = e; }
   }
@@ -158,7 +158,8 @@ function useQuick(moving, mx, my) {
     const fp = q === 'fpflask';
     if ((fp ? P.fpflasks : P.flasks) <= 0) { toast(fp ? 'Bình FP đã cạn' : 'Bình Máu đã cạn'); return; }
     if (fp) P.fpflasks--; else P.flasks--;
-    P.state = 'drink'; P.t = 0; P.drank = false; P.drinkFp = fp; SFX.drink();
+    P.state = 'drink'; P.t = 0; P.drank = false; P.drinkFp = fp; SFX.drink(); P.sprinting = false;
+    punishHeal();
     return;
   }
   if (P.mounted) { toast('Xuống ngựa để dùng đồ'); return; }
@@ -303,7 +304,7 @@ function updatePlayer(dt) {
   let [mx, my] = moveInput();
   const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
   const moving = ml > 0.15;
-  if (p.lock && (p.lock.dead || dist(p.x, p.y, p.lock.x, p.lock.y) > 620 || (p.lock.isBoss && !G.bossFight))) p.lock = null;
+  if (p.lock && (p.lock.dead || p.lock.state === 'bones' || dist(p.x, p.y, p.lock.x, p.lock.y) > 620 || !onScreen(p.lock.x, p.lock.y, -60) || (p.lock.isBoss && !G.bossFight))) p.lock = null;
   // phun lửa của Lửa Thiêng kéo dài một chút sau khi niệm
   if (p.flameT > 0) {
     p.flameT -= dt; p.flameAcc += dt;
@@ -314,6 +315,7 @@ function updatePlayer(dt) {
 
   if (p.state === 'idle') {
     const sprint = !p.mounted && sprintHeld() && moving && p.st > 1 && rt !== 'over';
+    p.sprinting = sprint;
     const spd = (p.mounted ? 320 : sprint ? 215 : 145) * slow;
     if (moving) {
       moveCircle(p, mx * spd * dt, my * spd * dt, false);
@@ -568,7 +570,7 @@ function hitEnemy(e, dmgIn, poise, fx, fy, kind, opt = {}) {
   floatText(e.x, e.y - e.r - 12, String(dmg), crit ? '#ffd36b' : '#f1e6c8', crit);
   if (crit) { SFX.crit(); floatText(e.x, e.y - e.r - 40, label, '#ffd36b', true); } else if (!quiet) SFX.hit();
   if (e.isDragon && (e.state === 'sleep' || e.state === 'return')) wakeDragon();
-  if (!e.isBoss && !e.isDragon && !e.isFinal && (e.state === 'idle' || e.state === 'return')) { e.state = 'chase'; e.t = 0; }
+  if (!e.isBoss && !e.isDragon && !e.isFinal && (e.state === 'idle' || e.state === 'return')) { const wasIdle = e.state === 'idle'; e.state = 'chase'; e.t = 0; e.lostT = 0; if (wasIdle) alertGroup(e); }
   if (!e.isBoss && !e.isDragon && !e.isFinal && !quiet) { const kb = e.elite ? 40 : kind === 'heavy' ? 240 : 120; e.vx += Math.cos(a) * kb; e.vy += Math.sin(a) * kb; }
   if (opt.bleed && e.hp > 0) {
     e.bleed = (e.bleed || 0) + opt.bleed * (hasTal('blood') ? 1.4 : 1);
