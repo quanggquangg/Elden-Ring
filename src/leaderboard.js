@@ -14,7 +14,7 @@ function writeLocalBoard(rows) { try { localStorage.setItem(LOCAL_BOARD, JSON.st
 function setRows(rows) { boardRows = rows.filter(r => typeof r.deaths === 'number' && typeof r.time === 'number').sort(rankSort); if (!UI.board.hidden) renderBoard(); }
 // ── Firebase Firestore qua REST, không cần thư viện ──
 const FB = typeof BOARD_CONFIG !== 'undefined' && BOARD_CONFIG.apiKey && BOARD_CONFIG.projectId ? BOARD_CONFIG : null;
-const fbBase = () => 'https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(FB.projectId) + '/databases/(default)/documents';
+const fbBase = () => 'https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(FB.projectId) + '/databases/' + encodeURIComponent(FB.databaseId || '(default)') + '/documents';
 const fbInt = v => ({ integerValue: String(Math.round(v)) });
 async function fbFetchRows() {
   // chỉ sắp theo một trường để không cần tạo chỉ mục ghép; thời gian được sắp lại trên máy

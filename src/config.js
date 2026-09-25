@@ -6,4 +6,6 @@
 const BOARD_CONFIG = {
   apiKey: 'AIzaSyDolqelpXnwckF43ew5m5ACjSQJqLeZbJs',
   projectId: 'elden-ring-2d---claude',
+  // để trống nếu dùng database mặc định "(default)"; điền tên nếu tạo database có tên riêng
+  databaseId: '',
 };
