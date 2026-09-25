@@ -645,11 +645,19 @@ function drawEnemyBar(e) {
   if (e.aff) {
     wText(e.aff.map(k => AFFIXES[k].name).join(' · '), e.x, y - 5, 9, `rgb(${AFFIXES[e.aff[0]].col})`, 1);
   }
-  if (e.hp >= e.maxHp) return;
-  ctx.fillStyle = 'rgba(8,7,5,.8)'; ctx.fillRect(x - 1, y - 1, w + 2, 6);
-  ctx.fillStyle = '#a3201c'; ctx.fillRect(x, y, w * e.hp / e.maxHp, 4);
-  if (e.state === 'broken') { ctx.fillStyle = '#f2dc97'; ctx.fillRect(x, y + 5, w, 1.5); }
-  if (e.bleed > 0) { ctx.fillStyle = '#e0503c'; ctx.fillRect(x, y + 7, w * Math.min(1, e.bleed / (e.elite ? 110 : 60)), 2); }
+  if (e.hp >= e.maxHp) { e.barG = e.hp; return; }
+  // phần máu vừa mất ánh vàng rồi rút dần, như thanh máu của boss
+  e.barG = e.barG > e.hp ? Math.max(e.hp, e.barG - e.maxHp * 0.5 / 60) : e.hp;
+  const f = e.hp / e.maxHp, h = 4;
+  ctx.fillStyle = 'rgba(8,7,5,.85)'; ctx.fillRect(x - 1.5, y - 1.5, w + 3, h + 3);
+  ctx.strokeStyle = e.elite ? 'rgba(242,220,151,.85)' : 'rgba(214,178,94,.45)'; ctx.lineWidth = 0.8; ctx.strokeRect(x - 1.5, y - 1.5, w + 3, h + 3);
+  ctx.fillStyle = 'rgba(40,34,26,.9)'; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = '#d9b85c'; ctx.fillRect(x, y, w * e.barG / e.maxHp, h);
+  const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#e0503c'); g.addColorStop(0.5, '#a3201c'); g.addColorStop(1, '#5e100c');
+  ctx.fillStyle = g; ctx.fillRect(x, y, w * f, h); ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(x, y, w * f, 1);
+  if (e.elite) { ctx.fillStyle = '#f2dc97'; for (const ex of [x - 1.5, x + w + 1.5]) { ctx.beginPath(); ctx.moveTo(ex, y - 1); ctx.lineTo(ex + (ex < x ? -3 : 3), y + h / 2); ctx.lineTo(ex, y + h + 1); ctx.closePath(); ctx.fill(); } }
+  if (e.state === 'broken') { ctx.fillStyle = '#f2dc97'; ctx.shadowColor = '#f2dc97'; ctx.shadowBlur = 6; ctx.fillRect(x, y + h + 2, w, 1.5); ctx.shadowBlur = 0; }
+  if (e.bleed > 0) { ctx.fillStyle = 'rgba(8,7,5,.8)'; ctx.fillRect(x, y + h + 4, w, 2.5); ctx.fillStyle = '#e0503c'; ctx.fillRect(x, y + h + 4, w * Math.min(1, e.bleed / (e.elite ? 110 : 60)), 2.5); }
 }
 function drawBoss() {
   const b = boss;
@@ -1302,10 +1310,8 @@ function drawInteractHints() {
     if (close) {
       // phím bấm nổi trên đầu vật đang có thể tương tác
       const k = G.touch ? '!' : 'E', s = 22;
-      ctx.fillStyle = 'rgba(12,10,7,.85)'; ctx.shadowColor = `rgb(${h.col})`; ctx.shadowBlur = 12;
-      ctx.fillRect(sx - s / 2, by - s, s, s); ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#f2dc97'; ctx.lineWidth = 1.5; ctx.strokeRect(sx - s / 2 + 0.5, by - s + 0.5, s - 1, s - 1);
-      textC(k, sx, by - 6, `700 13px ${FONT_U}`, '#f2dc97', 0);
+      ctx.fillStyle = `rgba(${h.col},.25)`; ctx.beginPath(); ctx.arc(sx, by - s / 2, s * 0.9, 0, TAU); ctx.fill();
+      keycap(sx - s / 2, by - s, k, s);
     } else {
       // dấu kim cương phát sáng
       ctx.save(); ctx.translate(sx, by - 8); ctx.rotate(Math.PI / 4);
@@ -1348,8 +1354,12 @@ function render() {
   for (const e of list) { if (e === P) drawPlayer(); else if (e.isBoss) drawBoss(); else if (e.isDragon) drawDragon(); else if (e.isFinal) drawFinal(); else drawEnemy(e); }
   if (P.lock && !P.lock.dead) {
     const l = P.lock, y = l.y - (l.z || 0);
-    ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(l.x, y, 3.5, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(l.x, y, 9, 0, TAU); ctx.stroke();
+    // điểm khóa sáng trắng, bốn góc nhọn xoay chậm quanh
+    const pr = 11 + Math.sin(G.clock * 4) * 1.2, rot = G.clock * 0.8;
+    ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(l.x, y, 3.2, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(l.x, y, 6.5, 0, TAU); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.85)';
+    for (let k = 0; k < 4; k++) { const a = rot + k * Math.PI / 2, cx = l.x + Math.cos(a) * pr, cy = y + Math.sin(a) * pr; ctx.save(); ctx.translate(cx, cy); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(-3.5, 0); ctx.lineTo(2, -2.2); ctx.lineTo(2, 2.2); ctx.closePath(); ctx.fill(); ctx.restore(); }
   }
   drawProjs(); drawAoeFx(); drawParts(); drawCanopies(); drawBarrier();
   if (dragon && (dragon.z || 0) > 40) drawDragon();
