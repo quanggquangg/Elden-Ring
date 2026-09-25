@@ -559,11 +559,11 @@ function hitEnemy(e, dmgIn, poise, fx, fy, kind, opt = {}) {
     }
   }
   dmg = Math.max(1, Math.round(dmg * rand(0.94, 1.06)));
-  e.hp -= dmg; e.hurtFlash = 0.12; e.lastHit = 0;
+  e.hp -= dmg; e.hurtFlash = 0.12; e.lastHit = 0; e.lastParts = typeof dmgIn === 'number' ? null : dmgIn;
   const quiet = opt.quiet;
   if (!quiet) { G.hitStop = crit ? 0.14 : kind === 'heavy' ? 0.075 : 0.045; shake(crit ? 11 : kind === 'heavy' ? 6 : 3); }
   const a = Math.atan2(e.y - fy, e.x - fx);
-  burst(e.x, e.y, crit ? 26 : quiet ? 3 : 10, e.isBoss || e.isFinal ? '#e8c25e' : e.isDragon ? '#5a3a2a' : e.T && (e.T.id === 'crystal' || e.T.id === 'minerg') ? '#cfefff' : '#7c1210', crit ? 220 : 150, 3, 'dot', 0.5, a);
+  burst(e.x, e.y, crit ? 26 : quiet ? 3 : 10, e.isBoss || e.isFinal ? '#e8c25e' : e.isDragon ? '#5a3a2a' : e.T && (e.T.id === 'crystal' || e.T.id === 'minerg') ? '#cfefff' : e.T && e.T.blood ? e.T.blood : '#7c1210', crit ? 220 : 150, 3, 'dot', 0.5, a);
   if (!quiet) burst(e.x, e.y, 5, '#fff3c4', 260, 2, 'spark', 0.2, a);
   floatText(e.x, e.y - e.r - 12, String(dmg), crit ? '#ffd36b' : '#f1e6c8', crit);
   if (crit) { SFX.crit(); floatText(e.x, e.y - e.r - 40, label, '#ffd36b', true); } else if (!quiet) SFX.hit();
@@ -606,6 +606,14 @@ function dropLoot(e) {
   if (T.rare && !S.armors.includes(T.rare.armor) && Math.random() < T.rare.chance) loot.push({ x: e.x + rand(-14, 14), y: e.y + rand(-14, 14), loot: { armor: T.rare.armor }, t: 0, rare: true });
 }
 function killEnemy(e) {
+  // bộ xương sụp xuống lần đầu nếu đòn cuối không phải lửa hay thánh
+  const LP = e.lastParts;
+  if (e.T && e.T.revive && !e.revived && !(LP && ((LP.fire || 0) > 0 || (LP.holy || 0) > 0))) {
+    e.revived = true; e.state = 'bones'; e.t = 0; e.hp = 0; e.atk = null; e.invuln = 3.2; e.bleed = 0;
+    if (P.lock === e) P.lock = null;
+    burst(e.x, e.y, 22, '#e0d8c2', 140, 3, 'dot', 0.7); floatText(e.x, e.y - e.r - 20, 'xương vẫn còn động đậy...', '#d8d0bc');
+    return;
+  }
   e.dead = true; e.state = 'dead'; e.t = 0; e.hp = 0;
   if (P.lock === e) P.lock = null;
   burst(e.x, e.y, 24, 'rgba(60,55,45,.8)', 80, 5, 'dot', 1);

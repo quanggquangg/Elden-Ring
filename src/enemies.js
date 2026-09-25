@@ -1,12 +1,12 @@
 'use strict';
 // Gravebound — AI kẻ địch thường và miniboss
 // ───────────────────────── AI kẻ địch thường ─────────────────────────
-const PROJ_DT = { orb: 'magic', shard: 'magic', comet: 'magic', porb: 'magic', hwave: 'holy', hbolt: 'holy' };
+const PROJ_DT = { orb: 'magic', shard: 'magic', comet: 'magic', porb: 'magic', hwave: 'holy', hbolt: 'holy', ember: 'fire' };
 function startEnemyAtk(e, idx) {
   e.state = 'atk'; e.atk = e.T.attacks[idx]; e.t = 0; e.atkHit = false; e.lunged = false; e.fired = false; e.glinted = false; e.fade = 0; e.landed = false;
 }
 function enemyShot(e, a, pr) {
-  projs.push({ x: e.x + Math.cos(a) * 22, y: e.y + Math.sin(a) * 22, vx: Math.cos(a) * pr.speed, vy: Math.sin(a) * pr.speed, r: pr.r, dmg: pr.dmg * e.dm, kind: pr.kind || 'orb', friendly: false, life: 3, puddle: pr.puddle, dt: PROJ_DT[pr.kind] || 'phys' });
+  projs.push({ x: e.x + Math.cos(a) * 22, y: e.y + Math.sin(a) * 22, vx: Math.cos(a) * pr.speed, vy: Math.sin(a) * pr.speed, r: pr.r, dmg: pr.dmg * e.dm, kind: pr.kind || 'orb', friendly: false, life: pr.life || 3, puddle: pr.puddle, homing: pr.homing, dt: PROJ_DT[pr.kind] || 'phys' });
 }
 function blinkBehind(e) {
   burst(e.x, e.y, 16, e.T.look ? e.T.look.trim : '#cfefff', 120, 3, 'dot', 0.5);
@@ -182,6 +182,8 @@ function updateEnemies(dt) {
     if (e.lastHit > 2.5) e.poiseAcc = Math.max(0, e.poiseAcc - dt * e.poise * 0.5);
     if (e.bleed && e.lastHit > 2) e.bleed = Math.max(0, e.bleed - 12 * dt);
     if (T.ghost && Math.random() < dt * 4) addPart(e.x + rand(-10, 10), e.y + rand(-10, 10), 0, -20, 0.7, 2, 'rgba(200,235,255,.7)', 'mote');
+    if (T.drip && Math.random() < dt * 5) addPart(e.x + rand(-10, 10), e.y + rand(-6, 10), 0, 30, 0.5, 1.8, 'rgba(160,200,210,.8)');
+    if (T.id === 'salamander' && Math.random() < dt * 3) addPart(e.x + rand(-12, 12), e.y + rand(-8, 8), 0, -30, 0.8, 2, '#ff9a4a', 'mote');
     if (e.vx || e.vy) {
       moveCircle(e, e.vx * dt, e.vy * dt, true);
       const f = Math.exp(-9 * dt); e.vx *= f; e.vy *= f;
@@ -243,6 +245,11 @@ function updateEnemies(dt) {
         break;
       case 'stagger': if (e.t > e.stagDur) { e.state = 'chase'; e.t = 0; e.cd = rand(0.2, 0.6); } break;
       case 'broken': if (e.t > 2.2) { e.state = 'chase'; e.t = 0; e.poiseAcc = 0; } break;
+      // bộ xương gãy rụng nằm chờ rồi tự ráp lại, trừ khi bị hạ bằng lửa hay sức mạnh thánh
+      case 'bones':
+        if (e.t > 3.2) { e.state = 'chase'; e.t = 0; e.hp = Math.round(e.maxHp * 0.6); e.invuln = 0.3; e.cd = 0.6; burst(e.x, e.y, 18, '#e0d8c2', 120, 3, 'dot', 0.6); SFX.glint(); }
+        else if (e.t > 2.4 && Math.random() < dt * 20) addPart(e.x + rand(-14, 14), e.y + rand(-10, 10), 0, -40, 0.4, 2, '#e0d8c2', 'mote');
+        break;
     }
     if (e.state !== 'atk' && e.z) e.z = Math.max(0, e.z - 300 * dt);
   }

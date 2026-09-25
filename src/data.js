@@ -468,6 +468,110 @@ const ETYPES = {
     pick: () => { const r = Math.random(); return r < 0.5 ? 0 : r < 0.8 ? 1 : 2; },
     drops: [['arrows', 0.6, 8], ['stone3', 0.05, 1]],
   },
+  // ─── quái đặc trưng từng vùng ───
+  boar: {
+    name: 'Lợn Rừng Nanh Cong', hp: 85, r: 16, speed: 118, aggro: 300, runes: 34, poise: 34, atkRange: 52, cd: [1.0, 2.0], track: 3.2, draw: 'boar',
+    attacks: [
+      { wind: 0.5, act: 0.18, rec: 0.6, range: 50, arc: 1.3, dmg: 20, lunge: 300, swing: 0 },
+      { kind: 'charge', wind: 0.75, dur: 0.7, speed: 470, rec: 0.9, dmg: 26 },
+    ],
+    pick: (e, d) => (d < 70 ? 0 : d < 330 && Math.random() < 0.7 ? 1 : -1), drops: [['grune1', 0.05, 1]],
+  },
+  skeleton: {
+    name: 'Bộ Xương Tàn Tích', hp: 52, r: 14, speed: 92, aggro: 300, runes: 40, poise: 16, atkRange: 50, cd: [0.8, 1.7], track: 3.4, revive: true, res: { holy: 1.6, fire: 1.2 }, blood: '#d8d0bc',
+    look: { body: '#cfc6ae', trim: '#8a8068', head: '#e0d8c2', cloak: '#3e3a30', weapon: 'sword', wlen: 30, wcol: '#8f8a7a', scale: 1, bones: true },
+    attacks: [{ wind: 0.5, act: 0.14, rec: 0.2, range: 58, arc: 1.7, dmg: 18, lunge: 190, swing: 1, next: 1 }, { wind: 0.35, act: 0.14, rec: 0.7, range: 58, arc: 1.7, dmg: 16, lunge: 160, swing: -1 }],
+    pick: (e, d) => (d < 72 ? 0 : -1), drops: [['stone1', 0.08, 1], ['grune1', 0.05, 1]],
+  },
+  toad: {
+    name: 'Cóc Độc Ashmire', hp: 120, r: 18, speed: 68, aggro: 300, runes: 60, poise: 40, atkRange: 90, cd: [1.1, 2.1], track: 3, swim: true, draw: 'toad', res: { fire: 1.3 },
+    attacks: [
+      { wind: 0.55, act: 0.16, rec: 0.7, range: 96, arc: 0.45, dmg: 18, lunge: 60, swing: 0, poison: 28, tongue: true },
+      { kind: 'leap', wind: 0.6, air: 0.6, rec: 0.9, r: 70, dmg: 30 },
+      { kind: 'shot', wind: 0.6, rec: 0.8, n: 1, spread: 0, proj: { speed: 300, dmg: 10, r: 9, kind: 'spit', puddle: true } },
+    ],
+    pick: (e, d) => { const r = Math.random(); return d < 100 ? (r < 0.7 ? 0 : 1) : d < 300 ? (r < 0.5 ? 1 : 2) : -1; }, drops: [['cure', 0.2, 1]],
+  },
+  salamander: {
+    name: 'Kỳ Nhông Tro', hp: 125, r: 16, speed: 96, aggro: 320, runes: 70, poise: 32, atkRange: 56, cd: [1.1, 2.0], track: 3, draw: 'salamander', res: { fire: 0.3, magic: 1.2 }, blood: '#ff9a4a',
+    attacks: [
+      { wind: 0.45, act: 0.16, rec: 0.6, range: 52, arc: 1.3, dmg: 22, lunge: 260, swing: 0 },
+      { kind: 'shot', wind: 0.75, rec: 0.9, n: 6, spread: 0.13, proj: { speed: 270, dmg: 11, r: 9, kind: 'ember', life: 0.75 } },
+    ],
+    pick: (e, d) => (d < 66 ? 0 : d < 210 ? 1 : -1), drops: [['firepot', 0.2, 1]],
+  },
+  warhound: {
+    name: 'Chó Săn Pháo Đài', hp: 70, r: 14, speed: 190, aggro: 360, runes: 44, poise: 20, atkRange: 60, cd: [0.8, 1.5], track: 5, beast: { col: '#4e4840', eye: '#ffb04a', armor: '#7d8594' },
+    attacks: [{ wind: 0.35, act: 0.18, rec: 0.25, range: 46, arc: 1.4, dmg: 20, lunge: 440, swing: 0, next: 1 }, { wind: 0.2, act: 0.16, rec: 0.6, range: 46, arc: 1.4, dmg: 16, lunge: 320, swing: 0 }],
+    pick: (e, d) => (d < 70 ? 0 : -1),
+  },
+  wisp: {
+    name: 'Đốm Hồn Lạc', hp: 34, r: 10, speed: 90, aggro: 360, runes: 38, poise: 8, ranged: true, keep: 190, cd: [1.4, 2.4], track: 4, ghost: true, floats: true, draw: 'wisp', res: { phys: 0.6, holy: 2 }, blood: '#cfefff',
+    attacks: [
+      { kind: 'shot', wind: 0.7, rec: 0.7, n: 1, spread: 0, proj: { speed: 190, dmg: 16, r: 8, kind: 'porb', homing: 1.5, life: 3.2 } },
+      { kind: 'nova', wind: 0.8, rec: 0.9, r0: 10, r1: 120, dur: 0.5, dmg: 18 },
+    ],
+    pick: (e, d) => (d < 95 ? 1 : 0), drops: [['grune1', 0.08, 1]],
+  },
+  crab: {
+    name: 'Cua Pha Lê', hp: 150, r: 18, speed: 78, aggro: 280, runes: 80, poise: 55, atkRange: 60, cd: [1.0, 1.9], track: 2.6, swim: true, shield: true, draw: 'crab', res: { magic: 0.8, fire: 1.3 }, blood: '#cfefff',
+    attacks: [
+      { wind: 0.55, act: 0.15, rec: 0.2, range: 60, arc: 1.6, dmg: 22, lunge: 150, swing: 1, next: 1 },
+      { wind: 0.3, act: 0.15, rec: 0.8, range: 60, arc: 1.6, dmg: 20, lunge: 120, swing: -1 },
+      { kind: 'shot', wind: 0.6, rec: 0.8, n: 4, spread: 0.22, proj: { speed: 230, dmg: 12, r: 8, kind: 'bubble', life: 1.5 } },
+    ],
+    pick: (e, d) => (d < 72 ? 0 : d < 240 && Math.random() < 0.6 ? 2 : -1), drops: [['stone2', 0.1, 1], ['stone1', 0.2, 1]],
+  },
+  jelly: {
+    name: 'Sứa Hồ Crystalmere', hp: 70, r: 14, speed: 55, aggro: 300, runes: 60, poise: 10, ranged: true, keep: 130, cd: [1.6, 2.6], track: 2, floats: true, swim: true, draw: 'jelly', res: { magic: 0.5, fire: 1.4 }, blood: '#bfe8ff',
+    attacks: [
+      { kind: 'nova', wind: 1.0, rec: 1.0, r0: 12, r1: 140, dur: 0.6, dmg: 22 },
+      { kind: 'shot', wind: 0.7, rec: 0.8, n: 3, spread: 0.3, proj: { speed: 220, dmg: 14, r: 8, kind: 'orb' } },
+    ],
+    pick: (e, d) => (d < 120 ? 0 : 1), drops: [['grune1', 0.1, 1]],
+  },
+  drowned: {
+    name: 'Kẻ Chết Đuối', hp: 105, r: 16, speed: 70, aggro: 280, runes: 58, poise: 40, atkRange: 66, cd: [1.1, 2.0], track: 2.4, swim: true, drip: true, res: { fire: 0.8, holy: 1.3 },
+    look: { body: '#51625a', trim: '#7d8f6a', head: '#8a9a8a', cloak: '#2e4038', weapon: 'club', wlen: 34, wcol: '#5a5a52', scale: 1.15, weed: true },
+    attacks: [
+      { wind: 0.8, act: 0.18, rec: 0.8, range: 76, arc: 2.0, dmg: 30, lunge: 180, swing: 1 },
+      { kind: 'slam', wind: 0.9, rec: 1.0, off: 40, r: 64, dmg: 34 },
+    ],
+    pick: (e, d) => (d < 88 ? (Math.random() < 0.35 ? 1 : 0) : -1), drops: [['stone1', 0.15, 1], ['cure', 0.08, 1]],
+  },
+  grimoire: {
+    name: 'Sách Phép Biết Bay', hp: 48, r: 11, speed: 95, aggro: 420, runes: 75, poise: 8, ranged: true, keep: 240, cd: [1.3, 2.2], track: 3.5, floats: true, draw: 'grimoire', res: { magic: 0.3, fire: 1.8 }, blood: '#e8dcc0',
+    attacks: [
+      { kind: 'shot', wind: 0.55, rec: 0.6, n: 2, spread: 0.12, proj: { speed: 430, dmg: 15, r: 7, kind: 'shard' } },
+      { kind: 'orbs', wind: 0.9, rec: 0.9, n: 6, dmg: 14, proj: 'shard' },
+      { kind: 'warp', wind: 0.35, dist: 230 },
+    ],
+    pick: (e, d) => (d < 120 && Math.random() < 0.6 ? 2 : Math.random() < 0.7 ? 0 : 1), drops: [['stone2', 0.06, 1], ['grune1', 0.1, 1]],
+  },
+  eagle: {
+    name: 'Đại Bàng Vàng', hp: 90, r: 14, speed: 240, aggro: 460, runes: 120, poise: 14, atkRange: 50, cd: [1.4, 2.4], track: 5, flier: true, draw: 'eagle',
+    attacks: [{ wind: 0.45, act: 0.26, rec: 0.5, range: 50, arc: 1.8, dmg: 30, lunge: 760, swing: 0 }],
+    pick: (e, d) => (d < 150 ? 0 : -1), drops: [['grune2', 0.06, 1]],
+  },
+  ram: {
+    name: 'Dê Núi Sừng Vàng', hp: 230, r: 19, speed: 125, aggro: 320, runes: 260, poise: 90, atkRange: 60, cd: [1.1, 2.0], track: 2.8, draw: 'ram',
+    attacks: [
+      { wind: 0.6, act: 0.18, rec: 0.7, range: 58, arc: 1.2, dmg: 40, lunge: 320, swing: 0 },
+      { kind: 'charge', wind: 0.8, dur: 0.8, speed: 520, rec: 1.0, dmg: 46 },
+    ],
+    pick: (e, d) => (d < 76 ? 0 : d < 400 && Math.random() < 0.75 ? 1 : -1), drops: [['stone3', 0.12, 1], ['grune2', 0.06, 1]],
+  },
+  gargoyle: {
+    name: 'Tượng Quỷ Canh Thành', hp: 340, r: 19, speed: 100, aggro: 340, runes: 520, poise: 120, elite: true, atkRange: 80, cd: [0.8, 1.5], track: 2.8, blood: '#8a8478', res: { phys: 0.75, fire: 0.7, magic: 1.2 },
+    look: { body: '#6e6a62', trim: '#9a948a', head: '#7a766c', cloak: '#3e3b36', weapon: 'spear', wlen: 46, wcol: '#8a857a', scale: 1.35, horns: true, wings: '#58544c', stone: true },
+    attacks: [
+      { wind: 0.6, act: 0.16, rec: 0.2, range: 88, arc: 2.2, dmg: 38, lunge: 220, swing: 1, next: 1 },
+      { wind: 0.45, act: 0.16, rec: 0.8, range: 88, arc: 2.2, dmg: 36, lunge: 200, swing: -1 },
+      { kind: 'leap', wind: 0.55, air: 0.8, rec: 0.9, r: 90, dmg: 48 },
+    ],
+    pick: (e, d) => { const r = Math.random(); return d < 110 ? (r < 0.75 ? 0 : 2) : d < 380 && r < 0.6 ? 2 : -1; },
+    drops: [['stone3', 0.25, 1], ['somber2', 0.04, 1]],
+  },
   // ─── boss hầm ngục ───
   graveknight: {
     name: 'Kỵ Sĩ Mộ Phần', hp: 1000, r: 20, speed: 104, aggro: 600, runes: 2600, poise: 200, elite: true, miniboss: true, bar: true, atkRange: 80, cd: [0.6, 1.2], track: 3, leash: 900, res: { holy: 1.4 },

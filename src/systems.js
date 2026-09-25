@@ -1,7 +1,7 @@
 'use strict';
 // Gravebound — Đạn, vùng sát thương, tương tác thế giới, vòng lặp chính
 // ───────────────────────── đạn và vùng sát thương ─────────────────────────
-const PTRAIL = { glint: '#bcd6ff', orb: '#8fb0ff', fireball: '#ff8a3a', shard: '#cfefff', comet: '#bfe4ff', bolt: '#fff3a0', hwave: '#ffe39a', hbolt: '#fff0b0', cwave: '#bfe4ff', gwave: '#f3cf6e', parrow: null, arrow: null, knife: null, dagger: '#f3cf6e', spit: '#9fd05a', porb: '#b9a8ff', horb: '#ffe08a' };
+const PTRAIL = { glint: '#bcd6ff', orb: '#8fb0ff', fireball: '#ff8a3a', shard: '#cfefff', comet: '#bfe4ff', bolt: '#fff3a0', hwave: '#ffe39a', hbolt: '#fff0b0', cwave: '#bfe4ff', gwave: '#f3cf6e', parrow: null, arrow: null, knife: null, dagger: '#f3cf6e', spit: '#9fd05a', porb: '#b9a8ff', horb: '#ffe08a', ember: '#ff8a3a', bubble: null };
 function updateProjs(dt) {
   for (let i = projs.length - 1; i >= 0; i--) {
     const q = projs[i];

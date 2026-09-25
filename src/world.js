@@ -360,6 +360,9 @@ const NOTES = [
   { x: -1500, y: 2260, text: 'Chìa khóa của Học Viện nằm trên hòn đảo phía tây bắc, giữa đám người pha lê không bao giờ ngủ.' },
   { x: -1450, y: 470, text: 'Cổng Học Viện Starhollow. Chỉ kẻ mang Chìa Khóa Pha Lê mới được bước qua.' },
   { x: -1180, y: 140, text: 'Cánh cửa này bị cài then từ phía bên kia.' },
+  { x: 700, y: 1770, text: 'Xương cốt nơi đây không chịu nằm yên. Chỉ lửa hay ánh sáng thánh mới cho chúng được ngủ hẳn.' },
+  { x: -700, y: 1060, text: 'Mai cua pha lê cứng như khiên. Hãy vòng ra sau lưng, hoặc dùng đòn mạnh mà phá.' },
+  { x: 2330, y: 1330, text: 'Lũ cóc thè lưỡi xa hơn ngươi nghĩ. Khi cổ chúng phồng tím, hãy né sang ngang.' },
   { x: -1080, y: 330, text: 'Góc sân này... có tiếng gió luồn qua một bức tường lẽ ra phải kín.' },
   { x: 1400, y: -860, text: 'Cổng Kinh Thành Aurumhold. Ba Đại Ấn nằm trong tay vệ binh Greystone phương đông, con rồng Ashmire, và nữ hoàng Starhollow phương tây.' },
   { x: 1480, y: -1000, text: 'Kẻ gác cổng năm xưa chưa hề chết... Hắn đang chờ ở Sân Ngai Sunthrone.' },
@@ -413,13 +416,27 @@ const SPAWNS = [
   ['royal', 680, -1600], ['priest', 500, -1450], ['garcher', 850, -1370], ['lion', 650, -1340], ['garcher', 360, -1250],
   ['royal', 2000, -1420], ['priest', 2280, -1480], ['garcher', 2100, -1250], ['royal', 2300, -1220], ['garcher', 1810, -1500], ['knight', 2140, -1050],
   ['lion', 1700, -1010], ['royal', 1100, -990],
+  // quái đặc trưng từng vùng
+  ['boar', 1850, 3000], ['boar', 1900, 3060], ['boar', 800, 2500], ['boar', 2100, 2300], ['boar', 1020, 3200], ['boar', 2000, 2600],
+  ['skeleton', 520, 1700], ['skeleton', 900, 1700], ['skeleton', 640, 2100], ['skeleton', 780, 1820], ['skeleton', 470, 1950],
+  ['toad', 2400, 1500], ['toad', 2500, 1850], ['toad', 2250, 1750], ['toad', 2650, 1650],
+  ['salamander', 3040, 1400], ['salamander', 4360, 1300], ['salamander', 3600, 1700], ['salamander', 4350, 3000], ['salamander', 2930, 3300],
+  ['warhound', 3500, 1200], ['warhound', 3700, 1210], ['warhound', 3300, 700], ['warhound', 3850, 700],
+  ['wisp', 3520, 2240], ['wisp', 3500, 2450], ['wisp', 3730, 2500], ['wisp', 4000, 2300], ['wisp', 3100, 2400],
+  ['crab', -560, 1500], ['crab', -1400, 2000], ['crab', -2200, 1500], ['crab', -800, 1000], ['crab', -1120, 3300], ['crab', -2300, 3350],
+  ['jelly', -1400, 1450], ['jelly', -1200, 1300], ['jelly', -1600, 1600], ['jelly', -2250, 2250], ['jelly', -500, 900],
+  ['drowned', -700, 3400], ['drowned', -1600, 3300], ['drowned', -2000, 3100], ['drowned', -400, 3000],
+  ['grimoire', -1400, -60], ['grimoire', -1820, -200], ['grimoire', -1200, 140], ['grimoire', -1960, -600], ['grimoire', -1060, -600],
+  ['eagle', 1200, 200], ['eagle', 2600, -200], ['eagle', 3500, 0], ['eagle', 300, -300],
+  ['ram', 3000, -1300], ['ram', 3600, -1600], ['ram', 3880, -1100], ['ram', 3270, -1760],
+  ['gargoyle', 1000, -1500], ['gargoyle', 1800, -1200], ['gargoyle', 1300, -1080], ['gargoyle', 700, -1100],
 ];
 // quái trong hầm ngục (tọa độ cục bộ)
 const DG_SPAWNS = {
-  d1: [['ghoul', 150, 1450], ['ghoul', 850, 1450], ['soldier', 130, 1260], ['ghoul', 860, 1280], ['soldier', 300, 950], ['ghost', 700, 950], ['bat', 500, 700], ['bat', 540, 720], ['ghoul', 800, 700]],
-  d2: [['crystal', 300, 1300], ['crystal', 700, 1300], ['sorcerer', 500, 950], ['crystal', 250, 700], ['bat', 750, 700], ['lakehound', 150, 960], ['lakehound', 850, 960]],
-  d3: [['bomber', 200, 1300], ['soldier', 800, 1300], ['spider', 300, 950], ['spider', 700, 950], ['troll', 500, 720], ['bomber', 850, 700]],
-  d4: [['royal', 300, 1300], ['garcher', 800, 1250], ['ghost', 500, 950], ['priest', 250, 700], ['royal', 750, 700], ['garcher', 520, 650]],
+  d1: [['ghoul', 150, 1450], ['ghoul', 850, 1450], ['soldier', 130, 1260], ['ghoul', 860, 1280], ['soldier', 300, 950], ['ghost', 700, 950], ['bat', 500, 700], ['bat', 540, 720], ['ghoul', 800, 700], ['skeleton', 500, 1300], ['skeleton', 200, 1140], ['skeleton', 780, 1150]],
+  d2: [['crystal', 300, 1300], ['crystal', 700, 1300], ['sorcerer', 500, 950], ['crystal', 250, 700], ['bat', 750, 700], ['lakehound', 150, 960], ['lakehound', 850, 960], ['crab', 500, 1200], ['grimoire', 300, 890]],
+  d3: [['bomber', 200, 1300], ['soldier', 800, 1300], ['spider', 300, 950], ['spider', 700, 950], ['troll', 500, 720], ['bomber', 850, 700], ['salamander', 500, 1150], ['salamander', 150, 850]],
+  d4: [['royal', 300, 1300], ['garcher', 800, 1250], ['ghost', 500, 950], ['priest', 250, 700], ['royal', 750, 700], ['garcher', 520, 650], ['gargoyle', 500, 1150]],
 };
 for (const d of DUNGEONS) {
   for (const [t, x, y] of DG_SPAWNS[d.id]) SPAWNS.push([t, d.area.x + x, y]);

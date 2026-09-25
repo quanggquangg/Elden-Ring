@@ -145,7 +145,7 @@ function makeBoss(v = 1) {
       : { body: '#2e2a26', trim: '#ffd76a', head: '#1e1a16', cloak: '#5a1410', weapon: 'greatsword', wlen: 48, wcol: '#fff0b0', scale: 2.1, hood: true, glow: true } };
 }
 const targets = () => {
-  const out = enemies.filter(e => !e.dead);
+  const out = enemies.filter(e => !e.dead && e.state !== 'bones');
   if (boss && G.bossFight && !boss.dead && boss.state !== 'dormant') out.push(boss);
   if (dragon && !dragon.dead && dist(P.x, P.y, dragon.x, dragon.y) < 750) out.push(dragon);
   if (fb && G.finalFight && !fb.dead && fb.state !== 'transform' && fb.state !== 'intro') out.push(fb);
