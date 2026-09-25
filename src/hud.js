@@ -150,12 +150,6 @@ function drawHUD() {
   drawMarkerGuide();
   if (G.banner) drawBanner(G.banner);
   if (G.mode === 'dead') drawDeath();
-  if (!G.touch && G.hintT < 24 && G.mode === 'play' && S.tut >= TUT.length) {
-    ctx.globalAlpha = Math.min(1, (24 - G.hintT) / 2) * 0.75;
-    ctx.font = `500 12px ${FONT_U}`; ctx.fillStyle = '#d8ccb0';
-    ctx.fillText('Space lăn · Chuột trái đánh · Shift+trái đánh mạnh · Chuột phải đỡ / niệm phép · Shift+phải kỹ năng · R dùng đồ (↓ đổi) · ↑ đổi phép · E tương tác · G bản đồ', 20, CH - 22);
-    ctx.globalAlpha = 1;
-  }
 }
 // ───────────────────────── bản đồ ─────────────────────────
 const maskCanvas = document.createElement('canvas');
@@ -301,7 +295,7 @@ const STAT_INFO = [
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function setMode(m) {
   G.mode = m;
-  if (m !== 'play') { $('tut').hidden = true; tutShown = -2; }
+  if (m !== 'play') { $('tut').hidden = true; hintCur = null; }
   $('touch').hidden = !(G.touch && m === 'play');
   keys.clear(); stick.x = 0; stick.y = 0; touchGuard = false; mouseGuard = false; dodgeKey.down = false;
   if (m === 'play' && document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
@@ -589,40 +583,39 @@ function closeInfo() {
   infoBack = null;
 }
 $('btnLore').onclick = () => openInfo(UI.lore, UI.title);
-// ───────────────────────── hướng dẫn đầu game: từng bước, xong một bước mới sang bước sau ─────────────────────────
-// [tiêu đề, phím trên máy tính, cách làm trên điện thoại, hành động cần làm (tên act) hoặc hàm kiểm tra]
-const TUT = [
-  ['Di chuyển', '<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> để đi lại', 'Kéo cần điều khiển bên trái', () => (G.tutMove || 0) > 160],
-  ['Lăn né', 'Nhấn <kbd>Space</kbd> để lăn; lúc lăn ngươi không bị trúng đòn. Giữ <kbd>Space</kbd> để chạy nhanh', 'Chạm nút Lăn; giữ để chạy', 'roll'],
-  ['Đánh thường', 'Bấm <kbd>Chuột trái</kbd>', 'Chạm nút Đánh', 'light'],
-  ['Đánh mạnh', 'Giữ <kbd>Shift</kbd> rồi bấm <kbd>Chuột trái</kbd>. Đánh mạnh làm kẻ địch lảo đảo nhanh hơn', 'Chạm nút Đánh mạnh', 'heavy'],
-  ['Đỡ đòn', 'Giữ <kbd>Chuột phải</kbd> để giơ khiên. Giơ đúng lúc đòn chạm tới sẽ phản đòn', 'Giữ nút Đỡ', () => P.state === 'guard'],
-  ['Uống Bình Máu', 'Nhấn <kbd>R</kbd>. Bình được nạp lại mỗi khi nghỉ ở Ân Điển', 'Chạm nút Dùng đồ', 'item'],
-  ['Bản đồ', 'Nhấn <kbd>G</kbd> để mở bản đồ, nhấn lại để đóng', 'Chạm nút Bản đồ', 'map'],
-  ['Hành trang', 'Nhấn <kbd>I</kbd> để xem trạng thái, trang bị và túi đồ ở bất cứ đâu', 'Chạm nút Hành trang', 'inv'],
-  ['Tương tác', 'Lại gần Ân Điển phát sáng rồi nhấn <kbd>E</kbd> để nghỉ, lên cấp và nạp bình. Mọi thứ có dấu sáng đều nhấn <kbd>E</kbd> được', 'Lại gần Ân Điển rồi chạm nút Tương tác', 'interact'],
+// ───────────────────────── gợi ý phím theo tình huống: mỗi loại chỉ hiện một lần, lúc cần tới ─────────────────────────
+// [mã, điều kiện, tiêu đề, phím trên máy tính, cách làm trên điện thoại]
+const HINTS = [
+  ['fight', () => enemies.some(e => !e.dead && e.state === 'chase' && dist(e.x, e.y, P.x, P.y) < 260), 'Kẻ địch đang lao tới',
+    '<kbd>Chuột trái</kbd> đánh · <kbd>Shift</kbd>+<kbd>Chuột trái</kbd> đánh mạnh · <kbd>Space</kbd> lăn né', 'Chạm nút Đánh để tấn công, nút Lăn để né'],
+  ['guard', () => S.tips.fight && enemies.some(e => !e.dead && e.state === 'atk' && dist(e.x, e.y, P.x, P.y) < 130), 'Đỡ đòn',
+    'Giữ <kbd>Chuột phải</kbd> để giơ khiên; giơ đúng lúc đòn chạm tới sẽ phản đòn', 'Giữ nút Đỡ để chặn đòn'],
+  ['heal', () => P.hp < P.maxHp * 0.5 && P.flasks > 0, 'Máu còn một nửa', 'Nhấn <kbd>R</kbd> để uống Bình Máu', 'Chạm nút Dùng đồ để uống Bình Máu'],
+  ['stamina', () => P.st < P.maxSt * 0.2, 'Sắp hết thể lực', 'Hết thể lực thì không lăn hay đánh được. Lùi lại một nhịp cho thể lực hồi', 'Hết thể lực thì không lăn hay đánh được. Lùi lại một nhịp cho thể lực hồi'],
+  ['grace', () => !!nearGrace() && S.discovered.length >= 2, 'Ân Điển', 'Nhấn <kbd>E</kbd> để nghỉ: hồi máu, nạp bình và lên cấp', 'Chạm nút Tương tác để nghỉ: hồi máu, nạp bình và lên cấp'],
+  ['level', () => S.runes >= levelCost(), 'Đủ rune để lên cấp', 'Nghỉ ở Ân Điển (<kbd>E</kbd>) để tăng chỉ số', 'Nghỉ ở Ân Điển để tăng chỉ số'],
+  ['lost', () => !!S.lost, 'Rune đã rơi', 'Rune rơi lại nơi ngươi chết. Quay lại chạm vào đốm sáng xanh để lấy lại; chết lần nữa là mất hẳn', 'Rune rơi lại nơi ngươi chết. Quay lại chạm vào đốm sáng xanh để lấy lại'],
+  ['inv', () => S.weapons.length + S.armors.length + S.tals.length > (G.gear0 || 99), 'Có trang bị mới', 'Nhấn <kbd>I</kbd> để mở hành trang và trang bị', 'Chạm nút Hành trang để trang bị'],
+  ['map', () => S.frags.length > 0, 'Bản đồ', 'Nhấn <kbd>G</kbd> để xem bản đồ; bấm lên bản đồ để đặt dấu', 'Chạm nút Bản đồ để xem; chạm lên bản đồ để đặt dấu'],
 ];
-let tutShown = -2;
-function tutAct(a) { const s = TUT[S.tut]; if (s && G.hintT > 1 && s[3] === a) tutNext(); }
-function tutNext() {
-  S.tut++; SFX.glint();
-  if (S.tut >= TUT.length) { toast('Hướng dẫn hoàn tất. Chúc ngươi may mắn, Gravebound.', 4); save(); }
-}
-function updateTut(dt) {
-  const s = TUT[S.tut], show = !!s && G.mode === 'play' && G.hintT > 2;
-  if (show && G.mode === 'play') {
-    if (S.tut === 0) G.tutMove = (G.tutMove || 0) + Math.hypot(P.mvx || 0, P.mvy || 0) * dt;
-    if (typeof s[3] === 'function' && s[3]()) tutNext();
+let hintCur = null, hintT = 0;
+function updateHints(dt) {
+  if (hintCur && hintCur !== 'heal' && !S.tips.heal && P.hp < P.maxHp * 0.5 && P.flasks > 0) { hintCur = null; hintT = 0; } // máu thấp thì ưu tiên gợi ý uống bình
+  if (hintCur) {
+    hintT -= dt;
+    if (hintT <= 0 || G.mode !== 'play') { hintCur = null; $('tut').hidden = true; }
+    return;
   }
-  const key = show ? S.tut : -1;
-  if (key === tutShown) return;
-  tutShown = key; $('tut').hidden = !show;
-  if (!show) return;
-  $('tutStep').textContent = 'Hướng dẫn ' + (S.tut + 1) + '/' + TUT.length;
-  $('tutText').textContent = s[0];
-  $('tutKeys').innerHTML = G.touch ? s[2] : s[1];
+  if (G.mode !== 'play' || G.hintT < 3 || P.state === 'dead') return;
+  for (const [id, test, title, pc, touch] of HINTS) {
+    if (S.tips[id]) continue;
+    let ok = false; try { ok = test(); } catch (e) { ok = false; }
+    if (!ok) continue;
+    S.tips[id] = 1; hintCur = id; hintT = 6;
+    $('tutText').textContent = title; $('tutKeys').innerHTML = G.touch ? touch : pc; $('tut').hidden = false;
+    SFX.glint(); return;
+  }
 }
-$('btnTutSkip').onclick = () => { S.tut = TUT.length; save(); updateTut(0); };
 // ───────────────────────── thành tựu: lưu chung cho mọi hành trình ─────────────────────────
 const ACH_KEY = 'gravebound-ach';
 const cleared = d => S.finalDead && (!d || d.includes(S.diff));
@@ -741,7 +734,7 @@ function startGame(data, cls) {
   S = data ? Object.assign(defaultSave(), data) : defaultSave();
   if (!data) { applyClass(cls); S.name = pendingName || 'Gravebound'; S.diff = pendingDiff; }
   if (S.finalDead && !diffUnlocked()) writeUnlock(Object.assign(readUnlock(), { cleared: true, deaths: S.deaths }));
-  if (data && data.tut === undefined) S.tut = 99; // save cũ đã quen phím, bỏ qua hướng dẫn
+  G.gear0 = S.weapons.length + S.armors.length + S.tals.length;
   setDiff(S.diff); setupCycleNotes(); G.invader = null; G.invCd = 0; G.endingCounted = !!data && S.finalDead;
   S.flaskMax = Math.min(S.flaskMax, FLASK_CAP);
   expDecode(S.explored);

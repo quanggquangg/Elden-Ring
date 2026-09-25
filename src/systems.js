@@ -306,7 +306,7 @@ function tick(dt) {
   if (G.banner) { G.banner.t += dt; if (G.banner.t > G.banner.dur) G.banner = null; }
   if (G.sub) { G.sub.t += dt; if (G.sub.t > G.sub.dur) G.sub = null; }
   if (G.toast) { G.toast.t += dt; if (G.toast.t > G.toast.dur) G.toast = null; }
-  G.regionT += dt; G.hintT += dt; checkAch(dt); updateTut(dt);
+  G.regionT += dt; G.hintT += dt; checkAch(dt); updateHints(dt);
   if (G.runeGainT > 0) { G.runeGainT -= dt; if (G.runeGainT <= 0) G.runeGain = 0; }
 }
 let last = performance.now();

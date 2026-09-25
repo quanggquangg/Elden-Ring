@@ -42,9 +42,9 @@ python3 -m http.server 8000
 - **Gravebound Đỏ:** Morrow, Kẻ Săn Ấn (Đồng Cỏ Mistveil), Isolde Mắt Đỏ (Hồ Crystalmere) và Brannoc Bội Ước (Cao Nguyên Aurelia, chỉ ở Chuyên gia). Chúng đánh combo nhanh, ném dao, lướt ra sau lưng và uống bình máu. Hạ được mỗi kẻ sẽ nhận một bùa chỉ có ở hai độ khó này: Ấn Gravebound Đỏ, Tim Tro Tàn, Mảnh Vương Miện Vỡ.
 - Dấu mở khóa được lưu riêng trong trình duyệt, nên xoá hành trình cũ vẫn giữ được. Bảng xếp hạng có tab riêng cho từng độ khó.
 
-## Hướng dẫn đầu game
+## Gợi ý theo tình huống
 
-Hành trình mới có hướng dẫn 9 bước ở phía trên màn hình: di chuyển, lăn, đánh thường, đánh mạnh, đỡ, uống Bình Máu, bản đồ, hành trang và tương tác. Làm đúng thao tác thì tự sang bước sau; có nút bỏ qua. Trên điện thoại, hướng dẫn chỉ tên nút cảm ứng.
+Không có màn hướng dẫn bắt buộc. Game chỉ hiện phím cần dùng đúng lúc cần, mỗi loại một lần: khi kẻ địch lao tới (đánh, lăn), khi bị tấn công (đỡ), khi máu còn một nửa (`R` uống Bình Máu), khi sắp hết thể lực, khi đứng ở Ân Điển, khi đủ rune lên cấp, khi rơi rune lúc chết, khi có trang bị mới (`I`) và khi đọc Bia Bản Đồ đầu tiên (`G`).
 
 ## Thành tựu
 
