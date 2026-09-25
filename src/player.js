@@ -223,15 +223,24 @@ function doAction(a, moving, mx, my) {
       if (P.mounted || P.st <= 0) return;
       const rt = rollType();
       if (rt === 'over') { toast('Quá tải! Không thể lăn'); return; }
-      P.roll = ROLLS[rt];
-      P.st = Math.max(0, P.st - P.roll.st); P.stDelay = 0.5; P.state = 'roll'; P.t = 0;
-      P.rollDir = moving ? Math.atan2(my, mx) : P.face + Math.PI; SFX.roll();
+      P.roll = moving ? ROLLS[rt] : ROLLS.back;
+      P.st = Math.max(0, P.st - P.roll.st); P.stDelay = 0.5; P.state = 'roll'; P.t = 0; P.atk = null;
+      P.rollDir = moving ? Math.atan2(my, mx) : P.face + Math.PI; P.vx *= 0.3; P.vy *= 0.3; SFX.roll();
       break;
     }
-    case 'light': case 'heavy':
+    case 'light': case 'heavy': {
       if (P.st <= 0) return;
+      const ct = a === 'light' && !P.mounted ? critTarget() : null;
+      if (ct) { startCrit(ct.e, ct.type); break; }
+      const counter = a === 'heavy' && !P.mounted && G.clock - P.blockedAt < 0.8;
       startAttack(P.mounted ? 'mounted' : a, 0, moving, mx, my);
+      if (counter && P.atk) {
+        // phản công sau khi đỡ (Guard Counter): ra đòn nhanh hơn, mạnh hơn, phá thế tốt hơn
+        P.atk.parts = scaleParts(P.atk.parts, 1.4); P.atk.poise *= 2; P.atk.wind *= 0.55; P.atk.hyper = true; P.blockedAt = -9;
+        floatText(P.x, P.y - 34, 'PHẢN CÔNG', '#f2dc97', true);
+      }
       break;
+    }
     case 'skill': if (!P.mounted && P.st > 0) startSkill(moving, mx, my); break;
     case 'spell': if (!P.mounted) startSpell(moving, mx, my); break;
     case 'item': useQuick(moving, mx, my); break;
@@ -327,13 +336,13 @@ function updatePlayer(dt) {
     if (a === 'roll' || a === 'light' || a === 'heavy' || a === 'skill' || a === 'item') { takeBuf(); p.state = 'idle'; doAction(a, moving, mx, my); }
     else if (!guardHeld()) { p.state = 'idle'; p.t = 0; }
   } else if (p.state === 'roll') {
-    const R = p.roll, k = p.t / R.dur, spd = k < 0.7 ? R.speed * (1 - k * 0.6) : 90;
+    const R = p.roll, k = Math.min(1, p.t / R.dur), spd = R.speed * 1.4 * Math.pow(1 - k, 1.4) + (R.back ? 0 : 20);
     moveCircle(p, Math.cos(p.rollDir) * spd * slow * dt, Math.sin(p.rollDir) * spd * slow * dt, false);
     if (Math.random() < dt * 30) addPart(p.x + rand(-5, 5), p.y + rand(-5, 5), 0, 0, 0.4, rand(3, 5), wet ? 'rgba(200,230,245,.6)' : 'rgba(110,98,74,.45)');
-    if (p.t >= R.dur) { p.state = 'idle'; p.t = 0; }
-    else if (p.t > R.dur * 0.72) {
+    if (p.t >= R.dur) { p.state = 'idle'; p.t = 0; if (!R.back && !p.lock) p.face = p.rollDir; }
+    else if (p.t > R.dur * (R.back ? 0.6 : 0.68)) {
       const a = peekBuf();
-      if (a === 'light' || a === 'heavy' || a === 'roll') { takeBuf(); p.state = 'idle'; doAction(a, moving, mx, my); }
+      if (a === 'light' || a === 'heavy' || a === 'roll' || a === 'item') { takeBuf(); p.state = 'idle'; doAction(a, moving, mx, my); }
     }
   } else if (p.state === 'attack') {
     const A = p.atk, t = p.t;
@@ -372,21 +381,20 @@ function updatePlayer(dt) {
         addPart(p.x, p.y, 0, 0, 0.3, 7, 'rgba(255,240,200,.3)');
       }
       if (A.anim !== 'bow') for (const e of targets()) {
-        if (A.hits.has(e) || (e.z || 0) > 30) continue;
+        if (A.hits.has(e) || (e.z || 0) > 30 || (A.critT && e !== A.critT)) continue;
         const hit = A.anim === 'overhead' ? dist(A.ix, A.iy, e.x, e.y) < A.r + e.r || inArc(p.x, p.y, p.face, A.range * 0.7, A.arc, e.x, e.y, e.r)
           : A.anim === 'spin' ? dist(p.x, p.y, e.x, e.y) < A.range + e.r
           : inArc(p.x, p.y, p.face, A.range, A.arc, e.x, e.y, e.r);
         if (hit) {
           A.hits.add(e);
-          const back = !e.isBoss && !e.isDragon && !e.isFinal && !e.T.miniboss && A.kind !== 'mounted' && e.state !== 'atk' && e.state !== 'broken' && dist(p.x, p.y, e.x, e.y) < e.r + p.r + 34 &&
-            Math.abs(angDiff(e.face, Math.atan2(p.y - e.y, p.x - e.x))) > 2.2;
-          hitEnemy(e, A.parts, A.poise, p.x, p.y, A.kind === 'skill' ? 'heavy' : A.kind, { backstab: back, bleed: A.bleed });
+          if (A.critT) { critHit(e, A); continue; }
+          hitEnemy(e, A.parts, A.poise, p.x, p.y, A.kind === 'skill' ? 'heavy' : A.kind, { bleed: A.bleed });
         }
       }
     } else {
       if (t > A.wind + A.act + A.rec * 0.35) {
         const a = peekBuf();
-        if (a === 'light' && A.kind === 'light' && A.combo < A.maxCombo && !p.mounted) { takeBuf(); startAttack('light', A.combo + 1, moving, mx, my); return; }
+        if (a === 'light' && A.kind === 'light' && A.combo < A.maxCombo && !p.mounted && !critTarget()) { takeBuf(); startAttack('light', A.combo + 1, moving, mx, my); return; }
         if (a === 'roll' || a === 'heavy' || a === 'light' || a === 'item' || a === 'skill' || a === 'spell') { takeBuf(); p.state = 'idle'; p.atk = null; doAction(a, moving, mx, my); return; }
       }
       if (t >= A.wind + A.act + A.rec) { p.state = 'idle'; p.t = 0; p.atk = null; }
@@ -428,7 +436,7 @@ function hurtPlayer(dmg, fx, fy, heavy, src = null, kind = 'melee', dt = 'phys')
     const th = twoHanded(), gd = th ? { chip: 2.2, st: 1.45 } : offDef().guard || { chip: 2.2, st: 1.45 }, gt = hasTal('guard') ? 0.65 : 1;
     if (!th && offDef().type === 'shield' && kind === 'melee' && src && !src.noParry && p.parryOk && p.t < 0.22) { parry(src); return false; }
     const chip = Math.round(dmg * (kind === 'melee' ? (heavy ? 0.3 : 0.15) : kind === 'proj' ? 0.2 : 0.5) * gd.chip * gt);
-    p.hp -= chip; p.ghostDelay = 0.6; p.st -= dmg * 0.9 * gd.st * gt; p.stDelay = 0.7;
+    p.hp -= chip; p.ghostDelay = 0.6; p.st -= dmg * 0.9 * gd.st * gt; p.stDelay = 0.7; p.blockedAt = G.clock;
     SFX.block(); shake(3); if (kind !== 'fire') G.hitStop = 0.04;
     burst(p.x + Math.cos(p.face) * 14, p.y + Math.sin(p.face) * 14, 8, '#fff1c4', 200, 2, 'spark', 0.25, p.face);
     p.vx -= Math.cos(from) * 120; p.vy -= Math.sin(from) * 120;
@@ -475,12 +483,44 @@ function parry(src) {
   S.parries = (S.parries || 0) + 1;
   const p = P;
   src.state = 'broken'; src.t = 0; src.atk = null; src.poiseAcc = 0; if (src.z) src.z = 0;
-  SFX.parry(); G.hitStop = 0.14; shake(6);
+  SFX.parry(); G.hitStop = 0.2; G.slow = 0.45; shake(7);
+  if (src.t !== undefined && src.state === 'broken') src.t = 0;
+  aoes.push({ kind: 'flash', x: (p.x + src.x) / 2, y: (p.y + src.y) / 2, r: 60, t: 0, dur: 0.3 });
   const mx = (p.x + src.x) / 2, my = (p.y + src.y) / 2;
   burst(mx, my, 18, '#fff1c4', 280, 2.5, 'spark', 0.3);
   addPart(mx, my - 6, 0, 0, 0.4, 18, '#fff6d8', 'glint');
   floatText(p.x, p.y - 34, 'PHẢN ĐÒN', '#f2dc97', true);
   p.st = Math.min(p.maxSt, p.st + 10);
+}
+// ───────────────────────── đòn chí mạng: kết liễu sau phản đòn / phá thế, và đâm lưng ─────────────────────────
+// Như game souls: bấm đánh thường khi đứng trước kẻ địch đang mất thế, hoặc sau lưng kẻ địch chưa phát hiện,
+// nhân vật tự vào vị trí và ra một đòn riêng, bất tử suốt hoạt ảnh.
+function critTarget() {
+  if (P.mounted || WEAPONS[S.equipped].type === 'bow') return null;
+  let best = null;
+  for (const e of targets()) {
+    if (e.dead || (e.z || 0) > 20) continue;
+    const d = dist(P.x, P.y, e.x, e.y), toP = Math.atan2(P.y - e.y, P.x - e.x);
+    if (e.state === 'broken' && d < e.r + P.r + 50 && (!best || d < best.d)) best = { e, d, type: 'riposte' };
+    else if (!e.isBoss && !e.isDragon && !e.isFinal && !e.T.miniboss && !e.T.flier && e.state !== 'atk' && e.state !== 'broken'
+      && d < e.r + P.r + 30 && Math.abs(angDiff(e.face, toP)) > 2.35 && (!best || d < best.d)) best = { e, d, type: 'back' };
+  }
+  return best;
+}
+function startCrit(e, type) {
+  const a = Math.atan2(e.y - P.y, e.x - P.x);
+  P.face = a; P.x = e.x - Math.cos(a) * (e.r + P.r + 10); P.y = e.y - Math.sin(a) * (e.r + P.r + 10); P.vx = P.vy = 0;
+  if (type === 'back') { e.state = 'stagger'; e.t = 0; e.stagDur = 1.2; e.atk = null; e.vx = e.vy = 0; }
+  else if (e.t !== undefined) e.t = Math.min(e.t, 0.6);
+  P.atk = Object.assign(makeAtk('light', 0), { anim: 'slash', thrust: true, wind: 0.34, act: 0.1, rec: 0.5, range: 999, arc: TAU, lunge: 0, cost: 0, hyper: true, kind: 'crit', critT: e, critType: type });
+  P.atk.parts = atkParts(type === 'riposte' ? 1.8 : 1.4);
+  P.state = 'attack'; P.t = 0; P.invuln = 0.95;
+}
+function critHit(e, A) {
+  hitEnemy(e, A.parts, 60, P.x, P.y, 'heavy', { backstab: A.critType === 'back' });
+  G.hitStop = 0.22; shake(12); G.flash = 0.15;
+  burst(e.x, e.y, 34, '#8e1512', 260, 4, 'dot', 0.8, P.face);
+  if (!e.dead) { e.vx += Math.cos(P.face) * 260; e.vy += Math.sin(P.face) * 260; }
 }
 function die() {
   P.state = 'dead'; P.lock = null; P.mounted = false; G.mode = 'dead'; G.deathT = 0; S.deaths++; P.flameT = 0;

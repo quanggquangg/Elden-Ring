@@ -50,6 +50,14 @@ Không có màn hướng dẫn bắt buộc. Game chỉ hiện phím cần dùng
 
 24 thành tựu (boss, Đại Ấn, hầm ngục, bản đồ, phản đòn, kẻ xâm nhập, phá đảo từng độ khó, không chết, dưới 2 giờ...). Mở khóa hiện thông báo ở góc trên bên phải; xem danh sách ở nút **Thành tựu** trên màn hình chính hoặc menu tạm dừng. Thành tựu lưu trên trình duyệt và giữ qua mọi hành trình.
 
+## Lăn né, đỡ và phản đòn
+
+- **Lăn** theo hướng đang di chuyển, có khung bất tử (bóng mờ phía sau nhân vật chính là lúc bất tử). Tốc độ lăn giảm dần mượt; giáp càng nặng lăn càng chậm và ít khung bất tử. Gần cuối cú lăn có thể nối ngay đòn đánh, lăn tiếp hoặc uống bình.
+- **Đứng yên mà bấm lăn** thì nhảy lùi: nhanh, tốn ít thể lực nhưng khung bất tử ngắn.
+- **Đỡ** bằng khiên khi giữ nút đỡ. Khoảnh khắc đầu tiên khi vừa giơ khiên là khung **phản đòn**: trúng đúng lúc thì kẻ địch mất thế, thời gian chậm lại một nhịp.
+- **Đòn chí mạng:** bấm đánh thường khi đứng trước kẻ địch đang mất thế (sau phản đòn hoặc bị phá thế), hoặc sau lưng kẻ địch chưa ra đòn. Nhân vật tự vào vị trí, bất tử suốt hoạt ảnh và gây sát thương cực lớn.
+- **Phản công sau khi đỡ (Guard Counter):** vừa đỡ trúng một đòn thì bấm đánh mạnh ngay để ra đòn nhanh, mạnh và phá thế gấp đôi.
+
 ## Điều khiển
 
 Phím đặt theo Elden Ring bản PC. `Space` dùng cho lăn và chạy như bản gốc.
@@ -120,7 +128,7 @@ Chỉ dùng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để
 1. Mở repo trên GitHub → **Settings** → **Pages**.
 2. Mục **Build and deployment** → **Source**: chọn **Deploy from a branch**.
 3. **Branch**: chọn `claude/elden-ring-uzx5c4`, thư mục `/ (root)` → **Save**.
-4. Đợi khoảng 1–2 phút, trang Pages sẽ hiện link dạng `https://<tên-github>.github.io/Elden-Ring/`. Mỗi lần có commit mới trên nhánh này, trang tự cập nhật.
+4. Đợi khoảng 1–2 phút, trang Pages sẽ hiện link dạng `https://<tên-github>.github.io/<tên-repo>/`. Mỗi lần có commit mới trên nhánh này, trang tự cập nhật.
 
 ### 2. Tạo bảng xếp hạng chung bằng Firebase (miễn phí)
 

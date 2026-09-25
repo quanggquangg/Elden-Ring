@@ -176,10 +176,20 @@ function drawPlayer() {
   else if (p.state === 'guard') wAng = 1.1;
   const th = twoHanded(), cat = catalyst(), off = offDef();
   if (th && p.state === 'guard') wAng = -1.1;
-  const o = { anim: p.walk, trail, thrust, stab, charge, flash: p.invuln > 0.25, shield: th || cat ? 0 : p.state === 'guard' ? 2 : 1, kite: off.id === 'kite', cat: cat ? cat.type : null, castK };
+  const o = { anim: p.walk, trail, thrust, stab, charge, flash: p.invuln > 0.25 && !(p.atk && p.atk.critT), shield: th || cat ? 0 : p.state === 'guard' ? 2 : 1, kite: off.id === 'kite', cat: cat ? cat.type : null, castK };
   if (p.state === 'attack' && p.atk && p.atk.kind === 'heavy') o.trailCol = 'rgba(255,220,150,.45)';
-  if (p.state === 'roll') {
+  if (p.state === 'roll' && p.roll.back) {
+    // nhảy lùi: không lộn người, chỉ hơi thu mình
+    const k = p.t / p.roll.dur, s = 1 - Math.sin(k * Math.PI) * 0.08;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s, s); ctx.translate(-p.x, -p.y);
+    drawHumanoid(p.x, p.y, p.face, LOOK, 0.6, o);
+    ctx.restore();
+  } else if (p.state === 'roll') {
     const k = p.t / p.roll.dur;
+    // bóng mờ phía sau trong lúc bất tử, để người chơi cảm được khung né
+    if (p.t > p.roll.iframe[0] && p.t < p.roll.iframe[1]) {
+      ctx.globalAlpha = 0.22; drawHumanoid(p.x - Math.cos(p.rollDir) * 14, p.y - Math.sin(p.rollDir) * 14, p.rollDir, LOOK, wAng, o); ctx.globalAlpha = 1;
+    }
     ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1 - Math.sin(k * Math.PI) * 0.22, 1 - Math.sin(k * Math.PI) * 0.22); ctx.translate(-p.x, -p.y);
     drawHumanoid(p.x, p.y, p.rollDir, LOOK, wAng, o);
     ctx.restore();

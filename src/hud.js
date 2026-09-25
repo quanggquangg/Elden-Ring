@@ -590,6 +590,8 @@ const HINTS = [
     '<kbd>Chuột trái</kbd> đánh · <kbd>Shift</kbd>+<kbd>Chuột trái</kbd> đánh mạnh · <kbd>Space</kbd> lăn né', 'Chạm nút Đánh để tấn công, nút Lăn để né'],
   ['guard', () => S.tips.fight && enemies.some(e => !e.dead && e.state === 'atk' && dist(e.x, e.y, P.x, P.y) < 130), 'Đỡ đòn',
     'Giữ <kbd>Chuột phải</kbd> để giơ khiên; giơ đúng lúc đòn chạm tới sẽ phản đòn', 'Giữ nút Đỡ để chặn đòn'],
+  ['riposte', () => enemies.some(e => !e.dead && e.state === 'broken' && dist(e.x, e.y, P.x, P.y) < 140), 'Kẻ địch mất thế',
+    'Lại gần và bấm <kbd>Chuột trái</kbd> để tung đòn chí mạng', 'Lại gần và chạm nút Đánh để tung đòn chí mạng'],
   ['heal', () => P.hp < P.maxHp * 0.5 && P.flasks > 0, 'Máu còn một nửa', 'Nhấn <kbd>R</kbd> để uống Bình Máu', 'Chạm nút Dùng đồ để uống Bình Máu'],
   ['stamina', () => P.st < P.maxSt * 0.2, 'Sắp hết thể lực', 'Hết thể lực thì không lăn hay đánh được. Lùi lại một nhịp cho thể lực hồi', 'Hết thể lực thì không lăn hay đánh được. Lùi lại một nhịp cho thể lực hồi'],
   ['grace', () => !!nearGrace() && S.discovered.length >= 2, 'Ân Điển', 'Nhấn <kbd>E</kbd> để nghỉ: hồi máu, nạp bình và lên cấp', 'Chạm nút Tương tác để nghỉ: hồi máu, nạp bình và lên cấp'],

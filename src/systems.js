@@ -320,7 +320,8 @@ function step(now) {
   pollPad();
   updateAmbient(dt);
   if (G.mode === 'play' || G.mode === 'dead') {
-    if (G.hitStop > 0) G.hitStop -= dt; else update(dt);
+    // khựng hình khi trúng đòn, rồi chậm lại một nhịp sau phản đòn cho cảm giác nặng tay
+    if (G.hitStop > 0) G.hitStop -= dt; else if (G.slow > 0) { G.slow -= dt; update(dt * 0.4); } else update(dt);
     tick(dt);
   } else if (G.mode === 'title') {
     G.clock += dt;

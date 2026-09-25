@@ -66,6 +66,8 @@ const ROLLS = {
   mid: { name: 'Lăn vừa', dur: 0.5, iframe: [0.03, 0.36], speed: 360, st: 18 },
   heavy: { name: 'Lăn nặng', dur: 0.62, iframe: [0.06, 0.3], speed: 280, st: 24 },
   over: { name: 'Quá tải', dur: 0.62, iframe: [0.1, 0.2], speed: 200, st: 30 },
+  // đứng yên mà bấm lăn thì nhảy lùi: nhanh, ít khung bất tử, tốn ít thể lực (như game souls)
+  back: { name: 'Nhảy lùi', dur: 0.34, iframe: [0.02, 0.18], speed: 330, st: 10, back: true },
 };
 // hấp thụ sát thương từ giáp và bùa
 function absorb(kind) {
@@ -95,7 +97,7 @@ const P = {
   x: 1400, y: 3376, r: 13, vx: 0, vy: 0, face: -Math.PI / 2, state: 'idle', t: 0,
   hp: 180, maxHp: 180, ghost: 180, ghostDelay: 0, st: 80, maxSt: 80, stDelay: 0, fp: 50, maxFp: 50,
   flasks: 3, fpflasks: 0, invuln: 0, mounted: false, lock: null, atk: null, walk: 0, mvx: 0, mvy: 0, rollDir: 0, hurtDur: 0.3,
-  poisonB: 0, poisonT: 0, lastGuardAt: -9, parryOk: false, buffs: { flame: 0, holy: 0, bless: 0 }, roll: ROLLS.mid,
+  poisonB: 0, poisonT: 0, lastGuardAt: -9, parryOk: false, blockedAt: -9, buffs: { flame: 0, holy: 0, bless: 0 }, roll: ROLLS.mid,
 };
 const cam = { x: P.x, y: P.y };
 let enemies = [];
