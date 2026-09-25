@@ -692,6 +692,12 @@ $('btnFx').onclick = () => {
   updateFxBtn(); resize();
 };
 updateFxBtn();
+$('btnPix').textContent = 'Kiểu hình: ' + (PIXEL ? 'pixel' : 'mịn');
+$('btnPix').onclick = () => {
+  PIXEL = !PIXEL;
+  try { localStorage.setItem('vvv-pix', PIXEL ? 'on' : 'off'); } catch (e) { /* bỏ qua */ }
+  $('btnPix').textContent = 'Kiểu hình: ' + (PIXEL ? 'pixel' : 'mịn'); resize();
+};
 $('btnSound').onclick = () => { audioInit(); toggleMute(); };
 // hành trình mới từ menu tạm dừng: bấm hai lần để xác nhận; tiến trình cũ chỉ bị thay khi đã chọn xong xuất thân
 let pauseNewArmed = false;

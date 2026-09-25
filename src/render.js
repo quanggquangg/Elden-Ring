@@ -446,10 +446,7 @@ function drawEnemyBar(e) {
   if (e.dead || e.isBoss) return;
   const w = e.elite ? 54 : 34, x = e.x - w / 2, y = e.y - e.r * (e.T.look ? e.T.look.scale : 1) - 22;
   if (e.aff) {
-    ctx.font = `600 9px ${FONT_U}`; ctx.textAlign = 'center';
-    const txt = e.aff.map(k => AFFIXES[k].name).join(' · ');
-    ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillText(txt, e.x + 0.6, y - 4.4);
-    ctx.fillStyle = `rgb(${AFFIXES[e.aff[0]].col})`; ctx.fillText(txt, e.x, y - 5); ctx.textAlign = 'left';
+    wText(e.aff.map(k => AFFIXES[k].name).join(' · '), e.x, y - 5, 9, `rgb(${AFFIXES[e.aff[0]].col})`, 1);
   }
   if (e.hp >= e.maxHp) return;
   ctx.fillStyle = 'rgba(8,7,5,.8)'; ctx.fillRect(x - 1, y - 1, w + 2, 6);
@@ -579,10 +576,34 @@ function drawObjects() {
     if (w > 0) { ctx.strokeStyle = `rgba(255,120,50,${0.3 + w * 0.5})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r, 0, TAU); ctx.stroke(); ctx.fillStyle = `rgba(255,90,30,${w * 0.2})`; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r * w, 0, TAU); ctx.fill(); }
   }
 }
-function textC2(str, x, y) {
-  ctx.font = `600 11px ${FONT_U}`; ctx.textAlign = 'center';
-  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(str, x, y); ctx.fillStyle = '#f2dc97'; ctx.fillText(str, x, y);
-  ctx.textAlign = 'left';
+// giảm bảng màu và trộn điểm kiểu Bayer 4×4: dải chuyển của ánh sáng thành các bậc màu lấm tấm như game pixel cổ điển
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v / 16 - 0.5) * 14);
+const QLUT = new Uint8Array(512);
+for (let i = 0; i < 512; i++) QLUT[i] = Math.max(0, Math.min(255, Math.round((i - 128) / 24) * 24 + 4));
+function pixelPost() {
+  const w = wcan.width, h = wcan.height, img = wctx.getImageData(0, 0, w, h), d = img.data;
+  for (let y = 0; y < h; y++) {
+    const row = (y & 3) << 2;
+    for (let x = 0, i = y * w * 4; x < w; x++, i += 4) {
+      const b = BAYER[row | (x & 3)] + 128;
+      d[i] = QLUT[(d[i] + b) | 0]; d[i + 1] = QLUT[(d[i + 1] + b) | 0]; d[i + 2] = QLUT[(d[i + 2] + b) | 0];
+    }
+  }
+  wctx.putImageData(img, 0, 0);
+}
+function textC2(str, x, y) { wText(str, x, y, 11, '#f2dc97', 1); }
+// chữ gắn với thế giới (số sát thương, tên NPC, thuộc tính quái) được gom lại và vẽ sau khi phóng to, để luôn sắc nét
+const WTEXT = [];
+function wText(text, x, y, size, color, alpha) { WTEXT.push({ text, x, y, size, color, alpha }); }
+function flushWText(x0, y0) {
+  if (!WTEXT.length) return;
+  const z = DPR * ZOOM;
+  ctx.setTransform(z, 0, 0, z, -x0 * z, -y0 * z); ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.7)';
+  for (const t of WTEXT) {
+    ctx.globalAlpha = t.alpha; ctx.font = `600 ${t.size}px ${FONT_U}`;
+    ctx.strokeText(t.text, t.x, t.y); ctx.fillStyle = t.color; ctx.fillText(t.text, t.x, t.y);
+  }
+  ctx.globalAlpha = 1; ctx.textAlign = 'left'; WTEXT.length = 0;
 }
 function drawBarrier() {
   if (S.glade || !inView(BARRIER.x, BARRIER.y, BARRIER.r + 40)) return;
@@ -860,10 +881,7 @@ function drawParts() {
     if (!inView(p.x, p.y, p.kind === 'fog' ? p.size : 30)) continue;
     const k = p.life / p.max;
     if (p.kind === 'text') {
-      ctx.globalAlpha = Math.min(1, k * 2);
-      ctx.font = `600 ${p.size}px ${FONT_U}`; ctx.textAlign = 'center';
-      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(p.text, p.x, p.y);
-      ctx.fillStyle = p.color; ctx.fillText(p.text, p.x, p.y);
+      wText(p.text, p.x, p.y, p.size, p.color, Math.min(1, k * 2));
     } else if (p.kind === 'spark') {
       ctx.globalAlpha = k; ctx.strokeStyle = p.color; ctx.lineWidth = p.size;
       ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.04, p.y - p.vy * 0.04); ctx.stroke();
@@ -988,12 +1006,13 @@ function drawInteractHints() {
   }
 }
 function render() {
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-  ctx.fillStyle = '#0b0a07'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (const c of [mainCtx, wctx]) { c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.shadowBlur = 0; }
+  ctx = PIXEL ? wctx : mainCtx; WTEXT.length = 0;
+  ctx.fillStyle = '#0b0a07'; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   const sh = G.shake > 0.1 ? G.shake : 0, sx = (Math.random() * 2 - 1) * sh, sy = (Math.random() * 2 - 1) * sh;
   const vw = CW / ZOOM, vh = CH / ZOOM, x0 = cam.x - vw / 2 + sx, y0 = cam.y - vh / 2 + sy;
   VIEW = { x0, y0, x1: x0 + vw, y1: y0 + vh };
-  ctx.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, -x0 * DPR * ZOOM, -y0 * DPR * ZOOM);
+  ctx.setTransform(WZ, 0, 0, WZ, -x0 * WZ, -y0 * WZ);
   const inst = cam.x > 4800 && G.mode !== 'title';
   const [GC, ox, oy, ow, oh] = inst ? [GROUND2, IX0, 0, W - IX0, IH] : [GROUND, WX0, WY0, MAPW - WX0, H - WY0];
   const gx0 = clamp(Math.floor(x0), ox, ox + ow), gy0 = clamp(Math.floor(y0), oy, oy + oh), gx1 = clamp(Math.ceil(x0 + vw), ox, ox + ow), gy1 = clamp(Math.ceil(y0 + vh), oy, oy + oh);
@@ -1033,6 +1052,13 @@ function render() {
   }
   collectLights();
   renderLighting(x0, y0);
+  if (PIXEL) {
+    // phóng to thế giới pixel art lên màn hình, giữ nguyên cạnh sắc của từng điểm ảnh
+    pixelPost();
+    ctx = mainCtx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(wcan, 0, 0, wcan.width * PIXK, wcan.height * PIXK); ctx.imageSmoothingEnabled = true;
+  }
+  flushWText(x0, y0);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   const [, , , , tr, tg, tb, ta] = G.amb;
   if (ta > 0.01 && !FX_LOW) { ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = `rgba(${tr | 0},${tg | 0},${tb | 0},${ta})`; ctx.fillRect(0, 0, CW, CH); ctx.globalCompositeOperation = 'source-over'; }
@@ -1161,10 +1187,10 @@ function renderLighting(x0, y0) {
       gr.addColorStop(0, `rgba(0,0,0,${i})`); gr.addColorStop(0.5, `rgba(0,0,0,${i * 0.55})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
       lctx.fillStyle = gr; lctx.fillRect(sx - rr, sy - rr, rr * 2, rr * 2);
     }
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(lightCanvas, 0, 0, canvas.width, canvas.height);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(lightCanvas, 0, 0, ctx.canvas.width, ctx.canvas.height);
   }
   // hào quang: cộng sáng quanh các nguồn sáng có màu
-  ctx.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, -x0 * DPR * ZOOM, -y0 * DPR * ZOOM);
+  ctx.setTransform(WZ, 0, 0, WZ, -x0 * WZ, -y0 * WZ);
   ctx.globalCompositeOperation = 'lighter';
   const boost = 0.55 + a;
   for (const l of LIGHTS) {

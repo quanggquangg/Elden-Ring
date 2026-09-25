@@ -24,7 +24,13 @@ const $ = id => document.getElementById(id);
 
 // ───────────────────────── canvas ─────────────────────────
 const canvas = $('game');
-const ctx = canvas.getContext('2d');
+const mainCtx = canvas.getContext('2d');
+let ctx = mainCtx;
+// Pixel art: thế giới được vẽ vào một canvas nhỏ (mỗi điểm ảnh = PIXK điểm ảnh màn hình) rồi phóng to không làm mịn.
+// Chữ, HUD và menu vẫn vẽ ở độ phân giải đầy đủ cho dễ đọc.
+const wcan = document.createElement('canvas'), wctx = wcan.getContext('2d', { willReadFrequently: true });
+let PIXEL = (() => { try { return localStorage.getItem('vvv-pix') !== 'off'; } catch (e) { return true; } })();
+let PIXK = 1, WZ = 1;
 let DPR = 1, CW = 800, CH = 600, ZOOM = 1, VIGNETTE = null;
 // Đồ họa thấp: bỏ cỏ động, sương mù, giảm độ phân giải lớp ánh sáng (mặc định bật trên điện thoại)
 let FX_LOW = (() => {
@@ -39,6 +45,10 @@ function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(CW * DPR); canvas.height = Math.round(CH * DPR);
   ZOOM = clamp(Math.sqrt(CW * CH) / 780, 0.62, 1.5);
+  // mỗi điểm ảnh pixel art rộng khoảng 2 đơn vị thế giới, dù màn hình to hay nhỏ
+  PIXK = PIXEL ? Math.max(2, Math.round(DPR * ZOOM * 2)) : 1;
+  wcan.width = Math.ceil(canvas.width / PIXK); wcan.height = Math.ceil(canvas.height / PIXK);
+  WZ = DPR * ZOOM / PIXK;
   VIGNETTE = ctx.createRadialGradient(CW / 2, CH / 2, Math.min(CW, CH) * 0.3, CW / 2, CH / 2, Math.max(CW, CH) * 0.78);
   VIGNETTE.addColorStop(0, 'rgba(6,5,3,0)');
   VIGNETTE.addColorStop(1, 'rgba(6,5,3,0.66)');
