@@ -269,6 +269,12 @@ h1{filter:drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 24px rgba(226,186,
 .board{background:linear-gradient(180deg,rgba(214,178,94,.04),rgba(214,178,94,0))}
 .board tr:nth-child(1) td:first-child{color:#ffe08a;text-shadow:0 0 8px rgba(255,210,110,.6)}
 kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-shadow:0 2px 0 rgba(0,0,0,.5),inset 0 1px 0 rgba(255,240,200,.15)}
+.langsel{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;display:flex;border:1px solid rgba(214,178,94,.45);background:rgba(10,9,7,.55);z-index:2}
+.langsel button{appearance:none;background:none;border:0;color:var(--muted);font:600 12px/1 var(--ui);letter-spacing:.06em;padding:8px 12px;cursor:pointer}
+.langsel button+button{border-left:1px solid rgba(214,178,94,.3)}
+.langsel button[aria-pressed="true"]{color:#15120c;background:linear-gradient(180deg,#f2dc97,#c9a44e)}
+.langsel button:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
+.panel .langsel{position:static;justify-self:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -299,6 +305,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
   </div>
 
   <section id="title" class="overlay title">
+    <div class="langsel" data-notr role="group" aria-label="Language"><button type="button" data-lang="vi">Tiếng Việt</button><button type="button" data-lang="en">English</button></div>
     <div class="title-inner">
       <svg class="ring" viewBox="0 0 120 120" aria-hidden="true" fill="none" stroke="currentColor">
         <path d="M60 14 A46 46 0 0 1 102 42" stroke-width="3"/>
@@ -406,6 +413,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
         <button id="btnPauseNew" class="pbtn ghost">Hành trình mới</button>
         <button id="btnQuit" class="pbtn ghost">Về màn hình chính</button>
       </div>
+      <div class="langsel" data-notr role="group" aria-label="Language"><button type="button" data-lang="vi">Tiếng Việt</button><button type="button" data-lang="en">English</button></div>
     </div>
   </section>
 
@@ -505,6 +513,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
 </div>
 <script src="src/config.js"></script>
 <script src="src/core.js"></script>
+<script src="src/lang.js"></script>
 <script src="src/world.js"></script>
 <script src="src/data.js"></script>
 <script src="src/state.js"></script>

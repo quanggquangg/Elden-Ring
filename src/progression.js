@@ -11,7 +11,7 @@ const weaponHint = Wp => (Wp.hand === 'off' ? ' · trang bị tay trái tại Â
 function grant(L, x = P.x, y = P.y, quiet = false) {
   const got = [];
   let big = null;
-  if (L.runes) { gainRunes(L.runes, x, y); got.push('+' + L.runes.toLocaleString('vi-VN') + ' rune'); }
+  if (L.runes) { gainRunes(L.runes, x, y); got.push('+' + L.runes.toLocaleString(numLoc()) + ' rune'); }
   for (const [id, n] of Object.entries(L.items || {})) {
     if (id === 'arrows') { S.arrows = Math.min(S.arrowMax, S.arrows + n); got.push(n + ' mũi tên'); continue; }
     invAdd(id, n); got.push(ITEMDEF[id].name + (n > 1 ? ' ×' + n : ''));

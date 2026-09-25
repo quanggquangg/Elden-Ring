@@ -247,7 +247,7 @@ function worldChecks(dt) {
   else if (nearNote()) G.prompt = { key, text: 'Đọc lời nhắn' };
   else G.prompt = null;
   if (S.lost && dist(P.x, P.y, S.lost.x, S.lost.y) < 40) {
-    gainRunes(S.lost.amount, S.lost.x, S.lost.y); SFX.pickup(); toast('Đã thu hồi ' + S.lost.amount.toLocaleString('vi-VN') + ' rune');
+    gainRunes(S.lost.amount, S.lost.x, S.lost.y); SFX.pickup(); toast('Đã thu hồi ' + S.lost.amount.toLocaleString(numLoc()) + ' rune');
     S.lost = null; save();
   }
   if (boss && !boss.dead && !G.bossFight && inRect(P.x, P.y, boss.A) && P.y > boss.A.y + 20 && P.y < boss.A.y + boss.A.h - 16) startBossFight();

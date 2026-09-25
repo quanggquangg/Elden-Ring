@@ -293,14 +293,14 @@ function drawHUD() {
   // rune và Đại Ấn: dải nền mờ dần sang trái, ký hiệu rune, ba ổ ngọc
   const rx = CW - 20, ry = G.touch ? 32 : CH - 26;
   ctx.font = `600 18px ${FONT_U}`; ctx.textAlign = 'right';
-  const rstr = S.runes.toLocaleString('vi-VN'), tw = ctx.measureText(rstr).width, dx = rx - tw - 16, dy = ry - 6;
+  const rstr = S.runes.toLocaleString(numLoc()), tw = ctx.measureText(rstr).width, dx = rx - tw - 16, dy = ry - 6;
   { const bw = tw + 130, g = ctx.createLinearGradient(rx + 12 - bw, 0, rx + 12, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.45, 'rgba(8,7,5,.6)'); g.addColorStop(1, 'rgba(8,7,5,.72)');
     ctx.fillStyle = g; ctx.fillRect(rx + 12 - bw, dy - 15, bw, 30);
     const l = ctx.createLinearGradient(rx + 12 - bw, 0, rx + 12, 0); l.addColorStop(0, 'rgba(214,178,94,0)'); l.addColorStop(1, 'rgba(214,178,94,.5)');
     ctx.fillStyle = l; ctx.fillRect(rx + 12 - bw, dy - 15, bw, 1); ctx.fillRect(rx + 12 - bw, dy + 14, bw, 1); }
   ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(rstr, rx + 1, ry + 2); ctx.fillStyle = '#f4ead0'; ctx.fillText(rstr, rx, ry);
   runeGlyph(dx, dy, 7.5);
-  if (G.runeGain > 0) { ctx.font = `600 14px ${FONT_U}`; ctx.fillStyle = `rgba(242,220,151,${Math.min(1, G.runeGainT)})`; ctx.fillText('+' + G.runeGain.toLocaleString('vi-VN'), rx, ry + (G.touch ? 26 : -26)); }
+  if (G.runeGain > 0) { ctx.font = `600 14px ${FONT_U}`; ctx.fillStyle = `rgba(242,220,151,${Math.min(1, G.runeGainT)})`; ctx.fillText('+' + G.runeGain.toLocaleString(numLoc()), rx, ry + (G.touch ? 26 : -26)); }
   ctx.textAlign = 'left';
   ['east', 'swamp', 'west'].forEach((id, i) => greatRuneGem(dx - 30 - (2 - i) * 19, dy, GREAT_RUNES[id].col, S.gr.includes(id)));
   // lời nhắc tương tác: khung tối viền vàng, hai hạt kim cương hai đầu, phím dạng nắp phím
@@ -519,7 +519,7 @@ function drawMarkerGuide() {
   textC(Math.round(d / 10) + ' m', ex - Math.cos(a) * 24, ey - Math.sin(a) * 24 + 4, `600 12px ${FONT_U}`, '#bfe8ff');
 }
 function wrapText(str, cx, y, maxW, lh, font, col) {
-  ctx.font = font;
+  ctx.font = font; str = tr(str); // dịch cả câu trước khi ngắt dòng
   const words = str.split(' '), lines = [];
   let line = '';
   for (const w of words) { const test = line ? line + ' ' + w : w; if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test; }
@@ -638,8 +638,8 @@ function derivedRows() {
 function renderLevel() {
   const g = atGrace(), n = pendLv(), cost = pendCost(), next = pendCost(n + 1) - cost, left = S.runes - cost;
   $('lvNum').textContent = S.level + (n ? ' → ' + (S.level + n) : '');
-  $('lvRunes').textContent = (n ? left : S.runes).toLocaleString('vi-VN');
-  $('lvCost').textContent = next.toLocaleString('vi-VN');
+  $('lvRunes').textContent = (n ? left : S.runes).toLocaleString(numLoc());
+  $('lvCost').textContent = next.toLocaleString(numLoc());
   $('lvCost').className = left < next ? 'short' : '';
   $('statList').innerHTML = STAT_INFO.map(([k, d]) => {
     const add = pend[k] || 0, v = S.stats[k] + add;
@@ -650,7 +650,7 @@ function renderLevel() {
   $('derived').innerHTML = now.map(([k, v], i) => { const w = after[i][1], ch = String(w) !== String(v); return `<div><dt class="k">${k}</dt><dd><b class="${ch ? 'chg' : ''}">${ch ? v + ' → ' + w : v}</b></dd></div>`; }).join('');
   $('lvConfirm').hidden = !g || graceTab !== 'level';
   $('btnLvOk').disabled = !n; $('btnLvCancel').disabled = !n;
-  $('btnLvOk').textContent = n ? `Xác nhận · ${n} cấp · ${cost.toLocaleString('vi-VN')} rune` : 'Xác nhận';
+  $('btnLvOk').textContent = n ? `Xác nhận · ${n} cấp · ${cost.toLocaleString(numLoc())} rune` : 'Xác nhận';
   $('lvFieldNote').hidden = g;
   renderJournal();
 }
@@ -799,7 +799,7 @@ function openShop(id) {
 function closeShop() { UI.shop.hidden = true; currentShop = null; setMode('play'); }
 function renderShop() {
   const id = currentShop;
-  $('shopRunes').textContent = S.runes.toLocaleString('vi-VN');
+  $('shopRunes').textContent = S.runes.toLocaleString(numLoc());
   if (id === 'smith') {
     $('shopName').textContent = 'Thợ Rèn Hewen';
     $('shopLine').textContent = '“Đưa đá rèn đây. Lưỡi nào cùn, ta mài; lưỡi nào yếu, ta rèn lại.”';
@@ -810,7 +810,7 @@ function renderShop() {
       if (!need) return `<li><button disabled><span>${esc(Wp.name)} +${lv}<br><small>Đã cường hóa tối đa</small></span><small>Tối đa</small></button></li>`;
       const ok = invN(need.mat) >= need.n && S.runes >= need.runes;
       const now = Wp.sp ? Math.round(spellPower(w, lv)) : Math.round(weaponAR(w, lv)), nxt = Wp.sp ? Math.round(spellPower(w, need.lv)) : Math.round(weaponAR(w, need.lv));
-      return `<li><button data-up="${w}" ${ok ? '' : 'disabled'}><span>${esc(Wp.name)} +${lv} → +${need.lv}<br><small>${Wp.sp ? 'Phép' : 'Công'} ${now} → ${nxt} · cần ${ITEMDEF[need.mat].name} ×${need.n} (có ${invN(need.mat)}) và ${need.runes.toLocaleString('vi-VN')} rune</small></span><small>Rèn</small></button></li>`;
+      return `<li><button data-up="${w}" ${ok ? '' : 'disabled'}><span>${esc(Wp.name)} +${lv} → +${need.lv}<br><small>${Wp.sp ? 'Phép' : 'Công'} ${now} → ${nxt} · cần ${ITEMDEF[need.mat].name} ×${need.n} (có ${invN(need.mat)}) và ${need.runes.toLocaleString(numLoc())} rune</small></span><small>Rèn</small></button></li>`;
     }).join('');
     return;
   }
@@ -818,7 +818,7 @@ function renderShop() {
   $('shopName').textContent = sh.name; $('shopLine').textContent = sh.line;
   $('shopList').innerHTML = sh.stock.map((r, i) => {
     const info = shopRow(r), can = !info.sold && !info.locked && S.runes >= r.price;
-    const tail = info.sold ? 'Đã có' : info.locked ? (r.lock || 'Chưa mở') : r.price.toLocaleString('vi-VN') + ' rune';
+    const tail = info.sold ? 'Đã có' : info.locked ? (r.lock || 'Chưa mở') : r.price.toLocaleString(numLoc()) + ' rune';
     return `<li><button data-buy="${i}" ${can ? '' : 'disabled'}><span>${esc(info.name)}<br><small>${esc(info.desc)}</small></span><small>${tail}</small></button></li>`;
   }).join('');
 }
