@@ -296,6 +296,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 function setMode(m) {
   G.mode = m;
   if (m !== 'play') { $('tut').hidden = true; hintCur = null; }
+  if (typeof applyRot === 'function') applyRot();
   $('touch').hidden = !(G.touch && m === 'play');
   keys.clear(); stick.x = 0; stick.y = 0; touchGuard = false; mouseGuard = false; dodgeKey.down = false;
   if (m === 'play' && document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
@@ -797,6 +798,19 @@ const isTouchDev = () => G.touch || matchMedia('(pointer:coarse)').matches;
 $('btnLandscape').onclick = () => { audioInit(); goLandscape(); };
 $('btnPauseFull').hidden = !isTouchDev() || !document.documentElement.requestFullscreen;
 $('btnPauseFull').onclick = goLandscape;
+// chế độ xoay ngang bằng CSS: dùng khi trình duyệt không cho xoay màn hình (Safari trên iPhone, Messenger, Zalo…)
+var ROT_PREF = (() => { try { return localStorage.getItem('vvv-rot') !== 'off'; } catch (e) { return true; } })();
+function applyRot() {
+  const on = ROT_PREF && isTouchDev() && window.innerHeight > window.innerWidth && G.mode !== 'title';
+  const app = $('app'), was = document.body.classList.contains('rot');
+  document.body.classList.toggle('rot', on);
+  app.style.width = on ? window.innerHeight + 'px' : ''; app.style.height = on ? window.innerWidth + 'px' : '';
+  if (on !== was) resize();
+}
+window.addEventListener('resize', applyRot);
+$('btnRot').hidden = !isTouchDev();
+$('btnRot').textContent = 'Xoay ngang: ' + (ROT_PREF ? 'bật' : 'tắt');
+$('btnRot').onclick = () => { ROT_PREF = !ROT_PREF; try { localStorage.setItem('vvv-rot', ROT_PREF ? 'on' : 'off'); } catch (e) { /* bỏ qua */ } $('btnRot').textContent = 'Xoay ngang: ' + (ROT_PREF ? 'bật' : 'tắt'); applyRot(); };
 $('btnNew').onclick = () => {
   audioInit();
   if (loadSave() && !confirmNew) { confirmNew = true; $('btnNew').textContent = 'Xoá tiến trình cũ và bắt đầu?'; $('btnNew').classList.add('warn'); return; }

@@ -40,8 +40,8 @@ let FX_LOW = (() => {
 const lightCanvas = document.createElement('canvas'), lctx = lightCanvas.getContext('2d');
 let LSCALE = 0.25;
 function resize() {
-  const r = canvas.getBoundingClientRect();
-  CW = Math.max(1, r.width); CH = Math.max(1, r.height);
+  // kích thước bố cục (không tính phép xoay của chế độ xoay ngang)
+  CW = Math.max(1, canvas.clientWidth); CH = Math.max(1, canvas.clientHeight);
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(CW * DPR); canvas.height = Math.round(CH * DPR);
   ZOOM = clamp(Math.sqrt(CW * CH) / 780, 0.62, 1.5);

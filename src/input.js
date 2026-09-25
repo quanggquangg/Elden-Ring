@@ -51,7 +51,7 @@ window.addEventListener('mouseup', e => { if (e.button === 2) mouseGuard = false
 canvas.addEventListener('pointerdown', e => {
   if (G.mode !== 'map') return;
   G.ignoreClick = true;
-  const r = canvas.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top, M = G.mapRect;
+  const [mx, my] = toLocal(e.clientX, e.clientY), M = G.mapRect;
   if (!M || mx < M.mx || my < M.my || mx > M.mx + M.mw || my > M.my + M.mh) { toggleMap(); return; }
   const wx = WX0 + (mx - M.mx) / M.sc, wy = WY0 + (my - M.my) / M.sc;
   if (e.button === 2 || (S.marker && Math.hypot((S.marker.x - wx) * M.sc, (S.marker.y - wy) * M.sc) < 14)) { S.marker = null; toast('Đã gỡ dấu'); }
@@ -125,6 +125,11 @@ function pollPad() {
 
 // điều khiển cảm ứng
 const touchUI = $('touch'), stickZone = $('stickZone'), stickBase = $('stickBase'), knob = $('knob');
+// đổi tọa độ chạm trên màn hình sang tọa độ trong game (khi game đang được xoay 90°)
+function toLocal(x, y) {
+  if (document.body.classList.contains('rot')) return [y, window.innerWidth - x];
+  const r = canvas.getBoundingClientRect(); return [x - r.left, y - r.top];
+}
 function enableTouch() { if (G.touch) return; G.touch = true; touchUI.hidden = G.mode !== 'play'; aimMode = 'keys'; }
 try { if (window.matchMedia('(pointer: coarse)').matches) enableTouch(); } catch (e) { /* bỏ qua */ }
 window.addEventListener('touchstart', enableTouch, { passive: true });
@@ -132,13 +137,14 @@ let stickId = null, stickOx = 0, stickOy = 0;
 stickZone.addEventListener('pointerdown', e => {
   e.preventDefault(); audioInit();
   stickId = e.pointerId; stickZone.setPointerCapture(e.pointerId);
-  const r = stickZone.getBoundingClientRect(); stickOx = e.clientX; stickOy = e.clientY;
-  stickBase.style.left = (e.clientX - r.left) + 'px'; stickBase.style.top = (e.clientY - r.top) + 'px'; stickBase.hidden = false;
+  const [u, v] = toLocal(e.clientX, e.clientY); stickOx = u; stickOy = v;
+  stickBase.style.left = (u - stickZone.offsetLeft) + 'px'; stickBase.style.top = (v - stickZone.offsetTop) + 'px'; stickBase.hidden = false;
   knob.style.transform = 'translate(0,0)';
 });
 stickZone.addEventListener('pointermove', e => {
   if (e.pointerId !== stickId) return;
-  let dx = e.clientX - stickOx, dy = e.clientY - stickOy; const l = Math.hypot(dx, dy), m = 50;
+  const [u, v] = toLocal(e.clientX, e.clientY);
+  let dx = u - stickOx, dy = v - stickOy; const l = Math.hypot(dx, dy), m = 50;
   if (l > m) { dx = dx / l * m; dy = dy / l * m; }
   stick.x = dx / m; stick.y = dy / m;
   if (Math.hypot(stick.x, stick.y) < 0.18) { stick.x = 0; stick.y = 0; }
