@@ -73,7 +73,26 @@ Chỉ dùng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để
 - **Bản đồ mở dần:** nơi tự đi qua mới hiện rõ. 11 **Bia Bản Đồ** đặt ở lối vào mỗi vùng chỉ mở bản đồ dạng phác thảo. Bí mật không bao giờ hiện trên bản đồ.
 - **Ánh sáng và không khí theo vùng:** sương, tro, đom đóm, lá vàng, mặt hồ gợn sóng, sóng biển, tia nắng gần Cây Vàng. Chỉnh **Đồ họa: cao/thấp** trong menu tạm dừng.
 - **Chết thì mất rune** tại chỗ; quay lại nhặt trước khi chết lần nữa. **Tự động lưu** vào `localStorage`.
-- **Tên người chơi và bảng xếp hạng:** nhập tên khi bắt đầu hành trình mới. Hạ boss cuối thì kết quả được ghi vào bảng xếp hạng, xếp theo số lần chết (ít hơn đứng trên), bằng nhau thì ai phá đảo nhanh hơn đứng trên. Khi trang được cấp kho dữ liệu dùng chung (`db`) thì mọi người chung một bảng; nếu không, bảng chỉ lưu trên trình duyệt đó.
+- **Tên người chơi và bảng xếp hạng:** nhập tên khi bắt đầu hành trình mới. Hạ boss cuối thì kết quả được ghi vào bảng xếp hạng, xếp theo số lần chết (ít hơn đứng trên), bằng nhau thì ai phá đảo nhanh hơn đứng trên. Khi đã cấu hình Firebase (xem bên dưới) thì mọi người chung một bảng; nếu chưa, bảng chỉ lưu trên trình duyệt đó.
+
+## Đăng lên mạng và bảng xếp hạng chung
+
+### 1. Đăng game bằng GitHub Pages
+
+1. Mở repo trên GitHub → **Settings** → **Pages**.
+2. Mục **Build and deployment** → **Source**: chọn **Deploy from a branch**.
+3. **Branch**: chọn `claude/elden-ring-uzx5c4`, thư mục `/ (root)` → **Save**.
+4. Đợi khoảng 1–2 phút, trang Pages sẽ hiện link dạng `https://<tên-github>.github.io/Elden-Ring/`. Mỗi lần có commit mới trên nhánh này, trang tự cập nhật.
+
+### 2. Tạo bảng xếp hạng chung bằng Firebase (miễn phí)
+
+1. Vào [console.firebase.google.com](https://console.firebase.google.com) → **Create a project** (tắt Google Analytics cũng được).
+2. Menu trái **Build** → **Firestore Database** → **Create database** → chọn vị trí gần (ví dụ `asia-southeast1`) → chọn **Start in production mode**.
+3. Tab **Rules**: xóa hết nội dung cũ, dán toàn bộ file [`docs/firestore.rules`](docs/firestore.rules) → **Publish**. Luật này cho phép ai cũng xem bảng và gửi kết quả mới, nhưng không ai sửa hay xóa được kết quả đã gửi.
+4. **Project settings** (bánh răng) → tab **General** → mục **Your apps** → bấm biểu tượng **Web** (`</>`) → đặt tên app → **Register app**. Firebase hiện đoạn `firebaseConfig`.
+5. Chép `apiKey` và `projectId` trong đoạn đó vào [`src/config.js`](src/config.js) rồi commit. Khóa web của Firebase được thiết kế để nằm công khai trong trang; quyền đọc và ghi do luật ở bước 3 quyết định.
+
+Khi `src/config.js` còn để trống, hoặc không kết nối được Firebase, game tự dùng bảng xếp hạng lưu trên trình duyệt của từng người.
 
 ## Cấu trúc
 
@@ -81,6 +100,8 @@ Các file script dùng chung phạm vi toàn cục và được nạp theo thứ
 
 ```
 index.html          giao diện, menu, CSS
+docs/firestore.rules luật bảo mật Firestore cho bảng xếp hạng
+src/config.js       cấu hình Firebase cho bảng xếp hạng chung
 src/core.js         tiện ích, canvas, âm thanh
 src/world.js        bản đồ thế giới, vùng, tường, ân điển, rương, quái, hầm ngục, nền đất dựng sẵn
 src/data.js         vũ khí, giáp, bùa, phép, tro chiến tranh, xuất thân, cửa hàng, kẻ địch

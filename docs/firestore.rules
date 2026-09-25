@@ -1,0 +1,23 @@
+rules_version = '2';
+// Luật bảo mật cho bảng xếp hạng Vòng Vàng Vỡ.
+// Dán toàn bộ vào Firebase console → Firestore Database → Rules → Publish.
+// Ai cũng xem được bảng và gửi được kết quả mới; không ai sửa hay xóa được kết quả đã gửi.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /scores/{id} {
+      allow read: if true;
+      allow create: if id.size() >= 6 && id.size() <= 40
+        && request.resource.data.keys().hasOnly(['name', 'deaths', 'seconds', 'level', 'cls'])
+        && request.resource.data.keys().hasAll(['name', 'deaths', 'seconds', 'level', 'cls'])
+        && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 20
+        && request.resource.data.deaths is int && request.resource.data.deaths >= 0 && request.resource.data.deaths < 100000
+        && request.resource.data.seconds is int && request.resource.data.seconds >= 60
+        && request.resource.data.level is int && request.resource.data.level >= 1 && request.resource.data.level < 1000
+        && request.resource.data.cls is string && request.resource.data.cls.size() <= 20;
+      allow update, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

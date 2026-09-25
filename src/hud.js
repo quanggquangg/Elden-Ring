@@ -431,7 +431,7 @@ $('btnQuit').onclick = () => {
 function openEnding() {
   setMode('menu');
   $('endLv').textContent = S.level; $('endDeaths').textContent = S.deaths; $('endName').textContent = cleanName(S.name) || 'Kẻ Nhạt Phai';
-  const showRank = () => { const r = myRank(); $('endRank').textContent = r ? 'Hạng #' + r + ' trên bảng xếp hạng' + (boardShared ? ' chung' : ' của máy này') : 'Kết quả đã được ghi vào bảng xếp hạng'; };
+  const showRank = () => { const r = myRank(); $('endRank').textContent = r ? 'Hạng #' + r + ' trên bảng xếp hạng' + (boardShared() ? ' chung' : ' của máy này') : 'Kết quả đã được ghi vào bảng xếp hạng'; };
   showRank(); later(1.5, showRank);
   const m = Math.floor(S.time / 60), s = Math.floor(S.time % 60);
   $('endTime').textContent = Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') + ':' + String(s).padStart(2, '0');
