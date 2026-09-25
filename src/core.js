@@ -45,8 +45,8 @@ function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(CW * DPR); canvas.height = Math.round(CH * DPR);
   ZOOM = clamp(Math.sqrt(CW * CH) / 780, 0.62, 1.5);
-  // mỗi điểm ảnh pixel art rộng khoảng 1.6 đơn vị thế giới, dù màn hình to hay nhỏ
-  PIXK = PIXEL ? Math.max(2, Math.round(DPR * ZOOM * 1.6)) : 1;
+  // mỗi điểm ảnh pixel art rộng khoảng 2 đơn vị thế giới, dù màn hình to hay nhỏ
+  PIXK = PIXEL ? Math.max(2, Math.round(DPR * ZOOM * 2)) : 1;
   wcan.width = Math.ceil(canvas.width / PIXK); wcan.height = Math.ceil(canvas.height / PIXK);
   WZ = DPR * ZOOM / PIXK;
   VIGNETTE = ctx.createRadialGradient(CW / 2, CH / 2, Math.min(CW, CH) * 0.3, CW / 2, CH / 2, Math.max(CW, CH) * 0.78);
