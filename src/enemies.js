@@ -8,12 +8,22 @@ const PROJ_DT = { orb: 'magic', shard: 'magic', comet: 'magic', porb: 'magic', h
 const RANGED_KINDS = new Set(['shot', 'lob', 'orbs', 'rain', 'pillars', 'nova', 'summon', 'healall']);
 const TOK = { melee: 0, ranged: 0 };
 let NOISE = 0.1;
+// Các khoảng cách được cân theo tỉ lệ của thế giới này, không lấy nguyên số của Elden Ring:
+// hai con quái gần nhau thường cách ~200 đơn vị, khung hình thấy ~250 đơn vị theo chiều dọc, một cú lăn đi ~180.
+const SIGHT_CAP = 290, ELITE_SIGHT = 330, LEASH = 520, GROUP_R = 150, CAMP_R = 190, GROUP_MAX = 2, CROWD_CAP = 5, LOST_T = 3;
+const sightR = T => Math.min(T.aggro, T.miniboss ? T.aggro : T.elite ? ELITE_SIGHT : SIGHT_CAP);
 function playerNoise() {
   if (P.state === 'dead') return 0;
-  if (P.mounted) return 0.8;
-  if (P.state === 'roll' || P.state === 'attack') return 0.55;
-  if (P.sprinting) return 0.75;
+  if (P.mounted) return 0.5;
+  if (P.sprinting) return 0.45;
+  if (P.state === 'roll' || P.state === 'attack') return 0.35;
   return Math.hypot(P.mvx || 0, P.mvy || 0) > 20 ? 0.12 : 0.07;
+}
+// số quái thường đang đuổi quanh người chơi: đủ đông thì tiếng động và tiếng gọi không kéo thêm con nữa
+let CHASERS = 0;
+function countChasers() {
+  CHASERS = 0;
+  for (const e of enemies) if (!e.dead && !e.elite && !e.T.miniboss && (e.state === 'chase' || e.state === 'atk') && Math.abs(e.x - P.x) < 500 && Math.abs(e.y - P.y) < 500) CHASERS++;
 }
 // tường, cổng đóng chắn tầm nhìn; mép biển, vách đá thấp và cây thì không
 function losClear(x0, y0, x1, y1) {
@@ -26,21 +36,23 @@ function losClear(x0, y0, x1, y1) {
 }
 function onScreen(x, y, m = 16) { return Math.abs(x - cam.x) < CW / ZOOM / 2 - m && Math.abs(y - cam.y) < CH / ZOOM / 2 - m; }
 function seesPlayer(e, d, ang) {
-  const T = e.T;
-  if (d < T.aggro * NOISE) return true;
-  if (d > T.aggro) return false;
+  const T = e.T, R = sightR(T);
+  if (d < R * NOISE && (CHASERS < CROWD_CAP || NOISE < 0.13)) return true;
+  if (d > R) return false;
   if (T.miniboss) return true; // chủ phòng boss luôn cảnh giác
 
   if (!(T.flier || T.floats) && Math.abs(angDiff(e.face, ang)) > 1.05) return false;
   return e.los;
 }
-// một con phát hiện thì cả nhóm quanh đó lần lượt tỉnh dậy
+// một con phát hiện thì đồng bọn cùng ổ (đứng sát nhau từ đầu) tỉnh theo, tối đa 2 con gần nhất;
+// quanh người chơi đã đủ đông thì thôi không gọi thêm
 function alertGroup(e) {
   e.alertT = 0.7;
-  for (const o of enemies) {
-    if (o === e || o.dead || o.state !== 'idle' || o.wakeAt || (o.room && G.dfight !== o.room) || o.T.miniboss) continue;
-    if (dist(o.x, o.y, e.x, e.y) < 260 && losClear(o.x, o.y, e.x, e.y)) o.wakeAt = G.clock + rand(0.15, 0.5);
-  }
+  if (CHASERS >= CROWD_CAP) return;
+  const mates = enemies.filter(o => o !== e && !o.dead && o.state === 'idle' && !o.wakeAt && !(o.room && G.dfight !== o.room) && !o.T.miniboss
+    && dist(o.x, o.y, e.x, e.y) < GROUP_R && dist(o.hx, o.hy, e.hx, e.hy) < CAMP_R && losClear(o.x, o.y, e.x, e.y));
+  mates.sort((a, b) => dist(a.x, a.y, e.x, e.y) - dist(b.x, b.y, e.x, e.y));
+  for (const o of mates.slice(0, Math.min(GROUP_MAX, CROWD_CAP - CHASERS))) o.wakeAt = G.clock + rand(0.2, 0.6);
 }
 function wake(e, group) { e.state = 'chase'; e.t = 0; e.wakeAt = 0; e.alertT = 0.7; if (group) alertGroup(e); }
 // quái thường chỉ được ra đòn khi còn lượt: mỗi lúc tối đa 2 con cận chiến và 2 con bắn xa (theo độ khó);
@@ -117,7 +129,7 @@ function warpAway(e, d0) {
   const base = Math.atan2(e.y - P.y, e.x - P.x);
   for (let k = 0; k < 10; k++) {
     const a = base + rand(-1.3, 1.3), nx = P.x + Math.cos(a) * d0, ny = P.y + Math.sin(a) * d0;
-    if (pointBlocked(nx, ny) || dist(nx, ny, e.hx, e.hy) > (e.T.leash || 680) - 40 || areaAt(nx, ny) !== areaAt(e.x, e.y)) continue;
+    if (pointBlocked(nx, ny) || dist(nx, ny, e.hx, e.hy) > (e.T.leash || LEASH) - 40 || areaAt(nx, ny) !== areaAt(e.x, e.y)) continue;
     if (e.room && e.roomRect && !inRect(nx, ny, e.roomRect, -e.r)) continue;
     e.x = nx; e.y = ny; collide(e, true); break;
   }
@@ -262,7 +274,7 @@ function enterPhase2(e) {
 function updateEnemies(dt) {
   const alive = P.state !== 'dead';
   const pInArena = inArena(P.x, P.y);
-  NOISE = playerNoise(); countTokens();
+  NOISE = playerNoise(); countTokens(); countChasers();
   for (const e of enemies) {
     e.t += dt;
     if (e.dead) continue;
@@ -305,7 +317,7 @@ function updateEnemies(dt) {
         break;
       }
       case 'return': {
-        if (alive && !asleep && homeD < 400 && !(pInArena && !e.arena) && seesPlayer(e, d, ang) && d < T.aggro * 0.6) { e.state = 'chase'; e.stuckN = 0; break; }
+        if (alive && !asleep && homeD < 300 && !(pInArena && !e.arena) && seesPlayer(e, d, ang) && d < sightR(T) * 0.6) { e.state = 'chase'; e.stuckN = 0; break; }
         const a = Math.atan2(e.hy - e.y, e.hx - e.x); e.face = turn(e.face, a, 6 * dt); goTo(a, spd);
         trackProgress(e, dt, [e.hx, e.hy]);
         e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.3 * dt);
@@ -313,10 +325,10 @@ function updateEnemies(dt) {
         break;
       }
       case 'chase': {
-        if (!alive || asleep || (homeD > (T.leash || 680) && !e.challenge) || (pInArena && !e.arena)) { e.state = 'return'; e.t = 0; break; }
+        if (!alive || asleep || (homeD > (T.leash || LEASH) && !e.challenge) || (pInArena && !e.arena)) { e.state = 'return'; e.t = 0; break; }
         // mất dấu: không thấy người chơi đủ lâu và đã ở xa thì quay về
-        e.lostT = !e.los && d > T.aggro * 0.5 && !e.challenge ? (e.lostT || 0) + dt : 0;
-        if (e.lostT > 4) { e.state = 'return'; e.t = 0; e.lostT = 0; break; }
+        e.lostT = !e.los && d > sightR(T) * 0.5 && !e.challenge ? (e.lostT || 0) + dt : 0;
+        if (e.lostT > LOST_T) { e.state = 'return'; e.t = 0; e.lostT = 0; break; }
         e.face = turn(e.face, ang, 7 * dt);
         const pick = e.p2 && T.p2.pick ? T.p2.pick : T.pick;
         if (T.flier) {
@@ -332,7 +344,7 @@ function updateEnemies(dt) {
           if (mv > 0) { goTo(ang, spd); trackProgress(e, dt, [P.x, P.y]); }
           else if (mv < 0) goTo(ang + Math.PI, spd);
           else if (side) goTo(ang + Math.PI / 2 * side, spd * 0.6);
-          if (e.cd <= 0 && d < T.aggro + 40) { const idx = pick ? pick(e, d) : 0; if (idx >= 0) tryAttack(e, idx); }
+          if (e.cd <= 0 && d < sightR(T) + 60) { const idx = pick ? pick(e, d) : 0; if (idx >= 0) tryAttack(e, idx); }
         } else {
           // đang chờ lượt thì giữ khoảng cách, lượn quanh người chơi thay vì cùng lao vào
           const reach = (T.atkRange || 50) + P.r, hold = e.waiting > 0, ring = reach * 0.85 + (hold ? 50 : 0);
