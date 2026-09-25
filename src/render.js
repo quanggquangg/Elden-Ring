@@ -64,7 +64,6 @@ function drawWeapon(L, s, wAng, o) {
   ctx.restore();
 }
 function drawHumanoid(x, y, face, L, wAng, o = {}) {
-  if (PIXEL && (ctx === wctx || ctx === sctx)) { drawHumanoidPx(x, y, face, L, wAng, o); return; }
   const s = L.scale || 1, z = o.z || 0;
   shadow(x, y + 4 * s, 13 * s * (1 - z / 200), 8 * s * (1 - z / 200), 0.35);
   ctx.save(); ctx.translate(x, y - z);
@@ -124,122 +123,6 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   else { ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 1.6 * s; ctx.beginPath(); ctx.moveTo(6.5 * s, -3 * s); ctx.lineTo(6.5 * s, 3 * s); ctx.stroke(); }
   if (o.eyes) { ctx.fillStyle = o.eyes; ctx.shadowColor = o.eyes; ctx.shadowBlur = 6; ctx.beginPath(); ctx.arc(6 * s, -2.2 * s, 1.1 * s, 0, TAU); ctx.arc(6 * s, 2.2 * s, 1.1 * s, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; }
   if (o.flash) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(0, 0, 10 * s, 13 * s, 0, 0, TAU); ctx.fill(); }
-  ctx.restore();
-}
-// ───────────────────────── người pixel art góc nhìn 3/4 ─────────────────────────
-// Ở chế độ pixel, người (nhân vật chính, quái hình người, boss) được vẽ đứng thẳng theo 4 hướng bằng các ô vuông
-// đúng lưới điểm ảnh: có bước chân, áo choàng, vũ khí vung theo tay. Viền tối được thêm sau ở bước làm sắc.
-const PX_SHADE = {};
-function pxShade(c, f) {
-  const k = c + f; if (PX_SHADE[k]) return PX_SHADE[k];
-  if (typeof c !== 'string' || c[0] !== '#' || c.length !== 7) return (PX_SHADE[k] = c);
-  const n = parseInt(c.slice(1), 16), m = v => Math.max(0, Math.min(255, Math.round(f > 0 ? v + (255 - v) * f : v * (1 + f))));
-  return (PX_SHADE[k] = `rgb(${m(n >> 16)},${m((n >> 8) & 255)},${m(n & 255)})`);
-}
-function pxLine(x0, y0, x1, y1, w, col) {
-  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
-  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, h = w >> 1;
-  let e = dx + dy; ctx.fillStyle = col;
-  for (let n = 0; n < 400; n++) {
-    ctx.fillRect(x0 - h, y0 - h, w, w);
-    if (x0 === x1 && y0 === y1) break;
-    const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; }
-  }
-}
-function drawHumanoidPx(x, y, face, L, wAng, o) {
-  const T = ctx.getTransform(), s = L.scale || 1, q = v => Math.max(1, Math.round(v * s));
-  const fx = Math.round(x * T.a + T.e), fy = Math.round((y - (o.z || 0)) * T.d + T.f + 6 * s);
-  const c = Math.cos(face), sn = Math.sin(face);
-  const dir = Math.abs(c) > Math.abs(sn) * 1.1 ? (c > 0 ? 'r' : 'l') : sn > 0 ? 'd' : 'u', side = dir === 'r' || dir === 'l', m = dir === 'l' ? -1 : 1;
-  const R = (a, b, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(fx + (m < 0 ? -a - w : a), fy + b, w, h); };
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-  if (o.alpha !== undefined) ctx.globalAlpha *= o.alpha;
-  const body = L.body || '#5a5448', trim = L.trim || '#8a8474', head = L.head || '#8a8070', cloak = L.cloak || pxShade(body, -0.35);
-  const bw = side ? q(6) : q(8), hw = side ? q(5) : q(6), torsoH = q(7), legH = o.kneel ? q(1) : q(4), headH = q(6);
-  const kneel = o.kneel ? q(3) : 0, top = -legH - torsoH - headH;
-  // bóng dưới chân
-  ctx.globalAlpha *= 0.4; ctx.fillStyle = '#000'; ctx.fillRect(fx - q(6), fy - 1, q(12), 2); ctx.fillRect(fx - q(4), fy + 1, q(8), 1); ctx.globalAlpha /= 0.4;
-  if (o.ball !== undefined) {
-    // lăn: cuộn tròn thành một khối, đầu xoay quanh
-    const r = q(5), cy = fy - r - 1;
-    ctx.fillStyle = cloak; ctx.fillRect(fx - r, cy - r + 1, r * 2, r * 2 - 2); ctx.fillRect(fx - r + 1, cy - r, r * 2 - 2, r * 2);
-    ctx.fillStyle = body; ctx.fillRect(fx - r + 2, cy - r + 2, r * 2 - 4, r * 2 - 4);
-    const a = o.ball * TAU * (m < 0 ? -1 : 1); ctx.fillStyle = head; ctx.fillRect(Math.round(fx + Math.cos(a) * (r - 2)) - 1, Math.round(cy + Math.sin(a) * (r - 2)) - 1, 3, 3);
-    ctx.restore(); return;
-  }
-  const walk = o.anim ? Math.sin(o.anim * 6) : 0, step = Math.abs(walk) > 0.35 ? Math.sign(walk) : 0;
-  // vũ khí: hướng trên mặt đất = face + wAng, chiếu xuống màn hình (trục y thu lại vì góc nhìn nghiêng)
-  const A = face + wAng, len = Math.max(6, (L.wlen || 30) * 0.55 * s + (o.thrust || 0) * 6 * s);
-  const hx = fx + (side ? m * q(2) : dir === 'd' ? -q(5) : q(5)), hy = fy - legH - q(3) + kneel;
-  const ex = hx + Math.cos(A) * len, ey = hy + Math.sin(A) * len * 0.7;
-  const drawWeaponPx = () => {
-    const wc = L.wcol || '#c8c4b8', wt = L.weapon;
-    if (o.trail) {
-      ctx.globalAlpha *= 0.55;
-      for (let k = 0; k <= 10; k++) {
-        const a = face + lerp(o.trail[0], o.trail[1], k / 10), rr = len * 0.9;
-        ctx.fillStyle = k % 3 ? '#fff4d2' : '#ffffff'; ctx.fillRect(Math.round(hx + Math.cos(a) * rr) - 1, Math.round(hy + Math.sin(a) * rr * 0.7) - 1, 3, 3);
-      }
-      ctx.globalAlpha /= 0.55;
-    }
-    if (o.hammer !== undefined) { pxLine(hx, hy, hx + Math.cos(A) * 34, hy + Math.sin(A) * 24, 2, '#6b5a3e'); const bx = hx + Math.cos(A) * 36, by = hy + Math.sin(A) * 25; ctx.fillStyle = '#ffe08a'; ctx.fillRect(Math.round(bx) - 5, Math.round(by) - 7, 11, 14); ctx.fillStyle = '#fff6d0'; ctx.fillRect(Math.round(bx) - 3, Math.round(by) - 5, 3, 10); return; }
-    if (wt === 'bow') {
-      const px = -Math.sin(A), py = Math.cos(A) * 0.7, bx = hx + Math.cos(A) * 3, by = hy + Math.sin(A) * 2;
-      for (let k = -5; k <= 5; k++) { const bend = (1 - (k * k) / 25) * 3; ctx.fillStyle = wc; ctx.fillRect(Math.round(bx + px * k * s + Math.cos(A) * bend), Math.round(by + py * k * s + Math.sin(A) * bend * 0.7), 1, 1); }
-      if (o.charge) pxLine(bx - Math.cos(A) * o.charge * 5, by - Math.sin(A) * o.charge * 3, bx + Math.cos(A) * 12, by + Math.sin(A) * 8, 1, '#e8e2d0');
-      return;
-    }
-    const shaft = wt === 'spear' || wt === 'staff' || wt === 'scythe' || wt === 'axe' || wt === 'club';
-    pxLine(hx - Math.cos(A) * 2, hy - Math.sin(A) * 1.4, ex, ey, wt === 'greatsword' ? q(2) + 1 : shaft ? 1 + (s > 1.3 ? 1 : 0) : q(1) + (s > 1.4 ? 1 : 0), shaft ? (wt === 'staff' ? wc : '#6b5a3e') : wc);
-    if (!shaft) { ctx.fillStyle = '#6b5a3e'; ctx.fillRect(Math.round(hx) - 1, Math.round(hy) - 1, 3, 3); if (L.glow) { ctx.fillStyle = typeof L.glow === 'string' ? L.glow : '#ffd76a'; ctx.fillRect(Math.round((hx + ex) / 2), Math.round((hy + ey) / 2), 1, 1); } }
-    const X = Math.round(ex), Y = Math.round(ey);
-    if (wt === 'spear') pxLine(ex, ey, ex + Math.cos(A) * 4 * s, ey + Math.sin(A) * 3 * s, 2, wc);
-    else if (wt === 'staff') { const r = 1 + Math.round((o.charge || 0) * 2); ctx.fillStyle = L.orb || '#bfe4ff'; ctx.fillRect(X - r, Y - r, r * 2 + 1, r * 2 + 1); }
-    else if (wt === 'axe') { ctx.fillStyle = wc; ctx.fillRect(X - q(2), Y - q(3), q(4), q(5)); }
-    else if (wt === 'club') { ctx.fillStyle = wc; ctx.fillRect(X - q(3), Y - q(3), q(6), q(6)); }
-    else if (wt === 'scythe') pxLine(ex, ey, ex - Math.sin(A) * 8 * s - Math.cos(A) * 3 * s, ey + Math.cos(A) * 6 * s, 2, wc);
-    if (o.stab) pxLine(ex, ey, ex + Math.cos(A) * 14 * s, ey + Math.sin(A) * 10 * s, 1, '#fff4d2');
-  };
-  const wBehind = Math.sin(A) < -0.25 || dir === 'u';
-  // áo choàng phía sau
-  const cw = side ? q(6) : q(10), wave = step ? 1 : 0;
-  if (dir !== 'u') { ctx.fillStyle = cloak; ctx.fillRect(fx - (side ? (m > 0 ? cw : 0) : cw / 2) + (side ? -m * q(2) + (m > 0 ? cw - q(2) : 0) : 0), fy - legH - torsoH + kneel, side ? q(3) : cw, torsoH + legH - 1 + wave); }
-  if (wBehind) drawWeaponPx();
-  // chân bước
-  if (!o.kneel) {
-    const lA = step > 0 ? -1 : 0, lB = step < 0 ? -1 : 0;
-    if (side) { R(-q(2) + step * m, -legH + lA, q(2), legH - lA, pxShade(body, -0.45)); R(q(0) - step * m, -legH + lB, q(2), legH - lB, pxShade(body, -0.3)); }
-    else { R(-q(3), -legH + lA, q(2), legH - lA, pxShade(body, -0.4)); R(q(1), -legH + lB, q(2), legH - lB, pxShade(body, -0.4)); }
-  }
-  // thân: sáng bên trái, tối bên phải, thắt lưng màu viền
-  const ty = fy - legH - torsoH + kneel;
-  ctx.fillStyle = body; ctx.fillRect(fx - (bw >> 1), ty, bw, torsoH);
-  ctx.fillStyle = pxShade(body, 0.18); ctx.fillRect(fx - (bw >> 1), ty, 1, torsoH - 1);
-  ctx.fillStyle = pxShade(body, -0.28); ctx.fillRect(fx - (bw >> 1) + bw - 1, ty, 1, torsoH);
-  ctx.fillStyle = trim; ctx.fillRect(fx - (bw >> 1), ty + torsoH - q(2), bw, 1);
-  if (dir === 'u') { ctx.fillStyle = cloak; ctx.fillRect(fx - q(5), ty, q(10), torsoH + legH - 1 + wave); ctx.fillStyle = pxShade(cloak, 0.15); ctx.fillRect(fx - q(5), ty, q(10), 1); }
-  // vai và tay
-  ctx.fillStyle = trim;
-  if (side) ctx.fillRect(fx - q(2), ty, q(4), q(2));
-  else { ctx.fillRect(fx - (bw >> 1) - q(1), ty, q(3), q(2)); ctx.fillRect(fx + (bw >> 1) - q(2), ty, q(3), q(2)); }
-  // khiên hoặc chất xúc tác ở tay trái
-  if (o.shield === 3) { ctx.fillStyle = '#4a4f58'; ctx.fillRect(fx + (side ? m * q(2) - q(2) : dir === 'd' ? q(3) : -q(7)), ty - q(1), q(4), q(9)); }
-  else if (o.shield) {
-    const up = o.shield === 2, sc = o.kite ? '#5a5f68' : '#6b5638', sw = up ? q(7) : q(4), sh = up ? q(8) : q(5);
-    const sxp = up ? (side ? fx + m * q(3) - (sw >> 1) : fx - (sw >> 1)) : side ? fx - m * q(3) - (sw >> 1) : dir === 'd' ? fx + q(3) : fx - q(7);
-    if (!(dir === 'u' && !up)) { ctx.fillStyle = sc; ctx.fillRect(sxp, ty + (up ? -1 : 1), sw, sh); ctx.fillStyle = o.kite ? '#c8ccd2' : '#b9b29c'; ctx.fillRect(sxp, ty + (up ? -1 : 1), sw, 1); ctx.fillRect(sxp + (sw >> 1), ty + (up ? 1 : 3), 1, 1); }
-  } else if (o.cat) { ctx.fillStyle = o.cat === 'staff' ? '#bfe4ff' : '#d8b45a'; const k = 1 + Math.round((o.castK || 0) * 2); ctx.fillRect(fx + (dir === 'd' ? q(4) : -q(6)), ty - k, k + 1, k + 1); }
-  // đầu
-  const hy0 = ty - headH + 1;
-  ctx.fillStyle = head; ctx.fillRect(fx - (hw >> 1), hy0, hw, headH - 1);
-  ctx.fillStyle = pxShade(head, 0.2); ctx.fillRect(fx - (hw >> 1), hy0, hw, 1);
-  ctx.fillStyle = pxShade(head, -0.3); ctx.fillRect(fx - (hw >> 1), hy0 + headH - 2, hw, 1);
-  if (L.hood) { ctx.fillStyle = pxShade(cloak, -0.1); ctx.fillRect(fx - (hw >> 1) - 1, hy0 - 1, hw + 2, q(2)); if (!side && dir !== 'u') { ctx.fillRect(fx - (hw >> 1) - 1, hy0, 1, headH - 1); ctx.fillRect(fx + (hw >> 1), hy0, 1, headH - 1); } }
-  const eyeC = o.eyes || (L.hood ? '#0a0806' : '#1a1410'), eyeY = hy0 + q(3) - 1;
-  if (dir === 'd') { ctx.fillStyle = L.hood ? '#0a0806' : pxShade(head, -0.45); ctx.fillRect(fx - q(2), eyeY - 1, q(4) + 1, q(2)); ctx.fillStyle = o.eyes || (L.glow ? (typeof L.glow === 'string' ? L.glow : '#ffd76a') : eyeC); ctx.fillRect(fx - q(2), eyeY, 1, 1); ctx.fillRect(fx + q(2), eyeY, 1, 1); }
-  else if (side) { ctx.fillStyle = L.hood ? '#0a0806' : pxShade(head, -0.45); ctx.fillRect(fx + m * q(1) - (m < 0 ? q(1) : 0), eyeY - 1, q(2), q(2)); ctx.fillStyle = o.eyes || (L.glow ? (typeof L.glow === 'string' ? L.glow : '#ffd76a') : eyeC); ctx.fillRect(fx + m * q(2), eyeY, 1, 1); }
-  if (!wBehind) drawWeaponPx();
-  if (o.flash) { ctx.globalAlpha *= 0.6; ctx.fillStyle = '#fff'; ctx.fillRect(fx - (bw >> 1), hy0, bw, fy - hy0); }
   ctx.restore();
 }
 function drawHorse(x, y, face, anim) {
@@ -308,7 +191,7 @@ function drawPlayer() {
       ctx.globalAlpha = 0.22; drawHumanoid(p.x - Math.cos(p.rollDir) * 14, p.y - Math.sin(p.rollDir) * 14, p.rollDir, LOOK, wAng, o); ctx.globalAlpha = 1;
     }
     ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1 - Math.sin(k * Math.PI) * 0.22, 1 - Math.sin(k * Math.PI) * 0.22); ctx.translate(-p.x, -p.y);
-    drawHumanoid(p.x, p.y, p.rollDir, LOOK, wAng, Object.assign({}, o, { ball: k }));
+    drawHumanoid(p.x, p.y, p.rollDir, LOOK, wAng, o);
     ctx.restore();
   } else {
     drawHumanoid(p.x, p.y - (p.mounted ? 6 : 0), p.face + spinRot, LOOK, wAng, o);
@@ -709,12 +592,32 @@ function pixelPost() {
 // cắt độ trong suốt thành bậc cứng (hết nhòe cạnh), giảm màu, và viền tối 1 điểm ảnh quanh hình như pixel art vẽ tay.
 const SPR = document.createElement('canvas'), sctx = SPR.getContext('2d', { willReadFrequently: true });
 const OUTLINE = [22, 17, 12];
+// Hết nhòe: điểm ảnh ở mép giữa hai mảng màu (do khử răng cưa) bị ép về màu gần nhất trong số các màu chính của hình,
+// nên mỗi mảng màu có cạnh cứng như vẽ tay từng điểm.
+const HIST = new Uint32Array(4096), HSUM = new Float32Array(4096 * 3);
 function crispify(c, n) {
-  const img = c.getImageData(0, 0, n, n), d = img.data, A = new Uint8Array(n * n);
-  for (let p = 0, i = 0; p < n * n; p++, i += 4) {
+  const img = c.getImageData(0, 0, n, n), d = img.data, A = new Uint8Array(n * n), N = n * n;
+  HIST.fill(0); HSUM.fill(0);
+  for (let p = 0, i = 0; p < N; p++, i += 4) {
     const a = d[i + 3];
     if (a < 56) { d[i + 3] = 0; continue; }
-    if (a > 176) { d[i + 3] = 255; A[p] = 1; } else d[i + 3] = 120;
+    if (a > 176) { d[i + 3] = 255; A[p] = 1; const h = (d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | d[i + 2] >> 4; HIST[h]++; HSUM[h * 3] += d[i]; HSUM[h * 3 + 1] += d[i + 1]; HSUM[h * 3 + 2] += d[i + 2]; } else d[i + 3] = 120;
+  }
+  // bảng màu của hình: tối đa 12 màu xuất hiện nhiều nhất
+  const pal = [];
+  for (let k = 0; k < 12; k++) {
+    let best = -1, bc = 2;
+    for (let h = 0; h < 4096; h++) if (HIST[h] > bc) { bc = HIST[h]; best = h; }
+    if (best < 0) break;
+    pal.push([HSUM[best * 3] / bc | 0, HSUM[best * 3 + 1] / bc | 0, HSUM[best * 3 + 2] / bc | 0]); HIST[best] = 0;
+  }
+  if (pal.length) for (let p = 0, i = 0; p < N; p++, i += 4) {
+    if (!A[p]) continue;
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    let bd = 1e9, bi = 0;
+    for (let k = 0; k < pal.length; k++) { const q = pal[k], e = (r - q[0]) * (r - q[0]) * 3 + (g - q[1]) * (g - q[1]) * 4 + (b - q[2]) * (b - q[2]) * 2; if (e < bd) { bd = e; bi = k; } }
+    // màu quá xa bảng (điểm nhấn nhỏ như mắt phát sáng) thì giữ nguyên
+    if (bd < 9000) { const q = pal[bi]; d[i] = q[0]; d[i + 1] = q[1]; d[i + 2] = q[2]; }
   }
   for (let y = 1; y < n - 1; y++) for (let x = 1; x < n - 1; x++) {
     const p = y * n + x, i = p * 4;
