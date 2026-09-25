@@ -289,9 +289,18 @@ function drawDragon() {
   const d = dragon;
   if (!d || !inView(d.x, d.y, 320)) return;
   if (d.dead && d.t > 3) return;
+  // động tác báo đòn thay cho vệt cảnh báo: cắn thì rụt đầu, há miệng rồi mổ tới; vả thì giơ vuốt; quật đuôi thì cuộn đuôi
+  let headPull = 0, jaw = 0, claw = 0, tailCurl = 0, eyeFlash = 0;
   if (d.state === 'atk' && d.atk) {
     const s = d.atk.steps[d.atk.i], t = d.atk.t;
-    if (s.k === 'tail' && t < s.wind) { ctx.strokeStyle = `rgba(230,110,50,${0.2 + t / s.wind * 0.5})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(d.x, d.y, s.r, 0, TAU); ctx.stroke(); }
+    if (s && s.k === 'melee') {
+      const bite = s.arc < 2, k = Math.min(1, t / s.wind), inAct = t >= s.wind && t < s.wind + s.act;
+      if (bite) {
+        headPull = t < s.wind ? -26 * (1 - Math.pow(1 - k, 2)) : inAct ? 30 : 30 * Math.max(0, 1 - (t - s.wind - s.act) / s.rec * 2);
+        jaw = t < s.wind ? k : inAct ? 1 - (t - s.wind) / s.act : 0;
+      } else claw = t < s.wind ? k : inAct ? -1 : 0;
+      eyeFlash = t < s.wind && k > 0.45 ? 1 : 0;
+    } else if (s && s.k === 'tail' && t < s.wind) tailCurl = t / s.wind;
   }
   const alpha = d.dead ? Math.max(0, 1 - d.t / 3) : 1, z = d.z || 0;
   shadow(d.x, d.y + 8, 78 * (1 - z / 420), 44 * (1 - z / 420), 0.4 * alpha);
@@ -301,7 +310,7 @@ function drawDragon() {
   const flap = d.flying ? Math.sin(d.anim * 10) : d.state === 'wake' ? Math.sin(d.anim * 6) * 0.6 : Math.sin(d.anim * 1.2) * 0.12;
   const body = '#5b4f46', dark = '#2a231f';
   for (let i = 7; i >= 0; i--) {
-    const tx = -34 - i * 13, ty = Math.sin(d.anim * 2 + i * 0.7) * (2 + i * 1.6) + (d.state === 'sleep' ? i * i * 0.9 : 0);
+    const tx = -34 - i * 13 + tailCurl * i * 3, ty = Math.sin(d.anim * 2 + i * 0.7) * (2 + i * 1.6) + (d.state === 'sleep' ? i * i * 0.9 : 0) + tailCurl * i * i * 1.6;
     ctx.fillStyle = i % 2 ? body : '#534840'; ctx.beginPath(); ctx.arc(tx, ty, 15 - i * 1.6, 0, TAU); ctx.fill();
   }
   const sp = d.state === 'sleep' ? 0.55 : 1;
@@ -317,12 +326,34 @@ function drawDragon() {
   ctx.fillStyle = 'rgba(140,120,100,.25)'; ctx.beginPath(); ctx.ellipse(-4, 0, 30, 12, 0, 0, TAU); ctx.fill();
   ctx.fillStyle = '#3a312b';
   for (let i = 0; i < 6; i++) { const sx = 30 - i * 14; ctx.beginPath(); ctx.moveTo(sx + 5, 0); ctx.lineTo(sx - 5, -5); ctx.lineTo(sx - 5, 5); ctx.closePath(); ctx.fill(); }
-  const na = dragonNeck(d), hx = 34 + Math.cos(na) * 38, hy = Math.sin(na) * 38;
+  // vuốt trước: giơ ra sau khi lấy đà, quét về phía trước khi vả
+  if (claw) {
+    for (const side of [-1, 1]) {
+      const a = claw > 0 ? -0.6 - claw * 0.9 : 0.5, cx = 22 + Math.cos(a) * 20, cy = side * (22 + Math.sin(-a) * 6 + (claw > 0 ? claw * 10 : 0));
+      ctx.strokeStyle = '#3a312b'; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(14, side * 16); ctx.lineTo(cx, cy); ctx.stroke();
+      ctx.strokeStyle = '#e8dcc0'; ctx.lineWidth = 2; ctx.beginPath();
+      for (let f = -1; f <= 1; f++) { ctx.moveTo(cx, cy + f * 3); ctx.lineTo(cx + 9, cy + f * 5); }
+      ctx.stroke(); ctx.lineCap = 'butt';
+    }
+  }
+  const na = dragonNeck(d), hx = 34 + headPull + Math.cos(na) * 38, hy = Math.sin(na) * 38;
   ctx.strokeStyle = body; ctx.lineWidth = 20; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(24, 0); ctx.quadraticCurveTo(40, hy * 0.3, hx, hy); ctx.stroke(); ctx.lineCap = 'butt';
   ctx.save(); ctx.translate(hx, hy); ctx.rotate(na);
+  // ngóc đầu lên (to dần về phía người xem) khi lấy đà cắn
+  if (jaw > 0 && headPull < 0) { const up = 1 + jaw * 0.45; ctx.scale(up, up); }
   ctx.fillStyle = '#675a50'; ctx.strokeStyle = dark; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.ellipse(6, 0, 20, 12, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  if (jaw > 0.05) {
+    // hàm mở: hai nửa đầu tách ra, lộ miệng đỏ và răng trắng
+    const o = jaw * 13;
+    ctx.fillStyle = '#7a1a12'; ctx.beginPath(); ctx.ellipse(12, 0, 16, o + 2, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#675a50';
+    ctx.beginPath(); ctx.ellipse(6, -o, 20, 9, -jaw * 0.25, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(6, o, 20, 8, jaw * 0.25, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f4ecd8';
+    for (let i = 0; i < 4; i++) { const tx = 12 + i * 5; ctx.fillRect(tx, -o + 5, 2, 4); ctx.fillRect(tx, o - 8, 2, 4); }
+  } else { ctx.beginPath(); ctx.ellipse(6, 0, 20, 12, 0, 0, TAU); ctx.fill(); ctx.stroke(); }
+  if (eyeFlash) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(6, -11 - jaw * 13, 6, 4); ctx.fillRect(6, 7 + jaw * 13, 6, 4); }
   ctx.strokeStyle = '#cfc2a8'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(-2, -8); ctx.lineTo(-18, -16); ctx.moveTo(-2, 8); ctx.lineTo(-18, 16); ctx.stroke();
   const glow = d.breathing ? 1 : d.charge;
@@ -351,8 +382,10 @@ function drawBeast(e) {
   const B = e.T.beast || { col: '#6d6b64' }, sc = B.scale || 1, z = e.z || 0;
   shadow(e.x, e.y + 4 * sc, 18 * sc * (1 - z / 200), 8 * sc, 0.3 * alpha);
   ctx.save(); ctx.globalAlpha = alpha; ctx.translate(e.x, e.y - z); ctx.rotate(e.face); ctx.scale(sc, sc);
-  const windup = e.state === 'atk' && e.atk && e.t < e.atk.wind;
-  const c = windup ? -4 : 0, leg = e.moving || z > 0 ? Math.sin(e.anim * 16) * 4 : 0, dark = shade(B.col, 0.7), light = shade(B.col, 1.12);
+  const windup = e.state === 'atk' && e.atk && e.t < e.atk.wind, wk = windup ? Math.min(1, e.t / e.atk.wind) : 0;
+  const lunging = e.state === 'atk' && e.atk && e.t >= e.atk.wind && e.t < e.atk.wind + (e.atk.act || 0.15);
+  // lấy đà: thu người về sau, rung nhẹ, rồi vươn dài khi vồ
+  const c = windup ? -9 * wk + (wk > 0.5 ? Math.sin(e.anim * 60) * 1.2 : 0) : lunging ? 6 : 0, leg = e.moving || z > 0 ? Math.sin(e.anim * 16) * 4 : 0, dark = shade(B.col, 0.7), light = shade(B.col, 1.12);
   ctx.strokeStyle = dark; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(8 + c, -6); ctx.lineTo(10 + c + leg, -10); ctx.moveTo(8 + c, 6); ctx.lineTo(10 + c - leg, 10);
   ctx.moveTo(-8, -6); ctx.lineTo(-10 - leg, -10); ctx.moveTo(-8, 6); ctx.lineTo(-10 + leg, 10); ctx.stroke();
@@ -364,7 +397,8 @@ function drawBeast(e) {
   ctx.fillStyle = light; ctx.beginPath(); ctx.arc(14 + c * 0.5, 0, 7, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.fillStyle = shade(B.col, 0.9); ctx.beginPath(); ctx.ellipse(20 + c * 0.5, 0, 5, 3.5, 0, 0, TAU); ctx.fill();
   ctx.fillStyle = light; ctx.beginPath(); ctx.moveTo(10, -4); ctx.lineTo(8, -10); ctx.lineTo(14, -6); ctx.moveTo(10, 4); ctx.lineTo(8, 10); ctx.lineTo(14, 6); ctx.fill();
-  if (!e.dead && e.state !== 'idle') { ctx.fillStyle = B.eye || '#ff5a3a'; ctx.beginPath(); ctx.arc(17, -2.6, 1.2, 0, TAU); ctx.arc(17, 2.6, 1.2, 0, TAU); ctx.fill(); }
+  if (windup && wk > 0.3) { ctx.fillStyle = '#f4ecd8'; ctx.fillRect(22 + c * 0.5, -2.5, 3, 1.5); ctx.fillRect(22 + c * 0.5, 1, 3, 1.5); }
+  if (!e.dead && e.state !== 'idle') { const big = windup && wk > 0.5; ctx.fillStyle = big ? '#fff2a0' : B.eye || '#ff5a3a'; ctx.beginPath(); ctx.arc(17 + c * 0.5, -2.6, big ? 2 : 1.2, 0, TAU); ctx.arc(17 + c * 0.5, 2.6, big ? 2 : 1.2, 0, TAU); ctx.fill(); }
   if (e.hurtFlash > 0) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(0, 0, 17, 9, 0, 0, TAU); ctx.fill(); }
   ctx.restore();
 }
@@ -372,12 +406,14 @@ function drawBat(e) {
   const alpha = e.dead ? Math.max(0, 1 - e.t / 1.2) : 1;
   if (alpha <= 0) return;
   shadow(e.x, e.y + 14, 8, 4, 0.25 * alpha);
-  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(e.x, e.y - 12); ctx.rotate(e.face);
-  const f = Math.sin(e.anim * 24);
+  // lấy đà: bay vọt lên, dang rộng cánh, mắt sáng lên rồi mới lao xuống
+  const bw = e.state === 'atk' && e.atk && e.t < e.atk.wind ? Math.min(1, e.t / e.atk.wind) : 0;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(e.x - Math.cos(e.face) * bw * 8, e.y - 12 - bw * 12 - Math.sin(e.face) * bw * 8); ctx.rotate(e.face);
+  const f = bw ? 0.9 : Math.sin(e.anim * 24);
   ctx.fillStyle = '#3a2a30';
   for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(-4, s * (14 + f * 6)); ctx.lineTo(-8, s * (8 + f * 3)); ctx.lineTo(-3, s * 3); ctx.closePath(); ctx.fill(); }
   ctx.fillStyle = '#4a3238'; ctx.beginPath(); ctx.ellipse(0, 0, 7, 4.5, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#ff4a3a'; ctx.beginPath(); ctx.arc(5, -1.5, 1, 0, TAU); ctx.moveTo(6, 1.5); ctx.arc(5, 1.5, 1, 0, TAU); ctx.fill();
+  ctx.fillStyle = bw > 0.4 ? '#fff2a0' : '#ff4a3a'; ctx.beginPath(); ctx.arc(5, -1.5, bw > 0.4 ? 1.8 : 1, 0, TAU); ctx.moveTo(6, 1.5); ctx.arc(5, 1.5, bw > 0.4 ? 1.8 : 1, 0, TAU); ctx.fill();
   if (e.hurtFlash > 0) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(0, 0, 8, 6, 0, 0, TAU); ctx.fill(); }
   ctx.restore();
 }
@@ -385,7 +421,10 @@ function drawSpider(e) {
   const alpha = e.dead ? Math.max(0, 1 - e.t / 1.2) : 1;
   if (alpha <= 0) return;
   shadow(e.x, e.y + 4, 18, 10, 0.3 * alpha);
-  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(e.x, e.y); ctx.rotate(e.face);
+  // lấy đà: rướn người lùi lại, giơ hai chân trước và nanh lên
+  const sw0 = e.state === 'atk' && e.atk && e.t < e.atk.wind ? Math.min(1, e.t / e.atk.wind) : 0;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(e.x - Math.cos(e.face) * sw0 * 6, e.y - Math.sin(e.face) * sw0 * 6); ctx.rotate(e.face);
+  if (sw0) { ctx.strokeStyle = '#2a2622'; ctx.lineWidth = 2.6; for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(6, s * 4); ctx.lineTo(14 + sw0 * 6, s * (10 + sw0 * 6)); ctx.lineTo(22 + sw0 * 4, s * (6 + sw0 * 4)); ctx.stroke(); } }
   ctx.strokeStyle = '#2a2622'; ctx.lineWidth = 2.2;
   for (const s of [-1, 1]) for (let i = 0; i < 4; i++) {
     const bx = 4 - i * 4, sw = Math.sin(e.anim * 14 + i * 1.3 + (s > 0 ? 1 : 0)) * (e.moving ? 4 : 1);
@@ -394,7 +433,8 @@ function drawSpider(e) {
   ctx.fillStyle = '#3a3a2e'; ctx.beginPath(); ctx.ellipse(-11, 0, 12, 10, 0, 0, TAU); ctx.fill();
   ctx.fillStyle = '#8fc04a'; ctx.beginPath(); ctx.ellipse(-12, 0, 5, 3, 0, 0, TAU); ctx.fill();
   ctx.fillStyle = '#2f2f26'; ctx.beginPath(); ctx.arc(5, 0, 7, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#d0ff7a'; for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(10, s * 2.5, 1.2, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = sw0 > 0.4 ? '#fff2a0' : '#d0ff7a'; for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(10, s * 2.5, sw0 > 0.4 ? 2 : 1.2, 0, TAU); ctx.fill(); }
+  if (sw0 > 0.3) { ctx.fillStyle = '#f4ecd8'; ctx.fillRect(11, -2, 4, 1.5); ctx.fillRect(11, 0.5, 4, 1.5); }
   if (e.hurtFlash > 0) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(-4, 0, 16, 10, 0, 0, TAU); ctx.fill(); }
   ctx.restore();
 }
@@ -572,18 +612,29 @@ function drawObjects() {
     if (w > 0) { ctx.strokeStyle = `rgba(255,120,50,${0.3 + w * 0.5})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r, 0, TAU); ctx.stroke(); ctx.fillStyle = `rgba(255,90,30,${w * 0.2})`; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r * w, 0, TAU); ctx.fill(); }
   }
 }
-// giảm bảng màu: dải chuyển của ánh sáng thành các bậc màu rõ ràng như game pixel cổ điển
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(() => 0);
+// Phong cách mảng màu phẳng (theo Hyper Light Drifter): mỗi màu được ép về một bảng màu cố định theo sắc độ,
+// độ bão hòa và độ sáng, nên mặt đất, ánh sáng và bóng tối chuyển thành các mảng màu rõ ràng thay vì dải mờ.
+// Bảng tra 32×32×32 được tính sẵn một lần, mỗi điểm ảnh chỉ cần tra một lần.
 const QLUT = new Uint8Array(512);
 for (let i = 0; i < 512; i++) QLUT[i] = Math.max(0, Math.min(255, Math.round((i - 128) / 12) * 12 + 2));
+const PLUT = new Uint8Array(32768 * 3);
+(function buildPaletteLUT() {
+  const HS = 24, SS = 5, VS = 9;
+  for (let r5 = 0; r5 < 32; r5++) for (let g5 = 0; g5 < 32; g5++) for (let b5 = 0; b5 < 32; b5++) {
+    const r = (r5 * 8 + 4) / 255, g = (g5 * 8 + 4) / 255, b = (b5 * 8 + 4) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), dl = mx - mn;
+    let h = 0; if (dl > 0) h = mx === r ? ((g - b) / dl + 6) % 6 : mx === g ? (b - r) / dl + 2 : (r - g) / dl + 4;
+    let sat = mx ? dl / mx : 0, v = mx;
+    h = Math.round(h / 6 * HS) / HS * 6; sat = Math.min(1, Math.round(sat * 1.08 * SS) / SS); v = Math.round(Math.pow(v, 0.9) * VS) / VS; v = Math.pow(v, 1 / 0.9);
+    const c = v * sat, x = c * (1 - Math.abs(h % 2 - 1)), m = v - c, k = (r5 << 10 | g5 << 5 | b5) * 3;
+    const [R, G, B] = h < 1 ? [c, x, 0] : h < 2 ? [x, c, 0] : h < 3 ? [0, c, x] : h < 4 ? [0, x, c] : h < 5 ? [x, 0, c] : [c, 0, x];
+    PLUT[k] = Math.round((R + m) * 255); PLUT[k + 1] = Math.round((G + m) * 255); PLUT[k + 2] = Math.round((B + m) * 255);
+  }
+})();
 function pixelPost() {
-  const w = wcan.width, h = wcan.height, img = wctx.getImageData(0, 0, w, h), d = img.data;
-  for (let y = 0; y < h; y++) {
-    const row = (y & 3) << 2;
-    for (let x = 0, i = y * w * 4; x < w; x++, i += 4) {
-      const b = BAYER[row | (x & 3)] + 128;
-      d[i] = QLUT[(d[i] + b) | 0]; d[i + 1] = QLUT[(d[i + 1] + b) | 0]; d[i + 2] = QLUT[(d[i + 2] + b) | 0];
-    }
+  const w = wcan.width, h = wcan.height, img = wctx.getImageData(0, 0, w, h), d = img.data, n = w * h * 4;
+  for (let i = 0; i < n; i += 4) {
+    const k = ((d[i] >> 3) << 10 | (d[i + 1] >> 3) << 5 | d[i + 2] >> 3) * 3;
+    d[i] = PLUT[k]; d[i + 1] = PLUT[k + 1]; d[i + 2] = PLUT[k + 2];
   }
   wctx.putImageData(img, 0, 0);
 }
@@ -1137,14 +1188,9 @@ function render() {
   }
   collectLights();
   renderLighting(x0, y0);
-  if (PIXEL) {
-    // phóng to thế giới pixel art lên màn hình, giữ nguyên cạnh sắc của từng điểm ảnh
-    if (!FX_LOW) pixelPost();
-    ctx = mainCtx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-    ctx.imageSmoothingEnabled = false; ctx.drawImage(wcan, 0, 0, wcan.width * PIXK, wcan.height * PIXK); ctx.imageSmoothingEnabled = true;
-  }
-  flushWText(x0, y0);
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // lớp không khí (tông màu vùng, tia nắng, viền tối): ở chế độ pixel được vẽ vào ảnh pixel trước khi giảm màu,
+  // để không phủ một lớp mịn mờ lên trên ảnh đã phóng to
+  ctx.setTransform(PIXEL ? DPR / PIXK : DPR, 0, 0, PIXEL ? DPR / PIXK : DPR, 0, 0);
   const [, , , , tr, tg, tb, ta] = G.amb;
   if (ta > 0.01 && !FX_LOW) { ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = `rgba(${tr | 0},${tg | 0},${tb | 0},${ta})`; ctx.fillRect(0, 0, CW, CH); ctx.globalCompositeOperation = 'source-over'; }
   drawGodRays();
@@ -1152,6 +1198,14 @@ function render() {
   top.addColorStop(0, `rgba(255,205,110,${cam.y < 400 && !inst ? 0.14 : 0.06})`); top.addColorStop(1, 'rgba(255,205,110,0)');
   ctx.fillStyle = top; ctx.fillRect(0, 0, CW, CH * 0.5);
   ctx.fillStyle = VIGNETTE; ctx.fillRect(0, 0, CW, CH);
+  if (PIXEL) {
+    // giảm màu theo phong cách mảng phẳng rồi phóng to, giữ nguyên cạnh sắc của từng điểm ảnh
+    pixelPost();
+    ctx = mainCtx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(wcan, 0, 0, wcan.width * PIXK, wcan.height * PIXK); ctx.imageSmoothingEnabled = true;
+  }
+  flushWText(x0, y0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   if (G.flash > 0) { ctx.fillStyle = `rgba(150,10,10,${G.flash * 0.35})`; ctx.fillRect(0, 0, CW, CH); }
   drawInteractHints();
   if (G.mode !== 'title') drawHUD();
