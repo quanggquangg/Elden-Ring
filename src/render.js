@@ -257,17 +257,50 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   if (o.flash) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(0, 0, 10 * s, 13 * s, 0, 0, TAU); ctx.fill(); }
   ctx.restore();
 }
+// ngựa linh: thân đen ánh xanh, bờm và đuôi là lửa hồn, yên da viền vàng; phi thì bốn chân so le
 function drawHorse(x, y, face, anim) {
-  shadow(x, y + 5, 30, 14, 0.3);
+  const moving = Math.hypot(P.mvx || 0, P.mvy || 0) > 20, g = moving ? anim * 2.2 : 0, bob = moving ? Math.abs(Math.sin(g)) * 2 : Math.sin(G.clock * 2) * 0.8;
+  shadow(x, y + 5, 32, 14, 0.32);
   ctx.save(); ctx.translate(x, y); ctx.rotate(face);
-  const bob = Math.sin(anim * 2) * 1.5;
-  ctx.shadowColor = 'rgba(150,200,255,.6)'; ctx.shadowBlur = 10;
-  ctx.fillStyle = '#2d3038'; ctx.beginPath(); ctx.ellipse(0, 0, 30, 12, 0, 0, TAU); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.beginPath(); ctx.ellipse(30 + bob, 0, 11, 6.5, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = '#11141a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(24, 0); ctx.lineTo(8, 0); ctx.stroke();
-  ctx.strokeStyle = 'rgba(160,210,255,.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-30, 0); ctx.quadraticCurveTo(-42, Math.sin(anim * 3) * 6, -48, 0); ctx.stroke();
-  ctx.fillStyle = '#b8a26a'; ctx.beginPath(); ctx.arc(37 + bob, -2.5, 1.3, 0, TAU); ctx.arc(37 + bob, 2.5, 1.3, 0, TAU); ctx.fill();
+  const col = '#2d3038', dark = '#1a1c22';
+  // bốn chân có móng, so le khi phi
+  for (const [bx, sy, ph] of [[16, -1, 0], [16, 1, Math.PI], [-17, -1, Math.PI * 0.5], [-17, 1, Math.PI * 1.5]]) {
+    const sw = moving ? Math.sin(g + ph) * 9 : 0;
+    legLine(bx, sy * 7, bx + sw, sy * 12, 4, dark);
+    ctx.fillStyle = '#4a4a50'; ctx.strokeStyle = OL; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(bx + sw, sy * 12.5, 2.8, 2.2, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  }
+  // đuôi lửa hồn bay theo gió
+  const tw = Math.sin(G.clock * 4) * 5;
+  for (const [w, c] of [[7, 'rgba(120,180,255,.25)'], [4, 'rgba(170,215,255,.6)'], [1.6, 'rgba(235,248,255,.9)']]) {
+    ctx.strokeStyle = c; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-27, 0); ctx.quadraticCurveTo(-40, tw, -52 - (moving ? 6 : 0), tw * 1.6); ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  // thân đổ sáng, cơ vai và hông
+  ctx.shadowColor = 'rgba(150,200,255,.5)'; ctx.shadowBlur = 10;
+  ctx.fillStyle = litGrad(col, 6, -4, 30); ctx.strokeStyle = OL; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.ellipse(0, 0, 29, 12 + bob * 0.3, 0, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+  ctx.strokeStyle = 'rgba(10,10,14,.45)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(14, 0, 9, -1.2, 1.2); ctx.moveTo(-10, -9); ctx.arc(-16, 0, 11, -0.9, 0.9); ctx.stroke();
+  ctx.strokeStyle = 'rgba(150,190,255,.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-22, -4); ctx.quadraticCurveTo(0, -9, 20, -5); ctx.stroke();
+  // yên da, chăn yên đỏ viền vàng, bàn đạp
+  ctx.fillStyle = '#6a1f1a'; ctx.strokeStyle = OL; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.roundRect(-11, -11, 18, 22, 3); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#c9a44e'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(-9.5, -9.5, 15, 19, 2); ctx.stroke();
+  ctx.fillStyle = litGrad('#5a3a22', -1, -3, 9); ctx.strokeStyle = OL; ctx.beginPath(); ctx.ellipse(-2, 0, 8, 7.5, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#c9a44e'; for (const sy of [-1, 1]) ctx.fillRect(-3, sy * 12.5 - 1, 3, 2);
+  // cổ và đầu vươn ra trước, bờm lửa hồn dọc cổ
+  const hx = 34 + bob * 0.6;
+  ctx.fillStyle = litGrad(col, 22, -2, 10); ctx.strokeStyle = OL; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(18, -7); ctx.quadraticCurveTo(26, -6, hx - 4, -4.5); ctx.lineTo(hx - 4, 4.5); ctx.quadraticCurveTo(26, 6, 18, 7); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = litGrad('#34373f', hx + 2, -2, 9); ctx.beginPath(); ctx.ellipse(hx + 2, 0, 9, 5.8, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3e4048'; ctx.beginPath(); ctx.ellipse(hx + 9, 0, 3.4, 4.2, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#101216'; ctx.beginPath(); ctx.arc(hx + 11, -1.6, 0.9, 0, TAU); ctx.arc(hx + 11, 1.6, 0.9, 0, TAU); ctx.fill();
+  ctx.fillStyle = col; for (const sy of [-1, 1]) { ctx.beginPath(); ctx.moveTo(hx - 3, sy * 3); ctx.lineTo(hx - 7, sy * 6.5); ctx.lineTo(hx - 1, sy * 4.5); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  for (let k = 0; k < 6; k++) {
+    const mx = 16 + k * 3.4, my = Math.sin(G.clock * 6 + k) * 1.5 - 1;
+    ctx.fillStyle = k % 2 ? 'rgba(170,215,255,.7)' : 'rgba(120,180,255,.45)'; ctx.beginPath(); ctx.ellipse(mx - 2, my, 4, 2.2, -0.3, 0, TAU); ctx.fill();
+  }
+  // dây cương vàng và mắt sáng xanh
+  ctx.strokeStyle = '#c9a44e'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(4, -4); ctx.lineTo(hx + 5, -3.5); ctx.moveTo(4, 4); ctx.lineTo(hx + 5, 3.5); ctx.stroke();
+  ctx.fillStyle = '#bfe4ff'; ctx.shadowColor = '#9fd0ff'; ctx.shadowBlur = 6; ctx.beginPath(); ctx.arc(hx + 3, -3.4, 1.1, 0, TAU); ctx.arc(hx + 3, 3.4, 1.1, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
   ctx.restore();
 }
 function drawPlayer() {
@@ -1153,7 +1186,10 @@ function drawObjects() {
   for (const n of NPCS) {
     if (!inView(n.x, n.y, 60)) continue;
     const L = { body: n.col, trim: '#d8c8a0', head: '#b89a7a', cloak: shade(n.col, 0.6), weapon: n.id === 'smith' ? 'club' : 'staff', wlen: 26, wcol: n.id === 'smith' ? '#5a5048' : '#6b5a3e', scale: 1.1, hood: n.id !== 'smith', orb: n.id === 'scholar' ? '#aee4ff' : '#ffe08a' };
-    drawHumanoid(n.x, n.y, Math.atan2(P.y - n.y, P.x - n.x), L, 0.6, { anim: t });
+    const nf = Math.atan2(P.y - n.y, P.x - n.x);
+    drawHumanoid(n.x, n.y, nf, L, 0.6, { anim: t });
+    if (n.id === 'merchant') drawNpcPack(n, nf, t);
+    drawNpcProps(n, nf, t);
     if (n.id === 'smith') {
       // đe sắt có sừng nhọn, và lò rèn đá có than hồng phập phồng
       const ax = n.x - 26, ay = n.y + 24;
@@ -1183,6 +1219,53 @@ function drawObjects() {
     const w = tr.ph > tr.period - 0.9 ? (tr.ph - (tr.period - 0.9)) / 0.9 : 0;
     if (w > 0) { ctx.strokeStyle = `rgba(255,120,50,${0.3 + w * 0.5})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r, 0, TAU); ctx.stroke(); ctx.fillStyle = `rgba(255,90,30,${w * 0.2})`; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r * w, 0, TAU); ctx.fill(); }
   }
+}
+// đồ đạc riêng của từng người trong Sảnh Hearthhold, vẽ theo hướng họ đang nhìn
+function drawNpcPack(n, f, t) {
+  // lái buôn: ba lô khổng lồ sau lưng, cuộn chăn, nồi niêu lủng lẳng
+  ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(f);
+  ctx.fillStyle = litGrad('#6a5236', -14, -4, 16); ctx.strokeStyle = OL; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(-26, -13, 17, 26, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#8a3a2a'; ctx.beginPath(); ctx.ellipse(-17, -14, 9, 3.6, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-26, -3); ctx.lineTo(-9, -3); ctx.moveTo(-26, 5); ctx.lineTo(-9, 5); ctx.stroke();
+  ctx.fillStyle = '#5a5a5e'; ctx.strokeStyle = OL; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(-28, 9, 3.6, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#8a6a3a'; ctx.beginPath(); ctx.arc(-28, -8, 3, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawNpcProps(n, f, t) {
+  ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(f);
+  const s = 1.1;
+  if (n.id === 'smith') {
+    // tạp dề da và bộ râu rậm
+    ctx.fillStyle = 'rgba(90,58,34,.9)'; ctx.strokeStyle = OL; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(3, -7, 7, 14, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#6a4a2a'; ctx.beginPath(); ctx.ellipse(8.2 * s, 0, 3.2, 4.6, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  } else if (n.id === 'merchant') {
+    // đèn lồng treo tay phát sáng ấm
+    const lx = 14, ly = 12, gl = 0.6 + Math.sin(t * 3) * 0.1;
+    const g = ctx.createRadialGradient(lx, ly, 1, lx, ly, 26); g.addColorStop(0, `rgba(255,200,110,${0.4 * gl})`); g.addColorStop(1, 'rgba(255,200,110,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly, 26, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#3a3026'; ctx.strokeStyle = OL; ctx.lineWidth = 1; ctx.fillRect(lx - 3.5, ly - 3.5, 7, 7); ctx.strokeRect(lx - 3.5, ly - 3.5, 7, 7);
+    ctx.fillStyle = `rgba(255,220,140,${gl + 0.3})`; ctx.fillRect(lx - 2.2, ly - 2.2, 4.4, 4.4);
+  } else if (n.id === 'scholar') {
+    // sách mở trên tay, chữ phát sáng xanh, và cặp kính tròn
+    ctx.save(); ctx.translate(15, 0); ctx.rotate(Math.sin(t * 0.8) * 0.05);
+    ctx.fillStyle = '#3a2a4a'; ctx.strokeStyle = OL; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.rect(-4, -9, 8, 18); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#efe4c8'; ctx.fillRect(-3, -8, 6, 7.5); ctx.fillRect(-3, 0.5, 6, 7.5);
+    ctx.strokeStyle = 'rgba(120,170,230,.8)'; ctx.lineWidth = 0.7; ctx.beginPath(); for (const y of [-6.5, -4.5, -2.5, 2, 4, 6]) { ctx.moveTo(-2.2, y); ctx.lineTo(2.2, y); } ctx.stroke();
+    ctx.fillStyle = `rgba(174,228,255,${0.5 + Math.sin(t * 2) * 0.3})`; ctx.shadowColor = '#9fd0ff'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(0, -4, 1.4, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.restore();
+    ctx.strokeStyle = '#d8c8a0'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(7.6, -2.3, 1.5, 0, TAU); ctx.moveTo(9.1, 2.3); ctx.arc(7.6, 2.3, 1.5, 0, TAU); ctx.stroke();
+    // chồng sách bên cạnh
+    for (let k = 0; k < 3; k++) { ctx.fillStyle = ['#6a2e3e', '#2e4a6a', '#5a5a2e'][k]; ctx.strokeStyle = OL; ctx.lineWidth = 1; ctx.beginPath(); ctx.rect(-6 + k, 20 - k * 3.2, 13, 4); ctx.fill(); ctx.stroke(); }
+  } else if (n.id === 'priestess') {
+    // khăn trùm trắng, vầng hào quang vàng, chuỗi hạt
+    ctx.fillStyle = '#ece6d6'; ctx.strokeStyle = OL; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(2 * s, 0, 7.2 * s, 1.35, TAU - 1.35); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.arc(5 * s, 0, 3.8, -1.1, 1.1); ctx.fill();
+    ctx.strokeStyle = `rgba(255,224,138,${0.65 + Math.sin(t * 2) * 0.2})`; ctx.lineWidth = 1.6; ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(1, 0, 10.5, 0, TAU); ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.fillStyle = '#c9a44e'; for (let k = 0; k < 7; k++) { const a = 0.6 + k * 0.28; ctx.beginPath(); ctx.arc(6 + Math.cos(a) * 3, -4 + k * 1.4, 0.9, 0, TAU); ctx.fill(); }
+  }
+  ctx.restore();
 }
 function textC2(str, x, y) { wText(str, x, y, 11, '#f2dc97', 1); }
 // chữ gắn với thế giới (số sát thương, tên NPC, thuộc tính quái) được gom lại và vẽ sau khi phóng to, để luôn sắc nét
