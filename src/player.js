@@ -472,6 +472,7 @@ function revealIllusory(p, A) {
   }
 }
 function parry(src) {
+  S.parries = (S.parries || 0) + 1;
   const p = P;
   src.state = 'broken'; src.t = 0; src.atk = null; src.poiseAcc = 0; if (src.z) src.z = 0;
   SFX.parry(); G.hitStop = 0.14; shake(6);

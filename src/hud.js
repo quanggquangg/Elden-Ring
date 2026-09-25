@@ -130,6 +130,7 @@ function drawHUD() {
     wrapText(G.sub.text, CW / 2, subY, Math.min(CW - 40, 640), 24, `500 italic ${CW < 500 ? 18 : 21}px ${FONT_I}`, '#f1e8d0');
     ctx.globalAlpha = 1;
   }
+  drawAchPopup(1 / 60);
   if (G.toast) {
     const a = Math.min(1, G.toast.t * 4, (G.toast.dur - G.toast.t) * 2);
     ctx.globalAlpha = a; wrapText(G.toast.text, CW / 2, CH * (G.touch ? 0.5 : 0.62), Math.min(CW - 40, 560), 19, `500 14px ${FONT_U}`, '#f2dc97'); ctx.globalAlpha = 1;
@@ -291,7 +292,7 @@ function drawDeath() {
 }
 
 // ───────────────────────── menu HTML ─────────────────────────
-const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name'), lore: $('lore'), controls: $('controlsBox'), diff: $('diffSel') };
+const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name'), lore: $('lore'), controls: $('controlsBox'), diff: $('diffSel'), ach: $('achBox') };
 const STAT_INFO = [
   ['vig', 'Tăng máu tối đa'], ['mnd', 'Tăng FP'], ['end', 'Tăng thể lực và sức mang vác'],
   ['str', 'Vũ khí nặng, sát thương theo Sức Mạnh'], ['dex', 'Vũ khí nhanh, cung, theo Khéo Léo'],
@@ -557,7 +558,7 @@ function toggleMap() {
   else if (G.mode === 'map') setMode('play');
 }
 function togglePause() {
-  if (!UI.lore.hidden || !UI.controls.hidden) { closeInfo(); return; }
+  if (!UI.lore.hidden || !UI.controls.hidden || !UI.ach.hidden) { closeInfo(); return; }
   if (G.mode === 'map') { toggleMap(); return; }
   if (G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { closeGrace(); return; }
   if (G.mode === 'play') { setMode('pause'); UI.pause.hidden = false; $('pauseEyebrow').textContent = 'Tạm dừng · Độ khó ' + DIFF.name; resetPauseNew(); $('btnResume').focus({ preventScroll: true }); }
@@ -582,11 +583,74 @@ function openInfo(el, from) {
   el.querySelector('.pbtn').focus({ preventScroll: true });
 }
 function closeInfo() {
-  UI.lore.hidden = true; UI.controls.hidden = true;
+  UI.lore.hidden = true; UI.controls.hidden = true; UI.ach.hidden = true;
   if (infoBack) { infoBack.hidden = false; const b = infoBack.querySelector('.mbtn:not([hidden]),.pbtn'); if (b) b.focus({ preventScroll: true }); }
   infoBack = null;
 }
 $('btnLore').onclick = () => openInfo(UI.lore, UI.title);
+// ───────────────────────── thành tựu: lưu chung cho mọi hành trình ─────────────────────────
+const ACH_KEY = 'gravebound-ach';
+const cleared = d => S.finalDead && (!d || d.includes(S.diff));
+const ACHS = [
+  ['grace', 'Ánh Sáng Đầu Tiên', 'Tìm thấy một Ân Điển mới', () => S.discovered.length >= 3],
+  ['parry', 'Phản Đòn Hoàn Hảo', 'Phản đòn thành công lần đầu', () => S.parries >= 1],
+  ['parry20', 'Bậc Thầy Khiên', 'Phản đòn 20 lần trong một hành trình', () => S.parries >= 20],
+  ['varek', 'Kẻ Gác Cổng Ngã Xuống', 'Hạ Varek ở Cổng Gác Thornwall', () => S.bossDead],
+  ['east', 'Vệ Binh Được Giải Thoát', 'Nhận Đại Ấn Greystone', () => hasGR('east')],
+  ['swamp', 'Kẻ Diệt Rồng', 'Hạ rồng Ignarth, nhận Đại Ấn Rồng Tro', () => hasGR('swamp')],
+  ['west', 'Trăng Pha Lê Tắt', 'Hạ Selvara, nhận Đại Ấn Trăng Pha Lê', () => hasGR('west')],
+  ['runes', 'Ba Mảnh Vòng', 'Gom đủ ba Đại Ấn', () => S.gr.length >= 3],
+  ['king', 'Phế Truất Vua Ẩn Mặt', 'Hạ Varek ở Sân Ngai Sunthrone', () => S.boss2Dead],
+  ['clear', 'Chạm Tới Cây Aurum', 'Phá đảo ở bất kỳ độ khó nào', () => cleared()],
+  ['hard', 'Chu Kỳ Thứ Hai', 'Phá đảo ở độ khó Khó hoặc Chuyên gia', () => cleared(['hard', 'expert'])],
+  ['expert', 'Chu Kỳ Cuối', 'Phá đảo ở độ khó Chuyên gia', () => cleared(['expert'])],
+  ['nodeath', 'Chưa Từng Nằm Xuống', 'Phá đảo mà không chết lần nào', () => cleared() && S.deaths === 0],
+  ['fast', 'Kẻ Lữ Hành Vội Vã', 'Phá đảo dưới 2 giờ', () => cleared() && S.time < 7200],
+  ['dungeon', 'Kẻ Đào Mộ', 'Dọn sạch cả bốn hầm ngục', () => DUNGEONS.every(d => S.dg[d.id])],
+  ['colo', 'Nhà Vô Địch Bloodsand', 'Vượt qua thử thách ở Đấu Trường Bloodsand', () => S.coloDone],
+  ['wraith', 'Rừng Thiêng Yên Nghỉ', 'Hạ Seluna trong Rừng Wraithwood', () => !!S.mb.wraith],
+  ['map', 'Người Vẽ Bản Đồ', 'Đọc hết Bia Bản Đồ', () => S.frags.length >= MAP_FRAGS.length],
+  ['travel', 'Kẻ Lữ Hành', 'Tìm thấy 20 Ân Điển', () => S.discovered.length >= 20],
+  ['level', 'Vững Như Đá', 'Đạt cấp 40', () => S.level >= 40],
+  ['smith', 'Lưỡi Kiếm Tôi Luyện', 'Cường hóa một vũ khí lên +5', () => Object.values(S.wup).some(v => v >= 5)],
+  ['invader', 'Săn Kẻ Săn', 'Đánh bại một Gravebound Đỏ', () => Object.keys(S.inv).length >= 1],
+  ['invaders', 'Cuộc Săn Kết Thúc', 'Đánh bại cả ba Gravebound Đỏ', () => INVADERS.every(v => S.inv[v.id])],
+  ['deaths', 'Nấm Mồ Quen Thuộc', 'Chết 100 lần trong một hành trình', () => S.deaths >= 100],
+];
+function readAch() { try { return JSON.parse(localStorage.getItem(ACH_KEY) || '{}') || {}; } catch (e) { return {}; } }
+let achCache = readAch(), achT = 0;
+function checkAch(dt) {
+  if ((achT -= dt) > 0 || G.mode === 'title') return;
+  achT = 1;
+  let got = null;
+  for (const [id, name, , test] of ACHS) {
+    if (achCache[id]) continue;
+    let ok = false; try { ok = test(); } catch (e) { ok = false; }
+    if (ok) { achCache[id] = Date.now(); got = name; G.achQ = (G.achQ || []).concat(name); }
+  }
+  if (got) { try { localStorage.setItem(ACH_KEY, JSON.stringify(achCache)); } catch (e) { /* bỏ qua */ } }
+}
+// thông báo thành tựu ở góc trên bên phải, lần lượt từng cái
+function drawAchPopup(dt) {
+  if (!G.ach && G.achQ && G.achQ.length) { G.ach = { name: G.achQ.shift(), t: 0 }; SFX.glint(); }
+  const A = G.ach; if (!A) return;
+  A.t += dt; if (A.t > 4) { G.ach = null; return; }
+  const a = Math.min(1, A.t * 4, (4 - A.t) * 2), w = Math.min(300, CW - 32), x = CW - w - 16, y = 72;
+  ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,9,7,.88)'; ctx.fillRect(x, y, w, 50);
+  ctx.strokeStyle = 'rgba(214,178,94,.7)'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 49);
+  ctx.font = `600 10px ${FONT_U}`; ctx.fillStyle = '#d6b25e'; ctx.fillText('THÀNH TỰU MỞ KHÓA', x + 14, y + 18);
+  ctx.font = `600 17px ${FONT_D}`; ctx.fillStyle = '#ece3cc'; ctx.fillText(A.name, x + 14, y + 39); ctx.globalAlpha = 1;
+}
+function openAch(from) {
+  achCache = readAch();
+  const n = ACHS.filter(([id]) => achCache[id]).length;
+  $('achCount').textContent = 'Đã mở ' + n + '/' + ACHS.length;
+  $('achList').innerHTML = ACHS.map(([id, name, desc]) => `<li class="${achCache[id] ? 'on' : ''}"><b>${achCache[id] ? '✓ ' : ''}${name}</b><small>${desc}</small></li>`).join('');
+  openInfo(UI.ach, from);
+}
+$('btnAch').onclick = () => openAch(UI.title);
+$('btnPauseAch').onclick = () => openAch(UI.pause);
+$('btnAchClose').onclick = closeInfo;
 $('btnControls').onclick = () => openInfo(UI.controls, UI.title);
 $('btnPauseLore').onclick = () => openInfo(UI.lore, UI.pause);
 $('btnLoreClose').onclick = closeInfo;
@@ -622,6 +686,7 @@ function openEnding() {
   u.cleared = true; u.deaths = S.deaths; u.clears = Object.assign({}, u.clears, { [DIFF.id]: ((u.clears || {})[DIFF.id] || 0) + (G.endingCounted ? 0 : 1) }); writeUnlock(u);
   G.endingCounted = true;
   $('endUnlock').hidden = !first; $('endUnlock').textContent = 'Đã mở khóa độ khó Khó và Chuyên gia. Hãy bắt đầu Hành trình mới để bước vào chu kỳ tiếp theo.';
+  achT = 0; checkAch(0);
   UI.ending.hidden = false; SFX.felled();
   $('btnEndClose').focus({ preventScroll: true });
 }

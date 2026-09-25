@@ -141,6 +141,11 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 .cls button:disabled{opacity:.45;cursor:not-allowed;border-style:dashed}
 .cls .lock{font:600 11px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:#d98a7a}
 .cls .new{font:600 11px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ach{list-style:none;margin:0;padding:0;display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.ach li{border:1px solid var(--line);padding:10px 12px;display:grid;gap:3px;opacity:.5}
+.ach li.on{opacity:1;border-color:rgba(214,178,94,.55);background:rgba(214,178,94,.07)}
+.ach b{font:600 17px/1.15 var(--display);color:var(--gold-hi)}
+.ach small{font-size:12px;color:var(--muted)}
 .btabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .btabs button{appearance:none;background:none;border:1px solid var(--line);color:var(--muted);font:600 13px/1 var(--ui);padding:8px 12px;cursor:pointer}
 .btabs button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi);background:rgba(214,178,94,.1)}
@@ -212,6 +217,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
           <button id="btnLore" class="sbtn">Truyền thuyết</button>
           <button id="btnControls" class="sbtn">Điều khiển</button>
           <button id="btnBoard" class="sbtn">Bảng xếp hạng</button>
+          <button id="btnAch" class="sbtn">Thành tựu</button>
         </div>
       </div>
       <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring. Không liên quan tới FromSoftware hay Bandai Namco.</p>
@@ -234,6 +240,14 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <p>Phần lớn Gravebound đã quên mất tên mình, lang thang vô định cho tới khi hóa thành bóng ma trên đồng cỏ Mistveil. Ngươi cũng là một Gravebound. Nhưng khác với họ, ngươi được Ân Điển đánh thức tại Nhà Nguyện Dawnrest, không vũ khí, không danh phận, chỉ còn tia sáng mờ dẫn lối. Con đường phía trước sẽ tự hé lộ. Còn việc ngươi sẽ hàn gắn Vòng để giải thoát cho những kẻ như mình, hay tự mình đội lấy nó, chỉ Cây Aurum mới biết.</p>
       </div>
       <div class="row"><button id="btnLoreClose" class="pbtn">Đóng</button></div>
+    </div>
+  </section>
+
+  <section id="achBox" class="overlay title" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow" id="achCount">Thành tựu</p><h2>Thành tựu</h2><p class="note">Thành tựu lưu trên trình duyệt này và giữ nguyên qua mọi hành trình.</p></header>
+      <div class="scroll"><ul class="ach" id="achList"></ul></div>
+      <div class="row"><button id="btnAchClose" class="pbtn">Đóng</button></div>
     </div>
   </section>
 
@@ -285,6 +299,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <button id="btnFx" class="pbtn">Đồ họa: cao</button>
         <button id="btnInv" class="pbtn">Hành trang</button>
         <button id="btnPauseLore" class="pbtn">Truyền thuyết</button>
+        <button id="btnPauseAch" class="pbtn">Thành tựu</button>
         <button id="btnPauseNew" class="pbtn ghost">Hành trình mới</button>
         <button id="btnQuit" class="pbtn ghost">Về màn hình chính</button>
       </div>

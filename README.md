@@ -42,6 +42,10 @@ python3 -m http.server 8000
 - **Gravebound Đỏ:** Morrow, Kẻ Săn Ấn (Đồng Cỏ Mistveil), Isolde Mắt Đỏ (Hồ Crystalmere) và Brannoc Bội Ước (Cao Nguyên Aurelia, chỉ ở Chuyên gia). Chúng đánh combo nhanh, ném dao, lướt ra sau lưng và uống bình máu. Hạ được mỗi kẻ sẽ nhận một bùa chỉ có ở hai độ khó này: Ấn Gravebound Đỏ, Tim Tro Tàn, Mảnh Vương Miện Vỡ.
 - Dấu mở khóa được lưu riêng trong trình duyệt, nên xoá hành trình cũ vẫn giữ được. Bảng xếp hạng có tab riêng cho từng độ khó.
 
+## Thành tựu
+
+24 thành tựu (boss, Đại Ấn, hầm ngục, bản đồ, phản đòn, kẻ xâm nhập, phá đảo từng độ khó, không chết, dưới 2 giờ...). Mở khóa hiện thông báo ở góc trên bên phải; xem danh sách ở nút **Thành tựu** trên màn hình chính hoặc menu tạm dừng. Thành tựu lưu trên trình duyệt và giữ qua mọi hành trình.
+
 ## Điều khiển
 
 Phím đặt theo Elden Ring bản PC. `Space` dùng cho lăn và chạy như bản gốc.
