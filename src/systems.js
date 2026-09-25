@@ -292,7 +292,7 @@ function update(dt) {
   G.expT = (G.expT || 0) + dt;
   if (G.expT > 0.25 && P.state !== 'dead') { G.expT = 0; explore(P.x, P.y, 380); }
   mouse.wx = cam.x + (mouse.x - CW / 2) / ZOOM; mouse.wy = cam.y + (mouse.y - CH / 2) / ZOOM;
-  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateTraps(dt); updateLoot(dt); updateParts(dt);
+  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateTraps(dt); updateInvasions(); updateLoot(dt); updateParts(dt);
   updateCam(dt); worldChecks(dt); ambient(dt);
   for (let i = G.timers.length - 1; i >= 0; i--) { const tm = G.timers[i]; tm.t -= dt; if (tm.t <= 0) { G.timers.splice(i, 1); tm.fn(); } }
   if (G.mode === 'dead') { G.deathT += dt; if (G.deathT > 4.6) { G.mode = 'play'; respawnAt(S.lastGrace); } }

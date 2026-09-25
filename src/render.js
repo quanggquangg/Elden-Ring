@@ -393,6 +393,13 @@ function drawSpider(e) {
 function drawEnemy(e) {
   if (!inView(e.x, e.y, 80)) return;
   if (e.dead && e.t > 1.3) return;
+  if (!e.dead && (e.aff || e.invader)) {
+    // vòng hào quang dưới chân quái tinh anh và Kẻ Xâm Nhập
+    const c = e.invader ? '255,80,60' : AFFIXES[e.aff[0]].col, rr = e.r * 2.4 + Math.sin(e.anim * 4) * 3;
+    const gr = ctx.createRadialGradient(e.x, e.y, 2, e.x, e.y, rr);
+    gr.addColorStop(0, `rgba(${c},.34)`); gr.addColorStop(1, `rgba(${c},0)`);
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(e.x, e.y, rr, 0, TAU); ctx.fill();
+  }
   if (!e.dead && e.state === 'atk' && e.atk && e.atk.slam === undefined && e.atk.kind === 'slam' && e.t < e.atk.wind) { const A = e.atk, hx = e.x + Math.cos(e.face) * A.off, hy = e.y + Math.sin(e.face) * A.off; ctx.strokeStyle = `rgba(230,120,60,${0.2 + e.t / A.wind * 0.5})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hx, hy, A.r, 0, TAU); ctx.stroke(); }
   if (!e.dead && e.state === 'atk' && e.atk && (!e.atk.kind || e.atk.kind === 'melee') && e.t < e.atk.wind && e.t > e.atk.wind * 0.45) drawTelegraph(e.x, e.y, e.face, e.atk.range, e.atk.arc, (e.t - e.atk.wind * 0.45) / (e.atk.wind * 0.55));
   if (e.T.beast) { drawBeast(e); drawEnemyBar(e); return; }
@@ -426,8 +433,15 @@ function drawEnemy(e) {
   drawEnemyBar(e);
 }
 function drawEnemyBar(e) {
-  if (e.dead || e.hp >= e.maxHp || e.isBoss) return;
+  if (e.dead || e.isBoss) return;
   const w = e.elite ? 54 : 34, x = e.x - w / 2, y = e.y - e.r * (e.T.look ? e.T.look.scale : 1) - 22;
+  if (e.aff) {
+    ctx.font = `600 9px ${FONT_U}`; ctx.textAlign = 'center';
+    const txt = e.aff.map(k => AFFIXES[k].name).join(' · ');
+    ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillText(txt, e.x + 0.6, y - 4.4);
+    ctx.fillStyle = `rgb(${AFFIXES[e.aff[0]].col})`; ctx.fillText(txt, e.x, y - 5); ctx.textAlign = 'left';
+  }
+  if (e.hp >= e.maxHp) return;
   ctx.fillStyle = 'rgba(8,7,5,.8)'; ctx.fillRect(x - 1, y - 1, w + 2, 6);
   ctx.fillStyle = '#a3201c'; ctx.fillRect(x, y, w * e.hp / e.maxHp, 4);
   if (e.state === 'broken') { ctx.fillStyle = '#f2dc97'; ctx.fillRect(x, y + 5, w, 1.5); }

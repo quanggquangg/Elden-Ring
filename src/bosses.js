@@ -143,6 +143,7 @@ function updateBoss(dt) {
         b.fx = true; SFX.roar(); addRing(b.x, b.y, 30, 260, 0.6, 35); shake(14);
         subtitle(b.v === 2 ? '“Ta là Vua Ẩn Mặt... kẻ đã một mình giữ Aurumhold suốt ngàn năm!”' : '“Quỳ xuống! Ánh vàng này chưa bao giờ thuộc về lũ Gravebound!”');
         burst(b.x, b.y, 60, '#f3cf6e', 240, 4, 'dot', 1.1);
+        later(1.2, () => varekShades(b));
       }
       if (b.t > 2) { b.phase = 2; b.state = 'chase'; b.t = 0; b.cd = 0.3; }
       break;
@@ -165,19 +166,19 @@ function startBossFight() {
 }
 function bossDefeated() {
   const b = boss;
-  G.bossFight = false;
+  G.bossFight = false; clearShades();
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.6); SFX.felled();
   burst(b.x, b.y, 80, '#f3cf6e', 280, 5, 'dot', 1.6);
   if (b.v === 1) {
     S.bossDead = true;
-    gainRunes(2500, b.x, b.y);
+    gainRunes(2500 * DIFF.runes, b.x, b.y);
     later(9.2, () => grant({ weapon: 'varek', pouch: 1 }, b.x, b.y));
     subtitle('“Ánh vàng... đã chọn... kẻ như ngươi sao...”', 3.6);
     later(4.2, () => subtitle('“Muốn chạm tới Cây... ngươi phải gom ba mảnh Vòng... Greystone phương đông... con rồng dưới đầm Ashmire... và nữ hoàng Starhollow...”', 6));
     later(10.6, () => subtitle('Cổng phía bắc đã mở. Cao Nguyên Aurelia trải vàng phía trước.', 4.5));
   } else {
     S.boss2Dead = true;
-    gainRunes(20000, b.x, b.y);
+    gainRunes(20000 * DIFF.runes, b.x, b.y);
     later(5, () => grant({ items: { somber2: 2 }, tal: 'guard' }, b.x, b.y));
     subtitle('“Gravebound... hãy mang ngọn lửa... tới nơi ta không thể tới...”', 4);
     later(9.5, () => subtitle('Lối lên Cây Aurum đã mở. Ánh vàng đang gọi tên ngươi.', 4));
@@ -187,7 +188,7 @@ function bossDefeated() {
 
 // ───────────────────────── rồng: Ignarth ─────────────────────────
 function makeDragon() {
-  return { isDragon: true, noParry: true, name: 'Ignarth, Rồng Tro Cổ Đại', x: LAIR.x, y: LAIR.y, r: 40, hp: 2200, maxHp: 2200, ghost: 2200, res: { fire: 0.4 },
+  return { isDragon: true, noParry: true, name: 'Ignarth, Rồng Tro Cổ Đại', x: LAIR.x, y: LAIR.y, r: 40, hp: Math.round(2200 * DIFF.boss), maxHp: Math.round(2200 * DIFF.boss), ghost: Math.round(2200 * DIFF.boss), res: { fire: 0.4 },
     face: Math.PI * 0.8, state: 'sleep', t: 0, cd: 1, vx: 0, vy: 0, poise: 260, poiseAcc: 0, lastHit: 9, hurtFlash: 0, atk: null, dead: false,
     z: 0, elite: true, invuln: 0, anim: 0, stagDur: 1, bleed: 0, bleedMax: 220, lastMove: '', spin: 0, charge: 0, breathing: false, breathDir: 0, flying: false };
 }
@@ -363,7 +364,7 @@ function updateDragon(dt) {
 }
 function dragonDefeated() {
   S.dragonDead = true; G.dragonFight = false;
-  gainRunes(5000, dragon.x, dragon.y);
+  gainRunes(5000 * DIFF.runes, dragon.x, dragon.y);
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.2); SFX.felled();
   burst(dragon.x, dragon.y, 90, '#ff9a4a', 300, 5, 'dot', 1.6);
   const dx = dragon.x, dy = dragon.y;
@@ -373,7 +374,7 @@ function dragonDefeated() {
 
 // ───────────────────────── trận cuối: Aurel (phase 1) và Thú Aurum (phase 2) ─────────────────────────
 function makeFinal() {
-  const hp = 3400;
+  const hp = Math.round(3400 * DIFF.boss);
   return { isFinal: true, res: { holy: 0.6 }, name: 'Aurel, Vị Vua Tro Tàn', x: RC.x, y: RC.y - 170, r: 26, hp, maxHp: hp, ghost: hp, face: Math.PI / 2, state: 'intro', t: 0, cd: 1.2,
     vx: 0, vy: 0, poise: 240, poiseAcc: 0, lastHit: 9, hurtFlash: 0, phase: 1, atk: null, dead: false, z: 0, elite: true, invuln: 0, anim: 0, stagDur: 0.8,
     lastMove: '', bleedMax: 240, beamDir: 0, beaming: false, charge: 0, fx: false,
@@ -563,7 +564,7 @@ function updateFinal(dt) {
       if (!f.fx && f.t > 1.8) {
         f.fx = true; SFX.roar(); shake(18); G.white = 0.85;
         burst(f.x, f.y, 90, '#fff1c2', 320, 5, 'dot', 1.4);
-        const hp = 4400;
+        const hp = Math.round(4400 * DIFF.boss);
         Object.assign(f, { phase: 2, name: 'Thú Aurum, Hiện Thân Vòng Aurum', r: 44, hp, maxHp: hp, ghost: hp, poise: 330, poiseAcc: 0, noParry: true, bleed: 0, bleedMax: 320 });
         subtitle('“Vòng Aurum tự phán xét những Gravebound.”', 4);
       }
@@ -597,7 +598,7 @@ function finalTransform() {
 function finalDefeated() {
   S.finalDead = true; G.finalFight = false;
   submitRun();
-  gainRunes(8000, fb.x, fb.y);
+  gainRunes(8000 * DIFF.runes, fb.x, fb.y);
   banner('felled', 'VÒNG VÀNG ĐÃ ĐƯỢC HÀN GẮN', '', 5); SFX.felled(); G.white = 1;
   burst(fb.x, fb.y, 120, '#fff1c2', 360, 5, 'dot', 2);
   save();

@@ -160,6 +160,10 @@ const TALISMANS = {
   gold: { name: 'Bùa Rune Vàng', desc: 'Nhận thêm 20% rune' },
   vital: { name: 'Bùa Tái Sinh', desc: 'Hồi 4% máu mỗi khi hạ một kẻ địch' },
   guard: { name: 'Bùa Khiên Đồng', desc: 'Đỡ đòn mất ít máu và thể lực hơn 35%' },
+  // chỉ có ở độ khó Khó và Chuyên gia, rơi ra từ Gravebound Đỏ
+  redseal: { name: 'Ấn Gravebound Đỏ', desc: 'Gây thêm 20% sát thương khi máu dưới một nửa' },
+  ashen: { name: 'Tim Tro Tàn', desc: 'Hồi 3 máu mỗi giây' },
+  crown: { name: 'Mảnh Vương Miện Vỡ', desc: 'Nhận thêm 30% rune, đòn mạnh gây thêm 10% sát thương' },
 };
 const TAL_ORDER = Object.keys(TALISMANS);
 

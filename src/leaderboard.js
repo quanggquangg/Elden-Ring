@@ -11,7 +11,9 @@ const rankSort = (a, b) => a.deaths - b.deaths || a.time - b.time || a.at - b.at
 function cleanName(s) { return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 20); }
 function readLocalBoard() { try { const v = JSON.parse(localStorage.getItem(LOCAL_BOARD) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
 function writeLocalBoard(rows) { try { localStorage.setItem(LOCAL_BOARD, JSON.stringify(rows.slice(0, 200))); } catch (e) { /* bỏ qua */ } }
-function setRows(rows) { boardRows = rows.filter(r => typeof r.deaths === 'number' && typeof r.time === 'number').sort(rankSort); if (!UI.board.hidden) renderBoard(); }
+// độ khó được ghép vào trường cls ("knight|hard") để không phải đổi luật Firestore; không có thì là Thường
+function splitCls(r) { const [c, d] = String(r.cls || '').split('|'); return Object.assign({}, r, { cls: c, diff: DIFFS[d] ? d : 'normal' }); }
+function setRows(rows) { boardRows = rows.filter(r => typeof r.deaths === 'number' && typeof r.time === 'number').map(splitCls).sort(rankSort); if (!UI.board.hidden) renderBoard(); }
 // ── Firebase Firestore qua REST, không cần thư viện ──
 const FB = typeof BOARD_CONFIG !== 'undefined' && BOARD_CONFIG.apiKey && BOARD_CONFIG.projectId ? BOARD_CONFIG : null;
 const fbBase = () => 'https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(FB.projectId) + '/databases/' + encodeURIComponent(FB.databaseId || '(default)') + '/documents';
@@ -35,7 +37,7 @@ async function refreshBoard() {
   if (boardMode === 'firebase') { try { setRows(await fbFetchRows()); } catch (e) { /* giữ bảng cũ, lần sau thử lại */ } }
 }
 (async function initBoard() {
-  boardRows = readLocalBoard().sort(rankSort);
+  boardRows = readLocalBoard().map(splitCls).sort(rankSort);
   if (FB) {
     try { setRows(await fbFetchRows()); boardMode = 'firebase'; return; } catch (e) { /* không kết nối được, thử cách khác */ }
   }
@@ -49,7 +51,7 @@ async function refreshBoard() {
 // ghi kết quả một lần cho mỗi hành trình phá đảo
 async function submitRun() {
   if (S.submitted) return;
-  const row = { name: cleanName(S.name) || 'Gravebound', deaths: S.deaths, time: Math.round(S.time), level: S.level, cls: S.cls, at: Date.now() };
+  const row = { name: cleanName(S.name) || 'Gravebound', deaths: S.deaths, time: Math.round(S.time), level: S.level, cls: S.cls + (DIFF.id !== 'normal' ? '|' + DIFF.id : ''), at: Date.now() };
   S.submitted = true; S.runId = S.runId || ('r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); save();
   const local = readLocalBoard().filter(r => r.id !== S.runId); local.push(Object.assign({ id: S.runId }, row)); writeLocalBoard(local.sort(rankSort));
   try {
@@ -61,14 +63,17 @@ async function submitRun() {
     toast('Không gửi được lên bảng xếp hạng chung, đã lưu trên máy này');
   }
 }
-function myRank() { const i = boardRows.findIndex(r => r.id === S.runId); return i < 0 ? null : i + 1; }
+let boardDiff = 'normal';
+function myRank() { const i = boardRows.filter(r => r.diff === DIFF.id).findIndex(r => r.id === S.runId); return i < 0 ? null : i + 1; }
 function renderBoard() {
   $('boardNote').textContent = boardShared() ? 'Bảng chung của mọi người chơi. Xếp theo số lần chết, bằng nhau thì ai phá đảo nhanh hơn đứng trên.'
     : 'Bảng này chỉ lưu trên trình duyệt của bạn. Xếp theo số lần chết, bằng nhau thì ai phá đảo nhanh hơn đứng trên.';
+  $('boardTabs').innerHTML = DIFF_ORDER.map(id => `<button data-bdiff="${id}" aria-pressed="${id === boardDiff}">${DIFFS[id].name} · ${boardRows.filter(r => r.diff === id).length}</button>`).join('');
+  const rows = boardRows.filter(r => r.diff === boardDiff);
   const body = $('boardBody');
   body.textContent = '';
-  if (!boardRows.length) { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 6; td.className = 'empty'; td.textContent = 'Chưa ai phá đảo. Hãy là người đầu tiên!'; tr.appendChild(td); body.appendChild(tr); return; }
-  boardRows.slice(0, 100).forEach((r, i) => {
+  if (!rows.length) { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 6; td.className = 'empty'; td.textContent = 'Chưa ai phá đảo ở độ khó ' + DIFFS[boardDiff].name + '. Hãy là người đầu tiên!'; tr.appendChild(td); body.appendChild(tr); return; }
+  rows.slice(0, 100).forEach((r, i) => {
     const tr = document.createElement('tr');
     if (r.id && r.id === S.runId) tr.className = 'me';
     const cls = (CLASSES.find(c => c.id === r.cls) || {}).name || '';
@@ -77,15 +82,16 @@ function renderBoard() {
   });
 }
 let boardBack = null;
-function openBoard(back) {
-  boardBack = back; UI.board.hidden = false; renderBoard(); refreshBoard();
+function openBoard(back, diff) {
+  boardBack = back; boardDiff = diff || 'normal'; UI.board.hidden = false; renderBoard(); refreshBoard();
   clearInterval(boardPoll); boardPoll = setInterval(() => { if (UI.board.hidden) clearInterval(boardPoll); else refreshBoard(); }, 20000);
   setTimeout(() => $('btnBoardClose').focus({ preventScroll: true }), 30);
 }
 function closeBoard() { UI.board.hidden = true; if (boardBack) boardBack(); boardBack = null; }
 $('btnBoardClose').onclick = closeBoard;
+$('boardTabs').addEventListener('click', e => { const b = e.target.closest('[data-bdiff]'); if (b) { boardDiff = b.dataset.bdiff; renderBoard(); const n = $('boardTabs').querySelector(`[data-bdiff="${boardDiff}"]`); if (n) n.focus({ preventScroll: true }); } });
 $('btnBoard').onclick = () => { audioInit(); UI.title.hidden = true; openBoard(() => { UI.title.hidden = false; }); };
-$('btnEndBoard').onclick = () => { UI.ending.hidden = true; openBoard(() => { UI.ending.hidden = false; }); };
+$('btnEndBoard').onclick = () => { UI.ending.hidden = true; openBoard(() => { UI.ending.hidden = false; }, DIFF.id); };
 
 // ───────────────────────── nhập tên khi bắt đầu hành trình mới ─────────────────────────
 function openNameEntry() {
@@ -99,7 +105,7 @@ function confirmName() {
   if (!n) { $('nameErr').hidden = false; $('nameInput').focus(); return; }
   pendingName = n;
   try { localStorage.setItem(NAME_KEY, n); } catch (e) { /* bỏ qua */ }
-  UI.name.hidden = true; openClassSelect();
+  UI.name.hidden = true; openDiffSelect();
 }
 let pendingName = '';
 $('nameForm').addEventListener('submit', e => { e.preventDefault(); audioInit(); confirmName(); });

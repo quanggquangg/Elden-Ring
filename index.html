@@ -138,6 +138,12 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 .cls{list-style:none;margin:0;padding:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 .cls button{width:100%;height:100%;text-align:left;appearance:none;background:rgba(214,178,94,.05);border:1px solid rgba(214,178,94,.2);color:var(--parch);padding:14px;cursor:pointer;display:grid;gap:6px;align-content:start}
 .cls button:hover,.cls button:focus-visible{border-color:var(--gold);outline:none;background:rgba(214,178,94,.14)}
+.cls button:disabled{opacity:.45;cursor:not-allowed;border-style:dashed}
+.cls .lock{font:600 11px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:#d98a7a}
+.cls .new{font:600 11px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.btabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.btabs button{appearance:none;background:none;border:1px solid var(--line);color:var(--muted);font:600 13px/1 var(--ui);padding:8px 12px;cursor:pointer}
+.btabs button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi);background:rgba(214,178,94,.1)}
 .cls .cn{font:600 22px/1.1 var(--display);color:var(--gold-hi)}
 .cls .cd{font-size:12.5px;color:var(--muted)}
 .cls .cs{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
@@ -263,7 +269,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 
   <section id="pause" class="overlay" hidden>
     <div class="panel center">
-      <header><p class="eyebrow">Tạm dừng</p><h2>Hơi thở giữa trận</h2></header>
+      <header><p class="eyebrow" id="pauseEyebrow">Tạm dừng</p><h2>Hơi thở giữa trận</h2></header>
       <dl class="controls">
         <div><dt>Lăn / chạy</dt><dd><kbd>Space</kbd> nhấn / giữ</dd></div>
         <div><dt>Đánh / đánh mạnh</dt><dd>chuột trái / <kbd>Shift</kbd>+trái</dd></div>
@@ -279,6 +285,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <button id="btnFx" class="pbtn">Đồ họa: cao</button>
         <button id="btnInv" class="pbtn">Hành trang</button>
         <button id="btnPauseLore" class="pbtn">Truyền thuyết</button>
+        <button id="btnPauseNew" class="pbtn ghost">Hành trình mới</button>
         <button id="btnQuit" class="pbtn ghost">Về màn hình chính</button>
       </div>
     </div>
@@ -341,15 +348,23 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 
   <section id="board" class="overlay title" hidden>
     <div class="panel wide">
-      <header><p class="eyebrow">Những Gravebound đã chạm tới Cây Aurum</p><h2>Bảng xếp hạng</h2><p class="note" id="boardNote"></p></header>
+      <header><p class="eyebrow">Những Gravebound đã chạm tới Cây Aurum</p><h2>Bảng xếp hạng</h2><p class="note" id="boardNote"></p><div class="btabs" id="boardTabs"></div></header>
       <div class="scroll"><table class="board"><thead><tr><th>#</th><th>Tên</th><th>Chết</th><th>Thời gian</th><th>Cấp</th><th>Xuất thân</th></tr></thead><tbody id="boardBody"></tbody></table></div>
       <div class="row"><button id="btnBoardClose" class="pbtn">Đóng</button></div>
     </div>
   </section>
 
+  <section id="diffSel" class="overlay title" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow">Hành trình mới</p><h2>Chọn độ khó</h2><p class="note">Độ khó chỉ được chọn một lần và giữ nguyên suốt hành trình.</p></header>
+      <ul class="cls" id="diffList"></ul>
+      <div class="row"><button id="btnDiffBack" class="pbtn ghost">Quay lại</button></div>
+    </div>
+  </section>
+
   <section id="cls" class="overlay title" hidden>
     <div class="panel wide">
-      <header><p class="eyebrow">Hành trình mới</p><h2>Chọn xuất thân</h2><p class="note">Mọi lớp đều bắt đầu ở cấp 1 với trang bị tồi tàn. Lớp chỉ quyết định chỉ số ban đầu; sau này có thể tăng bất kỳ chỉ số nào.</p></header>
+      <header><p class="eyebrow" id="clsEyebrow">Hành trình mới</p><h2>Chọn xuất thân</h2><p class="note">Mọi lớp đều bắt đầu ở cấp 1 với trang bị tồi tàn. Lớp chỉ quyết định chỉ số ban đầu; sau này có thể tăng bất kỳ chỉ số nào.</p></header>
       <ul class="cls" id="clsList"></ul>
       <div class="row"><button id="btnClsBack" class="pbtn ghost">Quay lại</button></div>
     </div>
@@ -358,14 +373,15 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
   <section id="ending" class="overlay title" hidden>
     <div class="panel center">
       <header><p class="eyebrow">Gốc Cây Aurum</p><h2>Ngươi đã chạm tới Cây Aurum</h2></header>
-      <p class="lede">Ngươi quỳ dưới tán Cây Aurum, và những mảnh Vòng vỡ lặng lẽ tìm về lòng bàn tay ngươi. Kỷ nguyên tro tàn khép lại. Kỷ nguyên của ngươi bắt đầu.</p>
+      <p class="lede" id="endLede">Ngươi quỳ dưới tán Cây Aurum, và những mảnh Vòng vỡ lặng lẽ tìm về lòng bàn tay ngươi. Kỷ nguyên tro tàn khép lại. Kỷ nguyên của ngươi bắt đầu.</p>
       <div class="endstats">
         <div><span class="k">Cấp</span><b id="endLv">1</b></div>
         <div><span class="k">Số lần chết</span><b id="endDeaths">0</b></div>
         <div><span class="k">Thời gian</span><b id="endTime">0:00</b></div>
       </div>
       <p class="note" style="text-align:center"><b id="endName" style="color:var(--gold-hi);font:600 20px var(--display)"></b><br><span id="endRank"></span></p>
-      <div class="row"><button id="btnEndBoard" class="pbtn">Xem bảng xếp hạng</button><button id="btnEndClose" class="pbtn ghost">Tiếp tục khám phá</button></div>
+      <p class="note" id="endUnlock" style="text-align:center;color:var(--gold-hi)" hidden></p>
+      <div class="row"><button id="btnEndBoard" class="pbtn">Xem bảng xếp hạng</button><button id="btnEndNew" class="pbtn">Hành trình mới</button><button id="btnEndClose" class="pbtn ghost">Tiếp tục khám phá</button></div>
     </div>
   </section>
 </div>

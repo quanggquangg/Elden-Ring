@@ -11,7 +11,7 @@ function defaultSave() {
     ashes: [], ash: {}, inv: {}, quick: 0, arrows: 0, arrowMax: 40, dragonDead: false, finalDead: false, chests: [],
     fortOpen: false, statues: [], glade: false, illusory: [], coloDone: false, mb: {}, explored: '', frags: [],
     gr: [], greatOpen: false, acadOpen: false, levers: [], dg: {}, bought: [], name: '', submitted: false, runId: null, marker: null,
-    readN: [], tips: {},
+    readN: [], tips: {}, diff: 'normal', inv: {},
   };
 }
 let S = defaultSave();
@@ -74,7 +74,7 @@ function absorb(kind) {
   if (kind === 'magic' && armorBonus('magicRes')) k *= 1 - armorBonus('magicRes');
   return k;
 }
-const dmgBonus = () => (hasGR('swamp') ? 1.08 : 1) * (P.buffs.bless > 0 ? 1.15 : 1);
+const dmgBonus = () => (hasGR('swamp') ? 1.08 : 1) * (P.buffs.bless > 0 ? 1.15 : 1) * (hasTal('redseal') && P.hp < P.maxHp * 0.5 ? 1.2 : 1);
 const flaskHeal = () => Math.round(P.maxHp * (0.4 + 0.06 * S.tears) + 15);
 const fpFlaskAmt = () => Math.round(P.maxFp * (0.4 + 0.05 * S.tears) + 10);
 // Như Elden Ring: quái mạnh theo vùng đất, không theo cấp người chơi.
@@ -129,12 +129,13 @@ function makeEnemy(type, x, y) {
 }
 function spawnEnemies() {
   enemies = SPAWNS.filter(([t]) => !(ETYPES[t].miniboss && S.mb[t])).map(([t, x, y]) => makeEnemy(t, x, y));
+  enemies.forEach(applyAffixes);
   if (S.glade && !S.mb.wraith) enemies.push(makeEnemy('wraith', BARRIER.x, BARRIER.y));
   projs.length = 0; aoes.length = 0; puddles.length = 0; loot.length = 0;
   G.colo.active = false; G.colo.wave = 0; G.braziers = []; G.dfight = null;
 }
 function makeBoss(v = 1) {
-  const A = v === 1 ? ARENA : ARENA2, hp = v === 1 ? 1300 : 5400;
+  const A = v === 1 ? ARENA : ARENA2, hp = Math.round((v === 1 ? 1300 : 5400) * DIFF.boss);
   return { isBoss: true, v, A, name: v === 1 ? 'Varek, Kẻ Gác Cổng Bội Thề' : 'Varek, Vua Ẩn Mặt', x: A.x + A.w / 2, y: v === 1 ? 640 : A.y + 130, r: v === 1 ? 28 : 30,
     hp, maxHp: hp, ghost: hp, face: Math.PI / 2, state: 'dormant', t: 0, cd: 1, vx: 0, vy: 0, poise: v === 1 ? 170 : 240, poiseAcc: 0, lastHit: 9, hurtFlash: 0,
     phase: 1, atk: null, dead: false, z: 0, elite: true, invuln: 0, anim: 0, stagDur: 0.8, lastMove: '', bleedMax: v === 1 ? 180 : 300, res: { holy: 0.8 },

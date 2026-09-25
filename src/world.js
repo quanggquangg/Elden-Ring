@@ -4,8 +4,23 @@
 // Thế giới chính: x từ WX0 tới MAPW, y từ WY0 tới H.
 // Phía đông x > 5000 là các khu biệt lập (Cõi Aurum, Sảnh Hearthhold, hầm ngục), chỉ tới được bằng dịch chuyển.
 const WX0 = -2800, WY0 = -1800, MAPW = 4400, H = 3600, W = 11600;
-// độ khó chung: quái máu trâu hơn và đánh đau hơn
-const DIFF = { hp: 1.25, dmg: 1.3 };
+// Độ khó chọn một lần khi bắt đầu hành trình. Khó và Chuyên gia chỉ mở sau khi đã phá đảo một lần.
+// hp/dmg: máu và sát thương quái thường · boss: máu boss lớn · elite: tỉ lệ quái tinh anh có thuộc tính
+// aff: số thuộc tính tối đa · inv: số Kẻ Xâm Nhập · cd: nhịp nghỉ giữa các đòn của quái (nhỏ hơn là dồn dập hơn)
+const DIFFS = {
+  easy: { name: 'Dễ', desc: 'Kẻ địch yếu hơn, ra đòn thưa hơn. Dành cho ai muốn tận hưởng câu chuyện.', hp: 0.85, dmg: 0.8, boss: 0.8, runes: 1, elite: 0, aff: 0, inv: 0, cd: 1.12 },
+  normal: { name: 'Thường', desc: 'Trải nghiệm souls-like như dự định: khó nhưng công bằng.', hp: 1.25, dmg: 1.3, boss: 1, runes: 1, elite: 0, aff: 0, inv: 0, cd: 1 },
+  hard: { name: 'Khó', desc: 'Chu kỳ thứ hai. Quái tinh anh mang thuộc tính lạ, Gravebound Đỏ xâm nhập thế giới của ngươi, boss gọi thêm tay sai. Rune nhận được ×1.5.', hp: 1.8, dmg: 1.75, boss: 1.45, runes: 1.5, elite: 0.22, aff: 1, inv: 2, cd: 0.9, locked: true },
+  expert: { name: 'Chuyên gia', desc: 'Chu kỳ cuối. Gần một nửa số quái là tinh anh, có kẻ mang hai thuộc tính. Thêm một Kẻ Xâm Nhập nữa. Rune nhận được ×2.', hp: 2.3, dmg: 2.2, boss: 1.85, runes: 2, elite: 0.4, aff: 2, inv: 3, cd: 0.8, locked: true },
+};
+const DIFF_ORDER = ['easy', 'normal', 'hard', 'expert'];
+const DIFF = Object.assign({ id: 'normal' }, DIFFS.normal);
+function setDiff(id) { if (!DIFFS[id]) id = 'normal'; Object.assign(DIFF, DIFFS[id], { id }); }
+// dấu mở khóa lưu riêng khỏi file save, để xoá hành trình cũ vẫn giữ được
+const UNLOCK_KEY = 'gravebound-unlock';
+function readUnlock() { try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || 'null') || {}; } catch (e) { return {}; } }
+function writeUnlock(u) { try { localStorage.setItem(UNLOCK_KEY, JSON.stringify(u)); } catch (e) { /* bỏ qua */ } }
+const diffUnlocked = () => !!readUnlock().cleared;
 const ARENA = { x: 1000, y: 420, w: 800, h: 680 };
 const ARENA2 = { x: 1050, y: -1560, w: 700, h: 420 }; // Sân Ngai Sunthrone trong Kinh Thành
 const TREE_POS = { x: 1400, y: -1720 };

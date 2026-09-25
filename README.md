@@ -27,6 +27,21 @@ python3 -m http.server 8000
 
 Đủ ba Đại Ấn thì cổng **Kinh Thành Aurumhold** trên Cao Nguyên Aurelia mở ra. Trong Kinh Thành, Varek trở lại với hình dạng thật là **Vua Ẩn Mặt**. Hạ hắn để tới **Cây Aurum**, rồi vượt qua trận cuối hai giai đoạn ở Cõi Aurum.
 
+## Độ khó
+
+Độ khó được chọn **một lần** khi bắt đầu hành trình và giữ nguyên tới cuối. Muốn đổi thì bắt đầu Hành trình mới (nút ở màn hình chính, menu tạm dừng hoặc màn kết thúc).
+
+| Độ khó | Mở từ đầu | Khác biệt |
+|---|---|---|
+| Dễ | có | Quái yếu hơn, ra đòn thưa hơn, boss ít máu hơn. |
+| Thường | có | Trải nghiệm như dự định. |
+| Khó | sau lần phá đảo đầu tiên | Quái và boss mạnh hơn nhiều, rune ×1.5. Khoảng 1/5 số quái là **tinh anh** mang thuộc tính. Hai **Gravebound Đỏ** xâm nhập thế giới. Varek gọi **Lời Thề Cũ** khi sang giai đoạn 2. Có lời nhắn từ chính ngươi ở chu kỳ trước. |
+| Chuyên gia | sau lần phá đảo đầu tiên | Mạnh hơn nữa, rune ×2. Gần một nửa số quái là tinh anh, có kẻ mang hai thuộc tính. Thêm kẻ xâm nhập thứ ba. |
+
+- **Thuộc tính tinh anh:** Hỏa Ngục (nổ tung khi chết), Cuồng Phong (nhanh, đánh dồn dập), Thạch Giáp (máu trâu, khó làm lảo đảo), Huyết Khế (đánh trúng thì hồi máu), Hư Ảnh (dịch chuyển ra sau lưng). Quái tinh anh cho gấp 2.5 lần rune và hay rơi đá cường hóa.
+- **Gravebound Đỏ:** Morrow, Kẻ Săn Ấn (Đồng Cỏ Mistveil), Isolde Mắt Đỏ (Hồ Crystalmere) và Brannoc Bội Ước (Cao Nguyên Aurelia, chỉ ở Chuyên gia). Chúng đánh combo nhanh, ném dao, lướt ra sau lưng và uống bình máu. Hạ được mỗi kẻ sẽ nhận một bùa chỉ có ở hai độ khó này: Ấn Gravebound Đỏ, Tim Tro Tàn, Mảnh Vương Miện Vỡ.
+- Dấu mở khóa được lưu riêng trong trình duyệt, nên xoá hành trình cũ vẫn giữ được. Bảng xếp hạng có tab riêng cho từng độ khó.
+
 ## Điều khiển
 
 Phím đặt theo Elden Ring bản PC. `Space` dùng cho lăn và chạy như bản gốc.

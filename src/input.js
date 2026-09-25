@@ -87,7 +87,7 @@ function moveInput() {
 const PB = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 window.addEventListener('gamepadconnected', () => { audioInit(); toast('Đã kết nối tay cầm'); });
 function padMenuNav(dir) {
-  const ov = [UI.lore, UI.controls, UI.board, UI.name, UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
+  const ov = [UI.lore, UI.controls, UI.board, UI.name, UI.diff, UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
   if (!ov) return;
   const els = [...ov.querySelectorAll('button:not([disabled])')].filter(el => el.offsetParent !== null);
   if (!els.length) return;

@@ -261,6 +261,9 @@ function drawBanner(b) {
     ctx.save(); ctx.translate(CW / 2, cy); ctx.scale(sc, sc);
     textC(b.title, 0, 14, spacedFont(small ? 30 : 52, 700), '#f0d27f');
     ctx.restore();
+  } else if (b.kind === 'invade') {
+    textC(b.title, CW / 2, cy + 4, spacedFont(small ? 26 : 42, 700), '#ff6a55');
+    textC(b.sub, CW / 2, cy + 32, `500 14px ${FONT_U}`, '#f3c8bd');
   } else if (b.kind === 'grace') {
     textC(b.title, CW / 2, cy + 4, spacedFont(small ? 24 : 38, 700), '#f0d27f');
     textC(b.sub, CW / 2, cy + 32, `500 14px ${FONT_U}`, '#ece3cc');
@@ -288,7 +291,7 @@ function drawDeath() {
 }
 
 // ───────────────────────── menu HTML ─────────────────────────
-const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name'), lore: $('lore'), controls: $('controlsBox') };
+const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name'), lore: $('lore'), controls: $('controlsBox'), diff: $('diffSel') };
 const STAT_INFO = [
   ['vig', 'Tăng máu tối đa'], ['mnd', 'Tăng FP'], ['end', 'Tăng thể lực và sức mang vác'],
   ['str', 'Vũ khí nặng, sát thương theo Sức Mạnh'], ['dex', 'Vũ khí nhanh, cung, theo Khéo Léo'],
@@ -398,7 +401,7 @@ function renderJournal() {
   const dg = DUNGEONS.filter(d => S.dg[d.id]).length;
   $('journal').innerHTML = '<h3 class="sec">Nhật ký hành trình</h3><ul class="journal">' + main.map(([ok, t, h], i) => !ok && !known[i] ? '' :
     `<li class="${ok ? 'ok' : i === nextI ? 'next' : ''}"><span>${ok ? '✓' : i === nextI ? '▸' : '·'}</span><div><b>${t}</b>${!ok && i === nextI ? '<small>' + h + '</small>' : ''}</div></li>`).join('') + (known.every(k => k) ? '' : '<li class="fog"><span>·</span><div><small>Phần còn lại của con đường vẫn chìm trong sương mù.</small></div></li>') + '</ul>' +
-    `<p class="note">Phụ: hầm ngục ${dg}/${DUNGEONS.length} · Đấu Trường Bloodsand ${S.coloDone ? '✓' : '—'} · Rừng Wraithwood ${S.mb.wraith ? '✓' : '—'} · Bia bản đồ ${S.frags.length}/${MAP_FRAGS.length} · Ân Điển ${S.discovered.length}/${GRACES.length} · Số lần chết ${S.deaths}</p>`;
+    `<p class="note">Độ khó: ${DIFF.name}${DIFF.inv ? ' · Kẻ Xâm Nhập ' + INVADERS.slice(0, DIFF.inv).filter(v => S.inv[v.id]).length + '/' + Math.min(DIFF.inv, INVADERS.length) : ''}<br>Phụ: hầm ngục ${dg}/${DUNGEONS.length} · Đấu Trường Bloodsand ${S.coloDone ? '✓' : '—'} · Rừng Wraithwood ${S.mb.wraith ? '✓' : '—'} · Bia bản đồ ${S.frags.length}/${MAP_FRAGS.length} · Ân Điển ${S.discovered.length}/${GRACES.length} · Số lần chết ${S.deaths}</p>`;
 }
 // ── túi đồ ──
 function renderInv() {
@@ -557,14 +560,15 @@ function togglePause() {
   if (!UI.lore.hidden || !UI.controls.hidden) { closeInfo(); return; }
   if (G.mode === 'map') { toggleMap(); return; }
   if (G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { closeGrace(); return; }
-  if (G.mode === 'play') { setMode('pause'); UI.pause.hidden = false; $('btnResume').focus({ preventScroll: true }); }
+  if (G.mode === 'play') { setMode('pause'); UI.pause.hidden = false; $('pauseEyebrow').textContent = 'Tạm dừng · Độ khó ' + DIFF.name; resetPauseNew(); $('btnResume').focus({ preventScroll: true }); }
   else if (G.mode === 'pause') { UI.pause.hidden = true; setMode('play'); }
   else if (G.mode === 'menu' && !UI.shop.hidden) closeShop();
   else if (G.mode === 'menu' && !UI.grace.hidden) closeGrace();
   else if (G.mode === 'menu' && !UI.ending.hidden) closeEnding();
   else if (!UI.board.hidden) closeBoard();
   else if (G.mode === 'title' && !UI.name.hidden) { UI.name.hidden = true; UI.title.hidden = false; }
-  else if (G.mode === 'title' && !UI.cls.hidden) { UI.cls.hidden = true; UI.name.hidden = false; }
+  else if (G.mode === 'title' && !UI.cls.hidden) { UI.cls.hidden = true; openDiffSelect(); }
+  else if (G.mode === 'title' && !UI.diff.hidden) { UI.diff.hidden = true; UI.name.hidden = false; }
 }
 function toggleMute() { muted = !muted; $('btnSound').textContent = 'Âm thanh: ' + (muted ? 'tắt' : 'bật'); toast(muted ? 'Đã tắt âm thanh' : 'Đã bật âm thanh'); }
 $('btnResume').onclick = togglePause;
@@ -595,6 +599,13 @@ $('btnFx').onclick = () => {
 };
 updateFxBtn();
 $('btnSound').onclick = () => { audioInit(); toggleMute(); };
+// hành trình mới từ menu tạm dừng: bấm hai lần để xác nhận; tiến trình cũ chỉ bị thay khi đã chọn xong xuất thân
+let pauseNewArmed = false;
+function resetPauseNew() { pauseNewArmed = false; $('btnPauseNew').textContent = 'Hành trình mới'; $('btnPauseNew').classList.remove('warn'); }
+$('btnPauseNew').onclick = () => {
+  if (!pauseNewArmed) { pauseNewArmed = true; $('btnPauseNew').textContent = 'Bỏ hành trình này?'; $('btnPauseNew').classList.add('warn'); return; }
+  resetPauseNew(); $('btnQuit').onclick(); openNameEntry();
+};
 $('btnQuit').onclick = () => {
   save(); UI.pause.hidden = true; setMode('title'); UI.title.hidden = false; G.bossFight = false;
   $('btnContinue').hidden = !loadSave(); confirmNew = false; $('btnNew').textContent = 'Hành trình mới'; $('btnNew').classList.remove('warn');
@@ -606,17 +617,31 @@ function openEnding() {
   showRank(); later(1.5, showRank);
   const m = Math.floor(S.time / 60), s = Math.floor(S.time % 60);
   $('endTime').textContent = Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  $('endLede').textContent = ENDING_TEXT[DIFF.id] || ENDING_TEXT.normal;
+  const u = readUnlock(), first = !u.cleared;
+  u.cleared = true; u.deaths = S.deaths; u.clears = Object.assign({}, u.clears, { [DIFF.id]: ((u.clears || {})[DIFF.id] || 0) + (G.endingCounted ? 0 : 1) }); writeUnlock(u);
+  G.endingCounted = true;
+  $('endUnlock').hidden = !first; $('endUnlock').textContent = 'Đã mở khóa độ khó Khó và Chuyên gia. Hãy bắt đầu Hành trình mới để bước vào chu kỳ tiếp theo.';
   UI.ending.hidden = false; SFX.felled();
   $('btnEndClose').focus({ preventScroll: true });
 }
 function closeEnding() { UI.ending.hidden = true; setMode('play'); }
 $('btnEndClose').onclick = closeEnding;
+$('btnEndNew').onclick = () => { UI.ending.hidden = true; setMode('title'); G.bossFight = false; openNameEntry(); };
+const ENDING_TEXT = {
+  easy: 'Ngươi quỳ dưới tán Cây Aurum, và những mảnh Vòng vỡ lặng lẽ tìm về lòng bàn tay ngươi. Kỷ nguyên tro tàn khép lại. Kỷ nguyên của ngươi bắt đầu.',
+  normal: 'Ngươi quỳ dưới tán Cây Aurum, và những mảnh Vòng vỡ lặng lẽ tìm về lòng bàn tay ngươi. Kỷ nguyên tro tàn khép lại. Kỷ nguyên của ngươi bắt đầu.',
+  hard: 'Lần thứ hai ngươi quỳ dưới tán Cây Aurum. Những Gravebound Đỏ đã ngã xuống sau lưng ngươi, và Vòng nhận ra bàn tay từng chạm vào nó. Lần này, nó không rời ngươi nữa.',
+  expert: 'Chu kỳ cuối cùng khép lại. Không còn kẻ xâm nhập, không còn lời thề cũ nào đứng dậy. Chỉ còn ngươi, kẻ Gravebound đã nhiều lần vượt qua cái chết, và chiếc Vòng cuối cùng cũng lành lại trong tay ngươi.',
+};
 
 // ───────────────────────── bắt đầu trò chơi ─────────────────────────
 let confirmNew = false;
 function startGame(data, cls) {
   S = data ? Object.assign(defaultSave(), data) : defaultSave();
-  if (!data) { applyClass(cls); S.name = pendingName || 'Gravebound'; }
+  if (!data) { applyClass(cls); S.name = pendingName || 'Gravebound'; S.diff = pendingDiff; }
+  if (S.finalDead && !diffUnlocked()) writeUnlock(Object.assign(readUnlock(), { cleared: true, deaths: S.deaths }));
+  setDiff(S.diff); setupCycleNotes(); G.invader = null; G.invCd = 0; G.endingCounted = !!data && S.finalDead;
   S.flaskMax = Math.min(S.flaskMax, FLASK_CAP);
   expDecode(S.explored);
   UI.title.hidden = true; UI.cls.hidden = true; parts.length = 0;
@@ -632,6 +657,7 @@ function startGame(data, cls) {
 }
 function openClassSelect() {
   UI.title.hidden = true; UI.cls.hidden = false;
+  $('clsEyebrow').textContent = 'Hành trình mới · Độ khó ' + DIFFS[pendingDiff].name;
   $('clsList').innerHTML = CLASSES.map(c => {
     const st = Object.entries(c.stats).map(([k, v]) => `<span>${STAT_SHORT[k] || STAT_NAME[k].split(' ')[0]} <b>${v}</b></span>`).join('');
     return `<li><button data-cls="${c.id}"><span class="cn">${c.name}</span><span class="cd">${c.desc}</span><span class="cs">${st}</span></button></li>`;
@@ -639,7 +665,21 @@ function openClassSelect() {
   setTimeout(() => { const b = $('clsList').querySelector('button'); if (b) b.focus({ preventScroll: true }); }, 30);
 }
 $('clsList').addEventListener('click', e => { const b = e.target.closest('[data-cls]'); if (b) { audioInit(); startGame(null, b.dataset.cls); } });
-$('btnClsBack').onclick = () => { UI.cls.hidden = true; UI.name.hidden = false; };
+$('btnClsBack').onclick = () => { UI.cls.hidden = true; openDiffSelect(); };
+// ── chọn độ khó: chỉ một lần mỗi hành trình; Khó và Chuyên gia mở sau lần phá đảo đầu tiên ──
+let pendingDiff = 'normal';
+function openDiffSelect() {
+  UI.title.hidden = true; UI.diff.hidden = false;
+  const open = diffUnlocked();
+  $('diffList').innerHTML = DIFF_ORDER.map(id => {
+    const d = DIFFS[id], lock = d.locked && !open;
+    const tag = lock ? '<span class="lock">Đã khóa · phá đảo một lần để mở</span>' : d.locked ? '<span class="new">Chu kỳ mới</span>' : '';
+    return `<li><button data-diff="${id}" ${lock ? 'disabled' : ''}><span class="cn">${d.name}</span>${tag}<span class="cd">${d.desc}</span></button></li>`;
+  }).join('');
+  setTimeout(() => { const b = $('diffList').querySelector(`[data-diff="${pendingDiff}"]:not([disabled])`) || $('diffList').querySelector('button'); if (b) b.focus({ preventScroll: true }); }, 30);
+}
+$('diffList').addEventListener('click', e => { const b = e.target.closest('[data-diff]'); if (b && !b.disabled) { audioInit(); pendingDiff = b.dataset.diff; UI.diff.hidden = true; openClassSelect(); } });
+$('btnDiffBack').onclick = () => { UI.diff.hidden = true; UI.name.hidden = false; };
 $('btnContinue').onclick = () => { audioInit(); startGame(loadSave()); };
 $('btnNew').onclick = () => {
   audioInit();

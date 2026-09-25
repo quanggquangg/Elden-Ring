@@ -49,6 +49,7 @@ function makeAtk(kind, combo) {
   let mul = a.mul;
   if (kind === 'light' && hasTal('blade')) mul *= 1.12;
   if (kind === 'heavy' && hasTal('claw')) mul *= 1.18;
+  if (kind === 'heavy' && hasTal('crown')) mul *= 1.1;
   if (Wp.type === 'bow' && hasTal('arrow')) mul *= 1.2;
   return Object.assign(a, { kind, combo, maxCombo: Wp.light ? Wp.light.length - 1 : 0, parts: atkParts(mul), hits: new Set(), lunged: false });
 }
@@ -264,6 +265,7 @@ function updatePlayer(dt) {
   if (p.invuln > 0) p.invuln -= dt;
   for (const k in p.buffs) if (p.buffs[k] > 0) p.buffs[k] = Math.max(0, p.buffs[k] - dt);
   if (p.buffs.bless > 0) p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.006 * dt);
+  if (hasTal('ashen')) p.hp = Math.min(p.maxHp, p.hp + 3 * dt);
   if (p.ghostDelay > 0) p.ghostDelay -= dt; else p.ghost = Math.max(p.hp, p.ghost - p.maxHp * 0.5 * dt);
   if (p.ghost < p.hp) p.ghost = p.hp;
   p.fp = Math.min(p.maxFp, p.fp + 4 * (1 + armorBonus('fpRegen')) * dt);
@@ -437,6 +439,7 @@ function hurtPlayer(dmg, fx, fy, heavy, src = null, kind = 'melee', dt = 'phys')
   }
   dmg = Math.round(dmg * rand(0.95, 1.05));
   p.hp -= dmg; p.ghostDelay = 0.6;
+  if (src && src.aff) affixOnHit(src);
   const a = Math.atan2(p.y - fy, p.x - fx);
   if (kind === 'fire') {
     p.invuln = 0.15; G.flash = Math.max(G.flash, 0.2);
@@ -551,7 +554,7 @@ function friendlyBlast(x, y, r, parts, poise) {
   aoes.push({ kind: 'flash', x, y, r, t: 0, dur: 0.35, col: parts.fire ? 'fire' : parts.magic ? 'magic' : undefined });
 }
 function gainRunes(n, x, y) {
-  n = Math.round(n * (hasTal('gold') ? 1.2 : 1));
+  n = Math.round(n * (hasTal('gold') ? 1.2 : 1) * (hasTal('crown') ? 1.3 : 1));
   S.runes += n; G.runeGain += n; G.runeGainT = 2.6;
   for (let i = 0; i < 10; i++) addPart(x + rand(-10, 10), y + rand(-10, 10), rand(-30, 30), rand(-60, -20), rand(0.6, 1.2), rand(2, 3.5), '#f3d27a', 'mote');
 }
@@ -568,7 +571,9 @@ function killEnemy(e) {
   if (e.isBoss) { bossDefeated(); return; }
   if (e.isDragon) { dragonDefeated(); return; }
   if (e.isFinal) { finalDefeated(); return; }
-  gainRunes(Math.round(e.T.runes * (e.runeMul || 1)), e.x, e.y);
+  gainRunes(Math.round(e.T.runes * (e.runeMul || 1) * DIFF.runes), e.x, e.y);
+  if (e.aff) affixDeath(e);
+  if (e.invader) invaderDefeated(e);
   if (hasTal('vital')) { const h = Math.round(P.maxHp * 0.04); P.hp = Math.min(P.maxHp, P.hp + h); }
   if (!e.summoned && !e.challenge) dropLoot(e);
   if (e.T.miniboss) {

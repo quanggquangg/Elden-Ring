@@ -160,7 +160,7 @@ function updateEnemyAtk(e, dt, ang) {
   }
   if (t >= A.wind + (A.rec || 0)) finish();
 }
-function endEnemyAtk(e) { e.state = 'chase'; e.t = 0; e.atk = null; e.fade = 0; e.z = 0; e.cd = rand(e.T.cd[0], e.T.cd[1]) * 0.85 * (e.p2 ? e.T.p2.cdMul : 1); }
+function endEnemyAtk(e) { e.state = 'chase'; e.t = 0; e.atk = null; e.fade = 0; e.z = 0; e.cd = rand(e.T.cd[0], e.T.cd[1]) * 0.85 * (e.p2 ? e.T.p2.cdMul : 1) * DIFF.cd * (e.cdMul || 1); }
 function enterPhase2(e) {
   const T = e.T;
   e.state = 'phase'; e.t = 0; e.atk = null; e.invuln = 1.8; e.z = 0; e.poiseAcc = 0;
@@ -192,23 +192,24 @@ function updateEnemies(dt) {
     const go = (a, s) => { moveCircle(e, Math.cos(a) * s * dt, Math.sin(a) * s * dt, true); e.moving = true; };
     // miniboss trong phòng boss chỉ tỉnh dậy khi trận đấu bắt đầu
     const asleep = e.room && G.dfight !== e.room;
+    if (e.aff) updateAffix(e, dt, d);
     if (T.p2 && !e.p2 && e.state !== 'phase' && e.hp <= e.maxHp * T.p2.at && e.state !== 'broken') enterPhase2(e);
     switch (e.state) {
       case 'idle': {
-        if (alive && !asleep && (d < T.aggro || e.challenge) && !pInArena) { e.state = 'chase'; e.t = 0; break; }
+        if (alive && !asleep && (d < T.aggro || e.challenge) && !(pInArena && !e.arena)) { e.state = 'chase'; e.t = 0; break; }
         if (!e.wander || e.t > e.wander.until) e.wander = { x: e.hx + rand(-70, 70), y: e.hy + rand(-70, 70), until: e.t + rand(2, 5) };
         if (!e.room && dist(e.x, e.y, e.wander.x, e.wander.y) > 10) { const a = Math.atan2(e.wander.y - e.y, e.wander.x - e.x); e.face = turn(e.face, a, 4 * dt); go(a, spd * 0.32); }
         break;
       }
       case 'return': {
-        if (alive && !asleep && d < T.aggro * 0.6 && homeD < 400 && !pInArena) { e.state = 'chase'; break; }
+        if (alive && !asleep && d < T.aggro * 0.6 && homeD < 400 && !(pInArena && !e.arena)) { e.state = 'chase'; break; }
         const a = Math.atan2(e.hy - e.y, e.hx - e.x); e.face = turn(e.face, a, 6 * dt); go(a, spd);
         e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.3 * dt);
         if (homeD < 14) { e.state = 'idle'; e.t = 0; }
         break;
       }
       case 'chase': {
-        if (!alive || asleep || (homeD > (T.leash || 680) && !e.challenge) || pInArena) { e.state = 'return'; e.t = 0; break; }
+        if (!alive || asleep || (homeD > (T.leash || 680) && !e.challenge) || (pInArena && !e.arena)) { e.state = 'return'; e.t = 0; break; }
         e.face = turn(e.face, ang, 7 * dt);
         const pick = e.p2 && T.p2.pick ? T.p2.pick : T.pick;
         if (T.flier) {
