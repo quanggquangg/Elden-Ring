@@ -705,6 +705,11 @@ function drawPuzzles() {
     if (!read) { const gr = ctx.createRadialGradient(f.x, f.y - 16, 2, f.x, f.y - 16, 46); gr.addColorStop(0, `rgba(190,215,255,${0.25 * pulse})`); gr.addColorStop(1, 'rgba(190,215,255,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(f.x, f.y - 16, 46, 0, TAU); ctx.fill(); }
     ctx.fillStyle = '#5d5a52'; ctx.strokeStyle = '#2a2822'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(f.x - 9, f.y + 4); ctx.lineTo(f.x - 7, f.y - 30); ctx.lineTo(f.x, f.y - 38); ctx.lineTo(f.x + 7, f.y - 30); ctx.lineTo(f.x + 9, f.y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // bia có hai mặt vát (trái sáng, phải tối), bệ đá dưới chân và rêu
+    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.moveTo(f.x, f.y - 38); ctx.lineTo(f.x + 7, f.y - 30); ctx.lineTo(f.x + 9, f.y + 4); ctx.lineTo(f.x + 1, f.y + 4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.moveTo(f.x, f.y - 38); ctx.lineTo(f.x - 7, f.y - 30); ctx.lineTo(f.x - 6, f.y - 14); ctx.lineTo(f.x - 2, f.y - 30); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#4a4740'; ctx.strokeStyle = '#2a2822'; ctx.lineWidth = 1.3; ctx.fillRect(f.x - 12, f.y + 2, 24, 5); ctx.strokeRect(f.x - 12, f.y + 2, 24, 5);
+    ctx.fillStyle = 'rgba(96,120,58,.6)'; ctx.beginPath(); ctx.arc(f.x - 7, f.y + 1, 2.5, 0, TAU); ctx.arc(f.x + 6, f.y - 2, 1.8, 0, TAU); ctx.fill();
     ctx.strokeStyle = read ? 'rgba(200,190,160,.5)' : `rgba(200,225,255,${0.6 + 0.4 * pulse})`; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.arc(f.x, f.y - 20, 4, 0, TAU); ctx.moveTo(f.x, f.y - 29); ctx.lineTo(f.x, f.y - 8); ctx.moveTo(f.x - 5, f.y - 13); ctx.lineTo(f.x + 5, f.y - 13); ctx.stroke();
   }
@@ -867,15 +872,24 @@ function drawWall(w) {
   if (w.illusory && S.illusory.includes(w.illusory)) return;
   ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(w.x + 5, w.y + 9, w.w, w.h);
   if (w.bld) {
-    // nhà trong Kinh Thành: mái ngói vàng sẫm
-    ctx.fillStyle = '#6a5a3c'; ctx.fillRect(w.x, w.y, w.w, w.h);
-    ctx.fillStyle = '#8a7446'; ctx.fillRect(w.x + 4, w.y + 4, w.w - 8, w.h / 2 - 4);
-    ctx.fillStyle = '#5e4e32'; ctx.fillRect(w.x + 4, w.y + w.h / 2, w.w - 8, w.h / 2 - 4);
-    ctx.strokeStyle = 'rgba(40,30,18,.45)'; ctx.lineWidth = 1; ctx.beginPath();
-    for (let x = w.x + 14; x < w.x + w.w - 4; x += 14) { ctx.moveTo(x, w.y + 4); ctx.lineTo(x, w.y + w.h - 4); }
-    ctx.stroke();
-    ctx.strokeStyle = '#d8b45a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(w.x + 4, w.y + w.h / 2); ctx.lineTo(w.x + w.w - 4, w.y + w.h / 2); ctx.stroke();
-    ctx.strokeStyle = 'rgba(12,10,8,.7)'; ctx.lineWidth = 1; ctx.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
+    // nhà trong Kinh Thành nhìn từ trên: mái bốn mặt, mỗi mặt một độ sáng, hàng ngói, nóc mái vàng, ống khói
+    const x0 = w.x, y0 = w.y, x1 = w.x + w.w, y1 = w.y + w.h, inset = Math.min(w.w, w.h) / 2, horiz = w.w >= w.h;
+    const rx0 = horiz ? x0 + inset : (x0 + x1) / 2, rx1 = horiz ? x1 - inset : (x0 + x1) / 2, ry0 = horiz ? (y0 + y1) / 2 : y0 + inset, ry1 = horiz ? (y0 + y1) / 2 : y1 - inset;
+    const face = (pts, col) => { ctx.fillStyle = col; ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); ctx.fill(); };
+    face([[x0, y0], [x1, y0], [rx1, ry1], [rx0, ry0]], '#a08650');
+    face([[x0, y1], [x1, y1], [rx1, ry1], [rx0, ry0]], '#6a5634');
+    face([[x0, y0], [x0, y1], [rx0, ry0]], '#8a7244');
+    face([[x1, y0], [x1, y1], [rx1, ry1]], '#5e4c2e');
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, w.w, w.h); ctx.clip();
+    ctx.strokeStyle = 'rgba(40,28,14,.4)'; ctx.lineWidth = 1; ctx.beginPath();
+    if (horiz) for (let y = y0 + 6; y < y1; y += 6) { ctx.moveTo(x0, y); ctx.lineTo(x1, y); } else for (let x = x0 + 6; x < x1; x += 6) { ctx.moveTo(x, y0); ctx.lineTo(x, y1); }
+    ctx.stroke(); ctx.restore();
+    ctx.strokeStyle = 'rgba(30,20,10,.6)'; ctx.lineWidth = 1.2; ctx.beginPath();
+    ctx.moveTo(x0, y0); ctx.lineTo(rx0, ry0); ctx.moveTo(x0, y1); ctx.lineTo(rx0, ry0); ctx.moveTo(x1, y0); ctx.lineTo(rx1, ry1); ctx.moveTo(x1, y1); ctx.lineTo(rx1, ry1); ctx.stroke();
+    ctx.strokeStyle = '#e8c060'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(rx0, ry0); ctx.lineTo(rx1, ry1); ctx.stroke(); ctx.lineCap = 'butt';
+    const cxh = x0 + w.w * 0.72, cyh = y0 + w.h * 0.3;
+    ctx.fillStyle = '#5a4a3a'; ctx.fillRect(cxh - 4, cyh - 4, 8, 8); ctx.strokeStyle = 'rgba(12,10,8,.85)'; ctx.strokeRect(cxh - 4, cyh - 4, 8, 8); ctx.fillStyle = '#1a140e'; ctx.fillRect(cxh - 2, cyh - 2, 4, 4);
+    ctx.strokeStyle = 'rgba(12,10,8,.85)'; ctx.lineWidth = 1.6; ctx.strokeRect(x0 + 0.5, y0 + 0.5, w.w - 1, w.h - 1);
     return;
   }
   if (w.shelf) {
@@ -983,6 +997,11 @@ function drawDecals() {
     const gr = ctx.createRadialGradient(g.x, g.y, 2, g.x, g.y, 70);
     gr.addColorStop(0, `rgba(255,222,140,${(found ? 0.5 : 0.25) * pulse})`); gr.addColorStop(1, 'rgba(255,222,140,0)');
     ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(g.x, g.y, 70, 0, TAU); ctx.fill();
+    // vòng cổ ngữ vàng xoay chậm quanh Ân Điển, và bệ đá nhỏ
+    ctx.strokeStyle = `rgba(255,220,130,${(found ? 0.55 : 0.3) * pulse})`; ctx.lineWidth = 1.2; ctx.setLineDash([2, 5]); ctx.lineDashOffset = -t * 6;
+    ctx.beginPath(); ctx.arc(g.x, g.y + 2, 24, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = `rgba(255,230,160,${(found ? 0.35 : 0.2) * pulse})`; ctx.beginPath(); ctx.ellipse(g.x, g.y + 2, 16, 11, 0, 0, TAU); ctx.stroke();
+    ctx.fillStyle = '#6a6254'; ctx.strokeStyle = 'rgba(12,10,8,.8)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(g.x, g.y + 5, 8, 4, 0, 0, TAU); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#fff2c4'; ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 16;
     ctx.beginPath(); ctx.moveTo(g.x, g.y - 14 * pulse); ctx.quadraticCurveTo(g.x + 6, g.y - 2, g.x, g.y + 4); ctx.quadraticCurveTo(g.x - 6, g.y - 2, g.x, g.y - 14 * pulse); ctx.fill();
     ctx.shadowBlur = 0;
