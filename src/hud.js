@@ -26,6 +26,90 @@ function drawFlaskIcon(cx, cy, col, empty) {
   ctx.fillStyle = '#c9b48a'; ctx.fillRect(cx - 4.5, cy - 14, 9, 3);
   ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(cx - 4, cy + 1, 3, 0, TAU); ctx.fill();
 }
+// ── icon vũ khí trên HUD: mỗi loại vũ khí một hình riêng, nghiêng 45° như ô trang bị trong game souls ──
+function iconPath(pts) { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); }
+function drawWeaponIcon(id, cx, cy, box) {
+  const W = WEAPONS[id], L = W.look || {}, k = box / 33, c = L.wcol || '#cfcabc', ol = 'rgba(8,6,4,.9)';
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-Math.PI / 4); ctx.scale(k, k);
+  ctx.lineJoin = 'round'; ctx.strokeStyle = ol; ctx.lineWidth = 1.4;
+  const glow = L.glow ? (typeof L.glow === 'string' ? L.glow : '#ffd76a') : null;
+  const blade = (x0, x1, hw, tipLen, col) => {
+    if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 8; }
+    ctx.fillStyle = col; iconPath([[x0, -hw], [x1 - tipLen, -hw], [x1, 0], [x1 - tipLen, hw], [x0, hw]]); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(x0 + 1, -hw * 0.3 - 0.4, x1 - tipLen - x0 - 1, Math.max(0.8, hw * 0.35));
+  };
+  const hilt = (x, gw, gcol = '#b08d4c') => {
+    ctx.fillStyle = '#4a3a28'; ctx.fillRect(x - 7, -1.3, 7, 2.6); ctx.strokeRect(x - 7, -1.3, 7, 2.6);
+    ctx.fillStyle = gcol; ctx.fillRect(x - 1, -gw, 2.4, gw * 2); ctx.strokeRect(x - 1, -gw, 2.4, gw * 2);
+    ctx.beginPath(); ctx.arc(x - 8.5, 0, 2, 0, TAU); ctx.fill(); ctx.stroke();
+  };
+  const shaft = (x0, x1, col = '#6b5a3e', w = 2.2) => { ctx.fillStyle = col; ctx.fillRect(x0, -w / 2, x1 - x0, w); ctx.strokeRect(x0, -w / 2, x1 - x0, w); };
+  if (W.type === 'bow') {
+    ctx.strokeStyle = ol; ctx.lineWidth = 4.2; ctx.beginPath(); ctx.arc(-6, 0, 15, -1.2, 1.2); ctx.stroke();
+    ctx.strokeStyle = c; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(-6, 0, 15, -1.2, 1.2); ctx.stroke();
+    const ex = -6 + Math.cos(1.2) * 15, ey = Math.sin(1.2) * 15;
+    ctx.strokeStyle = 'rgba(235,230,215,.85)'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = '#d8d0bc'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(ex - 2, 0); ctx.lineTo(13, 0); ctx.stroke();
+    ctx.fillStyle = '#e8e4d8'; iconPath([[15, 0], [11, -2.4], [11, 2.4]]); ctx.fill();
+    ctx.fillStyle = id === 'goldbow' ? '#ffe08a' : '#a8a090'; iconPath([[ex - 2, 0], [ex - 5, -2.5], [ex - 3, 0], [ex - 5, 2.5]]); ctx.fill();
+  } else if (id === 'rapier') {
+    blade(0, 17, 0.9, 5, c); ctx.fillStyle = '#b08d4c'; ctx.beginPath(); ctx.arc(-1, 0, 3.6, -1.9, 1.9); ctx.fill(); ctx.stroke(); hilt(0, 1.2);
+  } else if (L.weapon === 'katana') {
+    ctx.strokeStyle = ol; ctx.lineWidth = 3.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(9, -1, 16, -4); ctx.stroke();
+    ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(1, -0.6); ctx.quadraticCurveTo(9, -1.6, 15, -4.3); ctx.stroke();
+    ctx.strokeStyle = ol; ctx.lineWidth = 1.2; ctx.fillStyle = '#b08d4c'; ctx.beginPath(); ctx.ellipse(-0.5, 0, 1.4, 3.4, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#2b2622'; ctx.fillRect(-10, -1.4, 9, 2.8); ctx.strokeRect(-10, -1.4, 9, 2.8);
+    ctx.fillStyle = '#e8dcc0'; for (let i = 0; i < 3; i++) ctx.fillRect(-9 + i * 3, -1.4, 1, 2.8);
+  } else if (L.weapon === 'spear') {
+    shaft(-16, 8); ctx.fillStyle = c; iconPath([[17, 0], [11, -3], [7, 0], [11, 3]]); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#8a7342'; ctx.fillRect(6, -1.8, 2, 3.6); ctx.strokeRect(6, -1.8, 2, 3.6);
+  } else if (L.weapon === 'axe') {
+    const big = id === 'greataxe';
+    shaft(-15, 12);
+    ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(6, -1); ctx.quadraticCurveTo(10, -11, 16, -10); ctx.quadraticCurveTo(13, -4, 15, 1); ctx.lineTo(9, 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+    if (big) { ctx.beginPath(); ctx.moveTo(6, 1); ctx.quadraticCurveTo(10, 11, 16, 10); ctx.quadraticCurveTo(13, 4, 15, -1); ctx.lineTo(9, -1); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.moveTo(14, -9); ctx.quadraticCurveTo(12, -4, 14, 0); ctx.lineTo(13, 0); ctx.quadraticCurveTo(11, -4, 13, -9); ctx.fill();
+  } else if (L.weapon === 'club') {
+    shaft(-15, 7, '#4a3a28', 2.6);
+    ctx.fillStyle = c; ctx.fillRect(6, -6.5, 11, 13); ctx.strokeRect(6, -6.5, 11, 13);
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(7.5, -5, 8, 2.2); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(7.5, 3, 8, 2.2);
+  } else if (L.weapon === 'scythe') {
+    shaft(-16, 14, '#3a3a4a');
+    ctx.shadowColor = c; ctx.shadowBlur = 6; ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(14, -1); ctx.quadraticCurveTo(12, -12, -2, -13); ctx.quadraticCurveTo(9, -8, 11, -1); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+  } else if (id === 'broken') {
+    ctx.fillStyle = c; iconPath([[0, -2], [9, -2], [11, -0.5], [9.5, 0.6], [12, 2], [0, 2]]); ctx.fill(); ctx.stroke(); hilt(0, 4.5, '#7a6a52');
+  } else if (L.weapon === 'greatsword') {
+    blade(0, 18, 3.2, 5, c); hilt(0, 6.5);
+  } else if (id === 'dagger') {
+    blade(0, 10, 1.8, 4, c); hilt(0, 3.4);
+  } else {
+    blade(0, 17, 2, 4.5, c); hilt(0, 5, id === 'royalsword' ? '#ffd76a' : id === 'crystalsword' ? '#9fd0ff' : '#b08d4c');
+  }
+  ctx.restore();
+}
+function drawOffIcon(off, cx, cy, box) {
+  const k = box / 26; ctx.save(); ctx.translate(cx, cy); ctx.scale(k, k); ctx.strokeStyle = 'rgba(8,6,4,.9)'; ctx.lineWidth = 1.2;
+  if (off.type === 'shield' && off.id === 'kite') {
+    ctx.fillStyle = '#6a707a'; iconPath([[0, -9], [7, -6], [6, 3], [0, 10], [-6, 3], [-7, -6]]); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#d8dce2'; ctx.lineWidth = 1; iconPath([[0, -7], [5, -5], [4.5, 2.5], [0, 7.5], [-4.5, 2.5], [-5, -5]]); ctx.stroke();
+    ctx.fillStyle = '#b08d4c'; ctx.fillRect(-0.8, -5, 1.6, 9); ctx.fillRect(-3.5, -1.8, 7, 1.6);
+  } else if (off.type === 'shield') {
+    ctx.fillStyle = '#7a5a36'; ctx.beginPath(); ctx.arc(0, 0, 9, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(40,28,16,.8)'; ctx.lineWidth = 0.8; for (const x of [-4, 0, 4]) { ctx.beginPath(); ctx.moveTo(x, -8.5); ctx.lineTo(x, 8.5); ctx.stroke(); }
+    ctx.strokeStyle = '#b9b29c'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(0, 0, 8.3, 0, TAU); ctx.stroke();
+    ctx.fillStyle = '#c8c0a8'; ctx.beginPath(); ctx.arc(0, 0, 2.4, 0, TAU); ctx.fill();
+  } else if (off.type === 'staff') {
+    const orb = off.id === 'staff2' ? '#e0f0ff' : off.id === 'staff3' ? '#9fd0ff' : off.id === 'staff1' ? '#b9c8ff' : '#8fb0d8';
+    ctx.rotate(-Math.PI / 4); ctx.fillStyle = off.id === 'staff0' ? '#6b5a3e' : '#4a4f6a'; ctx.fillRect(-10, -1.1, 17, 2.2); ctx.strokeRect(-10, -1.1, 17, 2.2);
+    ctx.shadowColor = orb; ctx.shadowBlur = 8; ctx.fillStyle = orb; ctx.beginPath(); ctx.arc(8.5, 0, 3.3, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+  } else {
+    const col = off.id === 'seal0' ? '#a08a60' : off.id === 'seal2' ? '#e0c890' : '#ffd76a';
+    ctx.shadowColor = col; ctx.shadowBlur = 6; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, 8, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+    ctx.strokeStyle = 'rgba(80,50,10,.85)'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, TAU); ctx.moveTo(0, -7); ctx.lineTo(0, 7); ctx.moveTo(-7, 0); ctx.lineTo(7, 0); ctx.stroke();
+  }
+  ctx.restore();
+}
 function drawQuickIcon(q, cx, cy) {
   if (q === 'flask') return drawFlaskIcon(cx, cy, '#b3261e', P.flasks <= 0);
   if (q === 'fpflask') return drawFlaskIcon(cx, cy, '#2e5ac8', P.fpflasks <= 0);
@@ -59,15 +143,11 @@ function drawHUD() {
   // vũ khí tay phải và tay trái
   const wx = fx + fs + 10, Wp = WEAPONS[S.equipped], off = offDef(), cat = catalyst();
   box(wx, fy, fs);
-  ctx.save(); ctx.translate(wx + fs / 2, fy + fs / 2); ctx.rotate(-Math.PI / 4);
-  if (Wp.type === 'bow') { ctx.strokeStyle = Wp.look.wcol; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 12, -1.3, 1.3); ctx.stroke(); ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(Math.cos(1.3) * 12, -Math.sin(1.3) * 12); ctx.lineTo(Math.cos(1.3) * 12, Math.sin(1.3) * 12); ctx.stroke(); }
-  else { ctx.strokeStyle = Wp.look.wcol; ctx.lineWidth = Wp.twoHanded ? 4.5 : 2.5; ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(14, 0); ctx.stroke(); ctx.strokeStyle = '#8a7342'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-7, -5); ctx.lineTo(-7, 5); ctx.stroke(); }
-  ctx.restore();
+  drawWeaponIcon(S.equipped, wx + fs / 2, fy + fs / 2, fs);
   const ox = wx + fs + 6, os = 26;
   box(ox, fy + fs - os, os);
-  if (Wp.twoHanded) { ctx.strokeStyle = 'rgba(236,227,204,.35)'; ctx.beginPath(); ctx.moveTo(ox + 6, fy + fs - 6); ctx.lineTo(ox + os - 6, fy + fs - os + 6); ctx.stroke(); }
-  else if (off.type === 'shield') { ctx.fillStyle = off.id === 'kite' ? '#8a909a' : '#8a6a44'; ctx.beginPath(); ctx.arc(ox + os / 2, fy + fs - os / 2, 8, 0, TAU); ctx.fill(); }
-  else { ctx.fillStyle = off.type === 'staff' ? '#9fd0ff' : '#ffd76a'; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(ox + os / 2, fy + fs - os / 2, 5, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; }
+  if (Wp.twoHanded) { ctx.strokeStyle = 'rgba(236,227,204,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ox + 6, fy + fs - 6); ctx.lineTo(ox + os - 6, fy + fs - os + 6); ctx.stroke(); }
+  else drawOffIcon(off, ox + os / 2, fy + fs - os / 2, os);
   const tx = ox + os + 8;
   ctx.font = `500 12px ${FONT_U}`; ctx.fillStyle = reqMet(Wp.req) ? '#ece3cc' : '#f0a58f';
   ctx.fillText(Wp.name + (upLv(S.equipped) ? ' +' + upLv(S.equipped) : ''), tx, fy + 13);
@@ -693,12 +773,6 @@ $('btnFx').onclick = () => {
   updateFxBtn(); resize();
 };
 updateFxBtn();
-$('btnPix').textContent = 'Kiểu hình: ' + (PIXEL ? 'pixel' : 'mịn');
-$('btnPix').onclick = () => {
-  PIXEL = !PIXEL;
-  try { localStorage.setItem('vvv-pix', PIXEL ? 'on' : 'off'); } catch (e) { /* bỏ qua */ }
-  $('btnPix').textContent = 'Kiểu hình: ' + (PIXEL ? 'pixel' : 'mịn'); resize();
-};
 $('btnSound').onclick = () => { audioInit(); toggleMute(); };
 // hành trình mới từ menu tạm dừng: bấm hai lần để xác nhận; tiến trình cũ chỉ bị thay khi đã chọn xong xuất thân
 let pauseNewArmed = false;

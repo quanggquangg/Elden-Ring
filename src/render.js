@@ -11,6 +11,21 @@ function weaponAngle(phase, k, swing) {
   if (phase === 'rec') return lerp(-1.3 * swing, 0.6, e);
   return 0.6;
 }
+// màu sáng / tối hơn của một màu (có bộ nhớ đệm để khỏi tạo chuỗi mới mỗi khung hình)
+const TONES = new Map();
+function tone(c, k) {
+  const key = c + k; let v = TONES.get(key); if (v) return v;
+  v = typeof c === 'string' && c[0] === '#' && c.length === 7 ? shade(c, k) : c; TONES.set(key, v); return v;
+}
+// tô khối có ánh sáng: sáng ở điểm (x, y), tối dần ra mép
+// (vẽ trong hệ tọa độ riêng của nhân vật nên cùng màu, cùng cỡ thì dùng lại được gradient cũ)
+const LIT = new Map();
+function litGrad(c, x, y, r) {
+  const key = c + '|' + x + '|' + y + '|' + r; let g = LIT.get(key); if (g) return g;
+  g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r * 1.35);
+  g.addColorStop(0, tone(c, 1.35)); g.addColorStop(0.45, c); g.addColorStop(1, tone(c, 0.62));
+  if (LIT.size < 400) LIT.set(key, g); return g;
+}
 function drawWeapon(L, s, wAng, o) {
   ctx.save(); ctx.translate(3 * s + (o.thrust || 0) * 14 * s, 8 * s); ctx.rotate(wAng);
   const len = L.wlen * s;
@@ -52,15 +67,22 @@ function drawWeapon(L, s, wAng, o) {
     ctx.strokeStyle = '#2b2622'; ctx.lineWidth = 3 * s; ctx.beginPath(); ctx.moveTo(-5 * s, 0); ctx.lineTo(2.5 * s, 0); ctx.stroke();
     ctx.fillStyle = '#b08d4c'; ctx.beginPath(); ctx.arc(3.5 * s, 0, 2.2 * s, 0, TAU); ctx.fill(); ctx.lineCap = 'butt';
   } else {
-    const wide = L.weapon === 'greatsword' ? 5 : 3;
+    // kiếm: lưỡi thuôn nhọn có viền tối, rãnh máu sáng, chắn tay và núm chuôi
+    const hw = (L.weapon === 'greatsword' ? 3.2 : 1.9) * s, b0 = 6 * s, tip = Math.max(5 * s, hw * 2.4);
     if (L.glow) { ctx.shadowColor = typeof L.glow === 'string' ? L.glow : '#ffd76a'; ctx.shadowBlur = 12; }
-    ctx.strokeStyle = L.wcol; ctx.lineWidth = wide * s; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(3 * s, 0); ctx.lineTo(len, 0); ctx.stroke();
+    ctx.fillStyle = L.wcol; ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(b0, -hw); ctx.lineTo(len - tip, -hw); ctx.lineTo(len, 0); ctx.lineTo(len - tip, hw); ctx.lineTo(b0, hw); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1 * s; ctx.beginPath(); ctx.moveTo(5 * s, -wide * s * 0.2); ctx.lineTo(len - 2 * s, -wide * s * 0.2); ctx.stroke();
-    ctx.strokeStyle = '#6b5a3e'; ctx.lineWidth = 2.6 * s; ctx.beginPath(); ctx.moveTo(4 * s, -5 * s); ctx.lineTo(4 * s, 5 * s); ctx.stroke();
-    ctx.lineCap = 'butt';
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(b0 + 2 * s, -hw * 0.25 - 0.5, len - tip - b0, Math.max(1, hw * 0.35));
+    ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.moveTo(b0, hw * 0.2); ctx.lineTo(len - tip, hw * 0.2); ctx.lineTo(len - 1, 0.5); ctx.lineTo(len - tip, hw); ctx.lineTo(b0, hw); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#b08d4c'; ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.rect(b0 - 2 * s, -hw - 3.2 * s, 2.4 * s, hw * 2 + 6.4 * s); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#4a3a28'; ctx.fillRect(-2 * s, -1.2 * s, b0 - 2 * s + 2 * s, 2.4 * s);
+    ctx.fillStyle = '#b08d4c'; ctx.beginPath(); ctx.arc(-2.6 * s, 0, 1.9 * s, 0, TAU); ctx.fill(); ctx.stroke();
   }
+  // bàn tay đeo găng nắm chuôi
+  ctx.fillStyle = '#3a2f24'; ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.1;
+  ctx.beginPath(); ctx.arc(1.5 * s, 0, 2.8 * s, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.restore();
 }
 function drawHumanoid(x, y, face, L, wAng, o = {}) {
@@ -80,6 +102,11 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   ctx.beginPath(); ctx.moveTo(-1 * s, -10 * s);
   ctx.quadraticCurveTo(-16 * s, -12 * s + wave, -22 * s, -4 * s + wave); ctx.lineTo(-18 * s, 0); ctx.lineTo(-23 * s, 5 * s - wave);
   ctx.quadraticCurveTo(-15 * s, 12 * s - wave, -1 * s, 10 * s); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(10,8,6,.8)'; ctx.lineWidth = 1.6; ctx.stroke();
+  // nếp gấp áo choàng
+  ctx.strokeStyle = tone(L.cloak, 0.62); ctx.lineWidth = 1.3 * s;
+  ctx.beginPath(); ctx.moveTo(-6 * s, -6 * s); ctx.quadraticCurveTo(-13 * s, -5 * s + wave, -17 * s, -2 * s + wave);
+  ctx.moveTo(-6 * s, 6 * s); ctx.quadraticCurveTo(-13 * s, 7 * s - wave, -18 * s, 5 * s - wave); ctx.stroke();
   if (o.trail) {
     const R = (L.wlen + 4) * s;
     ctx.strokeStyle = o.trailCol || 'rgba(255,244,210,.35)'; ctx.lineWidth = 9 * s;
@@ -92,11 +119,20 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
     ctx.strokeStyle = 'rgba(255,244,210,.45)'; ctx.lineWidth = 4 * s; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo((L.wlen + 20) * s, 7 * s); ctx.lineTo((L.wlen + 52) * s, 3 * s); ctx.stroke(); ctx.lineCap = 'butt';
   }
-  ctx.strokeStyle = 'rgba(10,8,6,.75)'; ctx.lineWidth = 1.4;
-  ctx.fillStyle = L.body; ctx.beginPath(); ctx.ellipse(0, 0, 9 * s, 12 * s, 0, 0, TAU); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = L.trim;
-  ctx.beginPath(); ctx.arc(1 * s, -10 * s, 4.6 * s, 0, TAU); ctx.fill(); ctx.stroke();
-  ctx.beginPath(); ctx.arc(1 * s, 10 * s, 4.6 * s, 0, TAU); ctx.fill(); ctx.stroke();
+  // thân: đổ sáng từ phía trước, viền tối rõ
+  ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.8;
+  ctx.fillStyle = litGrad(L.body, 3 * s, -3 * s, 13 * s); ctx.beginPath(); ctx.ellipse(0, 0, 9 * s, 12 * s, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  // giáp ngực: đường nẹp giữa và thắt lưng
+  ctx.strokeStyle = tone(L.body, 0.6); ctx.lineWidth = 1.2 * s;
+  ctx.beginPath(); ctx.moveTo(4 * s, -8 * s); ctx.quadraticCurveTo(7.5 * s, 0, 4 * s, 8 * s); ctx.stroke();
+  ctx.strokeStyle = L.trim; ctx.lineWidth = 1.8 * s; ctx.beginPath(); ctx.moveTo(-3 * s, -10.5 * s); ctx.lineTo(-3 * s, 10.5 * s); ctx.stroke();
+  // giáp vai có ánh kim
+  ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.6;
+  for (const sy of [-10, 10]) {
+    ctx.fillStyle = litGrad(L.trim, 2.5 * s, sy * s - 1.5 * s, 5.5 * s); ctx.beginPath(); ctx.arc(1 * s, sy * s, 4.8 * s, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,248,225,.55)'; ctx.beginPath(); ctx.arc(2.4 * s, sy * s - 1.4 * s, 1.1 * s, 0, TAU); ctx.fill();
+  }
+  ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.6;
   if (o.cat) {
     ctx.save(); ctx.translate(2 * s, -10 * s); ctx.rotate(-0.5 - (o.castK || 0) * 0.8);
     if (o.cat === 'staff') {
@@ -118,9 +154,15 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
     ctx.beginPath(); ctx.arc(up ? 10 * s : 2 * s, up ? -6 * s : -12 * s, (up ? 7.5 : 6) * s, 0, TAU); ctx.fill(); ctx.stroke();
     ctx.strokeStyle = 'rgba(10,8,6,.75)'; ctx.lineWidth = 1.4;
   }
-  ctx.fillStyle = L.head; ctx.beginPath(); ctx.arc(2 * s, 0, 6.4 * s, 0, TAU); ctx.fill(); ctx.stroke();
-  if (L.hood) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.arc(4 * s, 0, 4 * s, -1.2, 1.2); ctx.fill(); }
-  else { ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 1.6 * s; ctx.beginPath(); ctx.moveTo(6.5 * s, -3 * s); ctx.lineTo(6.5 * s, 3 * s); ctx.stroke(); }
+  // đầu / mũ giáp
+  ctx.fillStyle = litGrad(L.head, 4 * s, -2.5 * s, 8 * s); ctx.beginPath(); ctx.arc(2 * s, 0, 6.4 * s, 0, TAU); ctx.fill(); ctx.stroke();
+  if (L.hood) {
+    ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.arc(4.2 * s, 0, 4 * s, -1.25, 1.25); ctx.fill();
+    ctx.strokeStyle = tone(L.cloak, 0.7); ctx.lineWidth = 1.1 * s; ctx.beginPath(); ctx.arc(2 * s, 0, 5 * s, 1.9, 4.4); ctx.stroke();
+  } else {
+    ctx.strokeStyle = L.trim; ctx.lineWidth = 1.4 * s; ctx.beginPath(); ctx.moveTo(-3.5 * s, 0); ctx.lineTo(7 * s, 0); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,.75)'; ctx.lineWidth = 1.8 * s; ctx.beginPath(); ctx.moveTo(6.4 * s, -3.4 * s); ctx.lineTo(6.4 * s, 3.4 * s); ctx.stroke();
+  }
   if (o.eyes) { ctx.fillStyle = o.eyes; ctx.shadowColor = o.eyes; ctx.shadowBlur = 6; ctx.beginPath(); ctx.arc(6 * s, -2.2 * s, 1.1 * s, 0, TAU); ctx.arc(6 * s, 2.2 * s, 1.1 * s, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; }
   if (o.flash) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(0, 0, 10 * s, 13 * s, 0, 0, TAU); ctx.fill(); }
   ctx.restore();
@@ -612,113 +654,6 @@ function drawObjects() {
     if (w > 0) { ctx.strokeStyle = `rgba(255,120,50,${0.3 + w * 0.5})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r, 0, TAU); ctx.stroke(); ctx.fillStyle = `rgba(255,90,30,${w * 0.2})`; ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.r * w, 0, TAU); ctx.fill(); }
   }
 }
-// Phong cách mảng màu phẳng (theo Hyper Light Drifter): mỗi màu được ép về một bảng màu cố định theo sắc độ,
-// độ bão hòa và độ sáng, nên mặt đất, ánh sáng và bóng tối chuyển thành các mảng màu rõ ràng thay vì dải mờ.
-// Bảng tra 32×32×32 được tính sẵn một lần, mỗi điểm ảnh chỉ cần tra một lần.
-const QLUT = new Uint8Array(512);
-for (let i = 0; i < 512; i++) QLUT[i] = Math.max(0, Math.min(255, Math.round((i - 128) / 12) * 12 + 2));
-const PLUT = new Uint8Array(32768 * 3);
-(function buildPaletteLUT() {
-  const HS = 24, SS = 5, VS = 9;
-  for (let r5 = 0; r5 < 32; r5++) for (let g5 = 0; g5 < 32; g5++) for (let b5 = 0; b5 < 32; b5++) {
-    const r = (r5 * 8 + 4) / 255, g = (g5 * 8 + 4) / 255, b = (b5 * 8 + 4) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), dl = mx - mn;
-    let h = 0; if (dl > 0) h = mx === r ? ((g - b) / dl + 6) % 6 : mx === g ? (b - r) / dl + 2 : (r - g) / dl + 4;
-    let sat = mx ? dl / mx : 0, v = mx;
-    h = Math.round(h / 6 * HS) / HS * 6; sat = Math.min(1, Math.round(sat * 1.08 * SS) / SS); v = Math.round(Math.pow(v, 0.9) * VS) / VS; v = Math.pow(v, 1 / 0.9);
-    const c = v * sat, x = c * (1 - Math.abs(h % 2 - 1)), m = v - c, k = (r5 << 10 | g5 << 5 | b5) * 3;
-    const [R, G, B] = h < 1 ? [c, x, 0] : h < 2 ? [x, c, 0] : h < 3 ? [0, c, x] : h < 4 ? [0, x, c] : h < 5 ? [x, 0, c] : [c, 0, x];
-    PLUT[k] = Math.round((R + m) * 255); PLUT[k + 1] = Math.round((G + m) * 255); PLUT[k + 2] = Math.round((B + m) * 255);
-  }
-})();
-function pixelPost() {
-  const w = wcan.width, h = wcan.height, img = wctx.getImageData(0, 0, w, h), d = img.data, n = w * h * 4;
-  for (let i = 0; i < n; i += 4) {
-    const k = ((d[i] >> 3) << 10 | (d[i + 1] >> 3) << 5 | d[i + 2] >> 3) * 3;
-    d[i] = PLUT[k]; d[i + 1] = PLUT[k + 1]; d[i + 2] = PLUT[k + 2];
-  }
-  wctx.putImageData(img, 0, 0);
-}
-// ───────────────────────── sprite pixel art sắc nét ─────────────────────────
-// Mỗi nhân vật, quái, đá được vẽ riêng vào một canvas nhỏ đúng độ phân giải pixel, rồi:
-// cắt độ trong suốt thành bậc cứng (hết nhòe cạnh), giảm màu, và viền tối 1 điểm ảnh quanh hình như pixel art vẽ tay.
-const SPR = document.createElement('canvas'), sctx = SPR.getContext('2d', { willReadFrequently: true });
-const OUTLINE = [22, 17, 12];
-// Hết nhòe: điểm ảnh ở mép giữa hai mảng màu (do khử răng cưa) bị ép về màu gần nhất trong số các màu chính của hình,
-// nên mỗi mảng màu có cạnh cứng như vẽ tay từng điểm.
-const HIST = new Uint32Array(4096), HSUM = new Float32Array(4096 * 3);
-function crispify(c, n) {
-  const img = c.getImageData(0, 0, n, n), d = img.data, A = new Uint8Array(n * n), N = n * n;
-  HIST.fill(0); HSUM.fill(0);
-  for (let p = 0, i = 0; p < N; p++, i += 4) {
-    const a = d[i + 3];
-    if (a < 56) { d[i + 3] = 0; continue; }
-    if (a > 176) { d[i + 3] = 255; A[p] = 1; const h = (d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | d[i + 2] >> 4; HIST[h]++; HSUM[h * 3] += d[i]; HSUM[h * 3 + 1] += d[i + 1]; HSUM[h * 3 + 2] += d[i + 2]; } else d[i + 3] = 120;
-  }
-  // bảng màu của hình: tối đa 12 màu xuất hiện nhiều nhất
-  const pal = [];
-  for (let k = 0; k < 12; k++) {
-    let best = -1, bc = 2;
-    for (let h = 0; h < 4096; h++) if (HIST[h] > bc) { bc = HIST[h]; best = h; }
-    if (best < 0) break;
-    pal.push([HSUM[best * 3] / bc | 0, HSUM[best * 3 + 1] / bc | 0, HSUM[best * 3 + 2] / bc | 0]); HIST[best] = 0;
-  }
-  if (pal.length) for (let p = 0, i = 0; p < N; p++, i += 4) {
-    if (!A[p]) continue;
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    let bd = 1e9, bi = 0;
-    for (let k = 0; k < pal.length; k++) { const q = pal[k], e = (r - q[0]) * (r - q[0]) * 3 + (g - q[1]) * (g - q[1]) * 4 + (b - q[2]) * (b - q[2]) * 2; if (e < bd) { bd = e; bi = k; } }
-    // màu quá xa bảng (điểm nhấn nhỏ như mắt phát sáng) thì giữ nguyên
-    if (bd < 9000) { const q = pal[bi]; d[i] = q[0]; d[i + 1] = q[1]; d[i + 2] = q[2]; }
-  }
-  for (let y = 1; y < n - 1; y++) for (let x = 1; x < n - 1; x++) {
-    const p = y * n + x, i = p * 4;
-    if (d[i + 3] !== 0 || !(A[p - 1] | A[p + 1] | A[p - n] | A[p + n])) continue;
-    d[i] = OUTLINE[0]; d[i + 1] = OUTLINE[1]; d[i + 2] = OUTLINE[2]; d[i + 3] = 255;
-  }
-  c.putImageData(img, 0, 0);
-}
-function crispLive(cx, cy, R, fn) {
-  if (!PIXEL || ctx !== wctx) { fn(); return; }
-  const n = Math.ceil(2 * R * WZ) + 4;
-  if (SPR.width < n) { SPR.width = n; SPR.height = n; }
-  const ox = Math.round((cx - VIEW.x0) * WZ) - (n >> 1), oy = Math.round((cy - VIEW.y0) * WZ) - (n >> 1);
-  if (ox > wcan.width || oy > wcan.height || ox + n < 0 || oy + n < 0) return;
-  sctx.setTransform(1, 0, 0, 1, 0, 0); sctx.globalAlpha = 1; sctx.globalCompositeOperation = 'source-over'; sctx.clearRect(0, 0, n, n);
-  sctx.setTransform(WZ, 0, 0, WZ, -VIEW.x0 * WZ - ox, -VIEW.y0 * WZ - oy);
-  const prev = ctx; ctx = sctx;
-  try { fn(); } finally { ctx = prev; }
-  crispify(sctx, n);
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(SPR, 0, 0, n, n, ox, oy, n, n); ctx.restore();
-}
-// vật đứng yên (đá): vẽ và làm sắc một lần, lưu lại theo độ phóng
-function crispStatic(o, R, fn) {
-  if (!PIXEL || ctx !== wctx) { fn(); return; }
-  const n = Math.ceil(2 * R * WZ) + 4;
-  if (!o._spr || o._sprZ !== WZ) {
-    const c = document.createElement('canvas'); c.width = c.height = n;
-    const g = c.getContext('2d', { willReadFrequently: true });
-    g.setTransform(WZ, 0, 0, WZ, -(o.x - R - 2 / WZ) * WZ, -(o.y - R - 2 / WZ) * WZ);
-    const prev = ctx; ctx = g; try { fn(); } finally { ctx = prev; }
-    crispify(g, n); o._spr = c; o._sprZ = WZ;
-  }
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(o._spr, Math.round((o.x - R - VIEW.x0) * WZ) - 2, Math.round((o.y - R - VIEW.y0) * WZ) - 2); ctx.restore();
-}
-// ảnh vẽ sẵn (tán cây): làm sắc một lần cho mỗi kích cỡ rồi dùng lại
-const CRISP_CACHE = new Map();
-function crispBlit(src, wx, wy, wsize) {
-  if (!PIXEL || ctx !== wctx) { ctx.drawImage(src, wx, wy, wsize, wsize); return; }
-  const n = Math.max(2, Math.round(wsize * WZ));
-  let m = CRISP_CACHE.get(src); if (!m) CRISP_CACHE.set(src, m = new Map());
-  let c = m.get(n);
-  if (!c) {
-    c = document.createElement('canvas'); c.width = c.height = n + 2;
-    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(src, 1, 1, n, n); crispify(g, n + 2); m.set(n, c);
-  }
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(c, Math.round((wx - VIEW.x0) * WZ) - 1, Math.round((wy - VIEW.y0) * WZ) - 1); ctx.restore();
-}
 function textC2(str, x, y) { wText(str, x, y, 11, '#f2dc97', 1); }
 // chữ gắn với thế giới (số sát thương, tên NPC, thuộc tính quái) được gom lại và vẽ sau khi phóng to, để luôn sắc nét
 const WTEXT = [];
@@ -1053,7 +988,7 @@ function drawCanopies() {
     ctx.globalAlpha = a;
     const size = spr.width * (o.cr / 52);
     const swx = Math.sin(G.clock * 1.1 + o.x * 0.013 + o.y * 0.007) * 2.2, swy = Math.cos(G.clock * 0.9 + o.x * 0.011) * 1.2;
-    crispBlit(spr, o.x - size / 2 + swx, o.y - size / 2 - 10 + swy, size);
+    ctx.drawImage(spr, o.x - size / 2 + swx, o.y - size / 2 - 10 + swy, size, size);
   }
   ctx.globalAlpha = 1;
   if (inView(TREE_POS.x, TREE_POS.y, 420)) {
@@ -1134,8 +1069,8 @@ function drawInteractHints() {
   }
 }
 function render() {
-  for (const c of [mainCtx, wctx]) { c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.shadowBlur = 0; }
-  ctx = PIXEL ? wctx : mainCtx; WTEXT.length = 0;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  WTEXT.length = 0;
   ctx.fillStyle = '#0b0a07'; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   const sh = G.shake > 0.1 ? G.shake : 0, sx = (Math.random() * 2 - 1) * sh, sy = (Math.random() * 2 - 1) * sh;
   const vw = CW / ZOOM, vh = CH / ZOOM, x0 = cam.x - vw / 2 + sx, y0 = cam.y - vh / 2 + sy;
@@ -1144,13 +1079,11 @@ function render() {
   const inst = cam.x > 4800 && G.mode !== 'title';
   const [GC, ox, oy, ow, oh] = inst ? [GROUND2, IX0, 0, W - IX0, IH] : [GROUND, WX0, WY0, MAPW - WX0, H - WY0];
   const gx0 = clamp(Math.floor(x0), ox, ox + ow), gy0 = clamp(Math.floor(y0), oy, oy + oh), gx1 = clamp(Math.ceil(x0 + vw), ox, ox + ow), gy1 = clamp(Math.ceil(y0 + vh), oy, oy + oh);
-  ctx.imageSmoothingEnabled = !PIXEL;
   if (gx1 > gx0 && gy1 > gy0) ctx.drawImage(GC, (gx0 - ox) / 2, (gy0 - oy) / 2, (gx1 - gx0) / 2, (gy1 - gy0) / 2, gx0, gy0, gx1 - gx0, gy1 - gy0);
-  ctx.imageSmoothingEnabled = true;
   drawDecals();
   drawWater();
   drawGrass();
-  for (const o of OBST) if (o.kind === 'rock' && inView(o.x, o.y, 40)) crispStatic(o, o.r * 1.4 + 8, () => drawRock(o));
+  for (const o of OBST) if (o.kind === 'rock' && inView(o.x, o.y, 40)) drawRock(o);
   for (const c of CHESTS) if ((!c.req || c.req()) && inView(c.x, c.y, 40)) drawChest(c);
   drawPuzzles();
   for (const o of OBST) if (o.kind === 'tree' && inView(o.x, o.y, 30)) { shadow(o.x, o.y + 3, o.r, o.r * 0.6, 0.35); ctx.fillStyle = '#3b2d1c'; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.7, 0, TAU); ctx.fill(); }
@@ -1162,13 +1095,7 @@ function render() {
   if (fb && (fb.z || 0) <= 40) list.push(fb);
   if (G.mode !== 'title') list.push(P);
   list.sort((a, b) => a.y - b.y);
-  for (const e of list) {
-    if (e === P) crispLive(P.x, P.y, 78, drawPlayer);
-    else if (e.isBoss) crispLive(e.x, e.y, 210, drawBoss);
-    else if (e.isDragon) crispLive(e.x, e.y, 300, drawDragon);
-    else if (e.isFinal) crispLive(e.x, e.y, 250, drawFinal);
-    else if (inView(e.x, e.y, 80)) crispLive(e.x, e.y, Math.min(170, 44 + e.r * 1.6 * ((e.T.look && e.T.look.scale) || (e.T.beast && e.T.beast.scale) || 1) + (e.atk && e.atk.range ? e.atk.range : 0)), () => drawEnemy(e));
-  }
+  for (const e of list) { if (e === P) drawPlayer(); else if (e.isBoss) drawBoss(); else if (e.isDragon) drawDragon(); else if (e.isFinal) drawFinal(); else drawEnemy(e); }
   if (P.lock && !P.lock.dead) {
     const l = P.lock, y = l.y - (l.z || 0);
     ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(l.x, y, 3.5, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
@@ -1188,9 +1115,7 @@ function render() {
   }
   collectLights();
   renderLighting(x0, y0);
-  // lớp không khí (tông màu vùng, tia nắng, viền tối): ở chế độ pixel được vẽ vào ảnh pixel trước khi giảm màu,
-  // để không phủ một lớp mịn mờ lên trên ảnh đã phóng to
-  ctx.setTransform(PIXEL ? DPR / PIXK : DPR, 0, 0, PIXEL ? DPR / PIXK : DPR, 0, 0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   const [, , , , tr, tg, tb, ta] = G.amb;
   if (ta > 0.01 && !FX_LOW) { ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = `rgba(${tr | 0},${tg | 0},${tb | 0},${ta})`; ctx.fillRect(0, 0, CW, CH); ctx.globalCompositeOperation = 'source-over'; }
   drawGodRays();
@@ -1198,12 +1123,6 @@ function render() {
   top.addColorStop(0, `rgba(255,205,110,${cam.y < 400 && !inst ? 0.14 : 0.06})`); top.addColorStop(1, 'rgba(255,205,110,0)');
   ctx.fillStyle = top; ctx.fillRect(0, 0, CW, CH * 0.5);
   ctx.fillStyle = VIGNETTE; ctx.fillRect(0, 0, CW, CH);
-  if (PIXEL) {
-    // giảm màu theo phong cách mảng phẳng rồi phóng to, giữ nguyên cạnh sắc của từng điểm ảnh
-    pixelPost();
-    ctx = mainCtx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-    ctx.imageSmoothingEnabled = false; ctx.drawImage(wcan, 0, 0, wcan.width * PIXK, wcan.height * PIXK); ctx.imageSmoothingEnabled = true;
-  }
   flushWText(x0, y0);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   if (G.flash > 0) { ctx.fillStyle = `rgba(150,10,10,${G.flash * 0.35})`; ctx.fillRect(0, 0, CW, CH); }

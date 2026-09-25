@@ -46,7 +46,6 @@ Và **Varek**, kẻ gác cổng đeo mặt nạ, đã thề không một Gravebo
   - Gravebound Đỏ xâm nhập thế giới của bạn.
   - Boss gọi thêm tay sai.
   - Lời nhắn từ chính bạn ở lần chơi trước.
-- **Đồ họa pixel art** với bảng màu giới hạn và ánh sáng trộn điểm kiểu game cổ điển (có thể chuyển sang kiểu mịn trong menu tạm dừng).
 - **24 thành tựu** và **bảng xếp hạng chung**, chia theo độ khó.
 
 ---
