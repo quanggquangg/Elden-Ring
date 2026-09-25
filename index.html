@@ -104,7 +104,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 #stickZone{position:absolute;left:0;bottom:0;width:48%;height:62%;pointer-events:auto}
 #stickBase{position:absolute;width:118px;height:118px;margin:-59px 0 0 -59px;border-radius:50%;border:1px solid rgba(214,178,94,.45);background:rgba(10,9,7,.3)}
 #knob{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:rgba(214,178,94,.35);border:1px solid rgba(242,220,151,.7)}
-.tb{position:absolute;pointer-events:auto;right:calc(var(--x) - var(--s)/2);bottom:calc(var(--y) - var(--s)/2);width:var(--s);height:var(--s);border-radius:50%;
+.tb{position:absolute;pointer-events:auto;right:calc((var(--x) - var(--s)/2)*var(--k,1));bottom:calc((var(--y) - var(--s)/2)*var(--k,1));width:calc(var(--s)*var(--k,1));height:calc(var(--s)*var(--k,1));border-radius:50%;
   border:1px solid rgba(214,178,94,.55);background:rgba(12,10,8,.5);color:var(--parch);font:600 13px/1 var(--ui);display:grid;place-items:center;padding:0;touch-action:none}
 .tb.big{font-size:15px;border-color:rgba(242,220,151,.8);background:rgba(40,32,18,.55)}
 .tb:active,.tb.on{background:rgba(214,178,94,.35)}
@@ -177,6 +177,16 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
   .controls{grid-template-columns:1fr}
   .lvtop b{font-size:18px}
 }
+/* điện thoại xoay ngang: màn hình thấp nên thu nhỏ nút, dời hàng nút phụ lên giữa phía trên */
+@media (orientation:landscape) and (max-height:520px){
+  .tb{--k:.78;font-size:12px}
+  #stickZone{height:80%}
+  #topBtns{top:44px;right:8px;max-width:50%;gap:4px}
+  #topBtns button{height:28px;min-width:36px;font-size:11px}
+}
+.rotate{display:none;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px;font:500 13px/1.4 var(--ui);color:#bfe0ff}
+.rotate button{appearance:none;border:1px solid rgba(191,224,255,.5);background:rgba(20,30,40,.5);color:#dff0ff;font:600 13px var(--ui);padding:8px 12px;cursor:pointer}
+@media (orientation:portrait) and (pointer:coarse){.rotate{display:flex}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -229,6 +239,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         </div>
       </div>
       <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring.</p>
+      <div class="rotate"><span>Xoay ngang điện thoại để chơi dễ hơn</span><button id="btnLandscape" type="button">Toàn màn hình ngang</button></div>
     </div>
   </section>
 
@@ -307,6 +318,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
         <button id="btnFx" class="pbtn">Đồ họa: cao</button>
         <button id="btnInv" class="pbtn">Hành trang</button>
         <button id="btnPauseLore" class="pbtn">Truyền thuyết</button>
+        <button id="btnPauseFull" class="pbtn" hidden>Toàn màn hình</button>
         <button id="btnPauseAch" class="pbtn">Thành tựu</button>
         <button id="btnPauseNew" class="pbtn ghost">Hành trình mới</button>
         <button id="btnQuit" class="pbtn ghost">Về màn hình chính</button>

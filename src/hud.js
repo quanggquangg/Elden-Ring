@@ -122,12 +122,12 @@ function drawHUD() {
     ctx.fillStyle = '#ece3cc'; ctx.fillText(hb.name, bx, by - 12);
     bar(bx, by, bw, 9, hb.hp / hb.maxHp, (hb.ghost ?? hb.hp) / hb.maxHp, '#8e1c16');
     subY = by - 50;
-  } else if (G.touch) subY = CH - 280;
+  } else if (G.touch) subY = CH > CW ? CH - 280 : CH - 34;
   // phụ đề
   if (G.sub) {
     const a = Math.min(1, G.sub.t * 3, (G.sub.dur - G.sub.t) * 2);
     ctx.globalAlpha = a;
-    wrapText(G.sub.text, CW / 2, subY, Math.min(CW - 40, 640), 24, `500 italic ${CW < 500 ? 18 : 21}px ${FONT_I}`, '#f1e8d0');
+    wrapText(G.sub.text, CW / 2, subY, G.touch && CW > CH ? CW * 0.42 : Math.min(CW - 40, 640), 24, `500 italic ${CW < 500 ? 18 : 21}px ${FONT_I}`, '#f1e8d0');
     ctx.globalAlpha = 1;
   }
   drawAchPopup(1 / 60);
@@ -740,6 +740,7 @@ function startGame(data, cls) {
   setDiff(S.diff); setupCycleNotes(); G.invader = null; G.invCd = 0; G.endingCounted = !!data && S.finalDead;
   S.flaskMax = Math.min(S.flaskMax, FLASK_CAP);
   expDecode(S.explored);
+  if (isTouchDev()) goLandscape();
   UI.title.hidden = true; UI.cls.hidden = true; parts.length = 0;
   G.endingShown = S.treeReached && S.finalDead; G.hintT = data ? 99 : 0; G.region = null; G.timers.length = 0;
   respawnAt(S.lastGrace); setMode('play');
@@ -777,6 +778,19 @@ function openDiffSelect() {
 $('diffList').addEventListener('click', e => { const b = e.target.closest('[data-diff]'); if (b && !b.disabled) { audioInit(); pendingDiff = b.dataset.diff; UI.diff.hidden = true; openClassSelect(); } });
 $('btnDiffBack').onclick = () => { UI.diff.hidden = true; UI.name.hidden = false; };
 $('btnContinue').onclick = () => { audioInit(); startGame(loadSave()); };
+// điện thoại: bật toàn màn hình và khóa màn ngang (Android hỗ trợ; iPhone phải tự xoay máy)
+function goLandscape() {
+  const el = document.documentElement;
+  const lock = () => { try { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(() => {}); } catch (e) { /* bỏ qua */ } };
+  try {
+    if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).then(lock, lock);
+    else lock();
+  } catch (e) { lock(); }
+}
+const isTouchDev = () => G.touch || matchMedia('(pointer:coarse)').matches;
+$('btnLandscape').onclick = () => { audioInit(); goLandscape(); };
+$('btnPauseFull').hidden = !isTouchDev() || !document.documentElement.requestFullscreen;
+$('btnPauseFull').onclick = goLandscape;
 $('btnNew').onclick = () => {
   audioInit();
   if (loadSave() && !confirmNew) { confirmNew = true; $('btnNew').textContent = 'Xoá tiến trình cũ và bắt đầu?'; $('btnNew').classList.add('warn'); return; }
