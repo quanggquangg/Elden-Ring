@@ -1235,6 +1235,7 @@ function render() {
   const [GC, ox, oy, ow, oh] = inst ? [GROUND2, IX0, 0, W - IX0, IH] : [GROUND, WX0, WY0, MAPW - WX0, H - WY0];
   const gx0 = clamp(Math.floor(x0), ox, ox + ow), gy0 = clamp(Math.floor(y0), oy, oy + oh), gx1 = clamp(Math.ceil(x0 + vw), ox, ox + ow), gy1 = clamp(Math.ceil(y0 + vh), oy, oy + oh);
   if (gx1 > gx0 && gy1 > gy0) ctx.drawImage(GC, (gx0 - ox) / 2, (gy0 - oy) / 2, (gx1 - gx0) / 2, (gy1 - gy0) / 2, gx0, gy0, gx1 - gx0, gy1 - gy0);
+  drawGroundDetail();
   drawDecals();
   drawWater();
   drawGrass();
@@ -1465,6 +1466,26 @@ function grassAt(x, y) {
   if (x > 2800) return GRASS_PAL.east;
   return GRASS_PAL.meadow;
 }
+// lớp chi tiết mặt đất: cọng cỏ và sỏi nhỏ sáng/tối trong suốt, lát lặp ở độ phân giải đầy đủ
+// nên chỉ thêm độ sần mà không đổi màu vùng, giúp nền đất bớt mờ khi phóng to
+const DETAIL = (() => {
+  const c = makeCanvas(256, 256), g = c.getContext('2d'), r = mulberry32(909);
+  g.lineCap = 'round';
+  for (let i = 0; i < 1500; i++) {
+    const x = r() * 256, y = r() * 256, l = 2.5 + r() * 5, a = -Math.PI / 2 + (r() - 0.5) * 1.2;
+    g.strokeStyle = r() < 0.45 ? `rgba(255,250,225,${0.12 + r() * 0.16})` : `rgba(0,0,0,${0.14 + r() * 0.2})`; g.lineWidth = 0.8 + r() * 0.6;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+  }
+  for (let i = 0; i < 600; i++) { g.fillStyle = r() < 0.5 ? 'rgba(255,250,225,.18)' : 'rgba(0,0,0,.22)'; g.beginPath(); g.arc(r() * 256, r() * 256, 0.6 + r() * 1.1, 0, TAU); g.fill(); }
+  return c;
+})();
+let DETAIL_PAT = null;
+function drawGroundDetail() {
+  if (FX_LOW) return;
+  if (!DETAIL_PAT) DETAIL_PAT = ctx.createPattern(DETAIL, 'repeat');
+  ctx.save(); ctx.fillStyle = DETAIL_PAT;
+  ctx.fillRect(VIEW.x0, VIEW.y0, VIEW.x1 - VIEW.x0, VIEW.y1 - VIEW.y0); ctx.restore();
+}
 function drawGrass() {
   if (FX_LOW || (cam.x > 4800 && G.mode !== 'title')) return;
   const cell = 46, t = G.clock;
@@ -1485,11 +1506,13 @@ function drawGrass() {
     let bend = 0;
     const dx = c.x - P.x, dy = c.y - P.y, d = Math.hypot(dx, dy);
     if (d < 36 && G.mode !== 'title') bend = (dx >= 0 ? 1 : -1) * (36 - d) * 0.25;
-    for (let k = 0; k < 3; k++) {
-      const bx = c.x + k * 3 - 3;
-      ctx.strokeStyle = c.pal[k];
-      ctx.beginPath(); ctx.moveTo(bx, c.y); ctx.quadraticCurveTo(bx + sway * 0.4, c.y - 5, bx + sway + bend, c.y - 9 - k * 2 - c.h * 3); ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 1, 6, 2, 0, 0, TAU); ctx.fill();
+    for (let k = 0; k < 4; k++) {
+      const bx = c.x + k * 2.6 - 4, hh = 8 + ((k * 5 + c.h * 11) % 5) + c.h * 3;
+      ctx.strokeStyle = c.pal[k % 3];
+      ctx.beginPath(); ctx.moveTo(bx, c.y); ctx.quadraticCurveTo(bx + sway * 0.4 + (k - 1.5), c.y - hh * 0.55, bx + sway + bend + (k - 1.5) * 1.6, c.y - hh); ctx.stroke();
     }
+    if (c.h > 0.9) { ctx.fillStyle = c.h > 0.95 ? '#e9e2cf' : '#d9c46a'; ctx.beginPath(); ctx.arc(c.x + sway + bend, c.y - 12 - c.h * 3, 1.8, 0, TAU); ctx.fill(); }
   }
   ctx.lineCap = 'butt';
 }
@@ -1502,6 +1525,11 @@ function drawWater() {
       const ox = Math.sin(t * 0.6 + i * 2.1 + px) * rx * 0.35, oy = Math.cos(t * 0.5 + i * 1.3 + py) * ry * 0.3;
       ctx.fillStyle = `rgba(225,190,240,${0.1 + 0.06 * Math.sin(t * 2 + i + px)})`;
       ctx.beginPath(); ctx.ellipse(px + ox, py + oy, rx * 0.28, ry * 0.12, 0, 0, TAU); ctx.fill();
+    }
+    for (let i = 0; i < 3; i++) {
+      // bong bóng độc nổi lên rồi vỡ
+      const ph = (t * 0.7 + i * 0.37 + px * 0.01) % 1, bx = px + Math.sin(i * 2.3 + px) * rx * 0.5, by = py + Math.cos(i * 1.7 + py) * ry * 0.45;
+      ctx.strokeStyle = `rgba(235,200,250,${0.5 * (1 - ph)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(bx, by, 1.5 + ph * 4, 0, TAU); ctx.stroke();
     }
     ctx.strokeStyle = `rgba(200,160,220,${0.18 + 0.08 * Math.sin(t * 1.5 + px)})`; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.ellipse(px, py, rx * (0.85 + 0.05 * Math.sin(t + py)), ry * (0.85 + 0.05 * Math.sin(t + py)), 0, 0, TAU); ctx.stroke();
