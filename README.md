@@ -2,7 +2,7 @@
 
 Game hành động **souls-like 2D** chạy trên trình duyệt, lấy cảm hứng từ Elden Ring. Code viết tay bằng HTML5 Canvas và JavaScript thuần: không cần thư viện, không cần bước build, và âm thanh được tổng hợp bằng WebAudio.
 
-> Game do người hâm mộ tự làm. Không liên quan tới FromSoftware hay Bandai Namco.
+> Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring.
 
 ## Truyền thuyết
 
