@@ -557,12 +557,23 @@ function makeCanvas(w, h) { const c = document.createElement('canvas'); c.width 
 const isVoid = (x, y) => WALLS.some(w => (w.void || w.sea) && inRect(x, y, w));
 // nền đá lát, tint là màu pha
 function paintFloor(g, r, x, y, w, h, ts, holes, base, tint = [12, 9, 0]) {
+  // đá lát: mỗi phiến có mặt hơi lệch màu, cạnh trên trái sáng, cạnh dưới phải tối (vát), vết sứt, vết nứt và rêu ở nền hoang
+  const rgb = v => `rgb(${Math.max(0, v + tint[0])},${Math.max(0, v + tint[1])},${Math.max(0, v + tint[2])})`;
   for (let ty = y; ty < y + h; ty += ts) for (let tx = x; tx < x + w; tx += ts) {
     if (holes && r() < holes) continue;
-    const s = base + ((r() * 16) | 0);
-    g.fillStyle = `rgb(${s + tint[0]},${s + tint[1]},${s + tint[2]})`;
-    g.fillRect(tx + 1.5, ty + 1.5, Math.min(ts, x + w - tx) - 3, Math.min(ts, y + h - ty) - 3);
-    if (r() < 0.25) { g.strokeStyle = 'rgba(20,18,14,.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(tx + r() * ts, ty + r() * ts); g.lineTo(tx + r() * ts, ty + r() * ts); g.stroke(); }
+    const s = base + ((r() * 16) | 0), tw = Math.min(ts, x + w - tx) - 3, th = Math.min(ts, y + h - ty) - 3, x0 = tx + 1.5, y0 = ty + 1.5;
+    if (tw <= 2 || th <= 2) continue;
+    g.fillStyle = rgb(s); g.fillRect(x0, y0, tw, th);
+    g.fillStyle = rgb(s + 16); g.fillRect(x0, y0, tw, 2); g.fillRect(x0, y0, 2, th);
+    g.fillStyle = rgb(s - 18); g.fillRect(x0, y0 + th - 2, tw, 2); g.fillRect(x0 + tw - 2, y0, 2, th);
+    for (let k = 0; k < 3; k++) { g.fillStyle = rgb(s - 12 - ((r() * 10) | 0)); g.fillRect(x0 + 3 + r() * (tw - 8), y0 + 3 + r() * (th - 8), 2 + r() * 3, 2 + r() * 2); }
+    if (r() < 0.28) {
+      g.strokeStyle = 'rgba(20,18,14,.5)'; g.lineWidth = 1.2; g.beginPath();
+      let cx = x0 + r() * tw, cy = y0 + r() * th; g.moveTo(cx, cy);
+      for (let k = 0; k < 3; k++) { cx = Math.min(x0 + tw, Math.max(x0, cx + (r() - 0.5) * ts * 0.5)); cy = Math.min(y0 + th, Math.max(y0, cy + (r() - 0.5) * ts * 0.5)); g.lineTo(cx, cy); }
+      g.stroke();
+    }
+    if (holes > 0.1 && r() < 0.3) { g.fillStyle = 'rgba(80,104,48,.45)'; g.beginPath(); g.arc(tx + (r() < 0.5 ? 2 : ts - 2), ty + r() * ts, 3 + r() * 5, 0, TAU); g.fill(); }
   }
 }
 function blobs(g, r, n, x, y, w, h, cols, a0, a1, s0 = 30, s1 = 90) {
@@ -739,6 +750,13 @@ const GROUND2 = (function buildInstanceGround() {
   // Sảnh Hearthhold: sàn đá ấm, thảm đỏ, bàn tròn
   paintFloor(g, r, HUB.x, 0, HUB.w, HUB.h, 50, 0, 62, [14, 8, 0]);
   g.fillStyle = 'rgba(110,30,26,.75)'; g.fillRect(HUB.x + 440, 28, 120, HUB.h - 56); g.fillRect(HUB.x + 28, 400, HUB.w - 56, 100);
+  // viền thảm vàng và hoa văn hình thoi
+  g.strokeStyle = 'rgba(214,178,94,.6)'; g.lineWidth = 3;
+  g.strokeRect(HUB.x + 448, 36, 104, HUB.h - 72); g.strokeRect(HUB.x + 36, 408, HUB.w - 72, 84);
+  g.fillStyle = 'rgba(214,178,94,.35)';
+  const diamond = (x, y, k) => { g.beginPath(); g.moveTo(x, y - k); g.lineTo(x + k, y); g.lineTo(x, y + k); g.lineTo(x - k, y); g.closePath(); g.fill(); };
+  for (let y = 70; y < HUB.h - 50; y += 60) if (y < 390 || y > 510) diamond(HUB.x + 500, y, 10);
+  for (let x = HUB.x + 70; x < HUB.x + HUB.w - 50; x += 60) if (x < HUB.x + 430 || x > HUB.x + 570) diamond(x, 450, 10);
   g.strokeStyle = 'rgba(214,178,94,.4)'; g.lineWidth = 3; g.beginPath(); g.arc(HUB.x + 500, 450, 110, 0, TAU); g.stroke();
   // hầm ngục
   const THEME = { crypt: [52, [6, 4, 0]], crystal: [46, [0, 10, 24]], fire: [50, [18, 4, -4]], royal: [70, [18, 12, -2]] };
@@ -794,11 +812,28 @@ const BIGTREE = (function () {
   glow.addColorStop(0, 'rgba(255,220,120,.55)'); glow.addColorStop(0.55, 'rgba(240,190,80,.2)'); glow.addColorStop(1, 'rgba(240,190,80,0)');
   g.fillStyle = glow; g.fillRect(0, 0, s, s);
   const pal = ['#a77b22', '#c99a35', '#e2b64d', '#f3d57a', '#fff0b3'];
-  for (let i = 0; i < 260; i++) {
-    const a = r() * TAU, d = Math.pow(r(), 0.7) * 290, rr = 18 + r() * 40;
-    g.globalAlpha = 0.55 + r() * 0.35; g.fillStyle = pal[Math.min(4, ((1 - d / 290) * 4 + r() * 1.5) | 0)];
-    g.beginPath(); g.arc(cx + Math.cos(a) * d, cx + Math.sin(a) * d, rr, 0, TAU); g.fill();
-  }
+  // cành vàng tỏa ra từ thân, mỗi cành rẽ nhánh; lá mọc thành chùm ở đầu cành
+  const tips = [];
+  g.lineCap = 'round';
+  const branch = (x, y, a, len, w, depth) => {
+    const ex = x + Math.cos(a) * len, ey = y + Math.sin(a) * len, mx = x + Math.cos(a + 0.25) * len * 0.5, my = y + Math.sin(a + 0.25) * len * 0.5;
+    g.strokeStyle = 'rgba(60,40,10,.9)'; g.lineWidth = w + 3; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(mx, my, ex, ey); g.stroke();
+    g.strokeStyle = '#9a7228'; g.lineWidth = w; g.stroke();
+    g.strokeStyle = 'rgba(255,230,150,.45)'; g.lineWidth = Math.max(1, w * 0.3); g.stroke();
+    if (depth > 0) { branch(ex, ey, a - 0.45 - r() * 0.3, len * 0.62, w * 0.62, depth - 1); branch(ex, ey, a + 0.4 + r() * 0.3, len * 0.6, w * 0.6, depth - 1); }
+    else tips.push([ex, ey]);
+  };
+  for (let i = 0; i < 9; i++) branch(cx, cx, i / 9 * TAU + r() * 0.3, 120 + r() * 30, 14, 2);
+  const cluster = (x, y, rr) => {
+    g.globalAlpha = 0.5; g.fillStyle = 'rgba(80,50,10,.5)'; g.beginPath(); g.arc(x + rr * 0.2, y + rr * 0.25, rr, 0, TAU); g.fill();
+    g.globalAlpha = 0.9; const lg = g.createRadialGradient(x - rr * 0.35, y - rr * 0.4, rr * 0.1, x, y, rr);
+    lg.addColorStop(0, pal[4]); lg.addColorStop(0.45, pal[2 + ((r() * 2) | 0)]); lg.addColorStop(1, pal[0]);
+    g.fillStyle = lg; g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill();
+  };
+  for (let i = 0; i < 120; i++) { const a = r() * TAU, d = Math.pow(r(), 0.6) * 270; cluster(cx + Math.cos(a) * d, cx + Math.sin(a) * d, 22 + r() * 30); }
+  for (const [x, y] of tips) for (let k = 0; k < 3; k++) cluster(x + (r() - 0.5) * 40, y + (r() - 0.5) * 40, 20 + r() * 22);
+  g.globalAlpha = 1;
+  for (let i = 0; i < 260; i++) { const a = r() * TAU, d = Math.sqrt(r()) * 300; g.globalAlpha = 0.5 + r() * 0.5; g.fillStyle = r() < 0.6 ? '#fff6cc' : '#ffe08a'; g.beginPath(); g.arc(cx + Math.cos(a) * d, cx + Math.sin(a) * d, 1 + r() * 2, 0, TAU); g.fill(); }
   g.globalAlpha = 1;
   return c;
 })();

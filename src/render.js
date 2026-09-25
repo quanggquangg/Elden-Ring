@@ -688,9 +688,15 @@ function drawPuzzles() {
     if (!inView(b.x, b.y, 60)) continue;
     const lit = S.fortOpen || G.braziers.includes(b.id);
     shadow(b.x + 2, b.y + 8, 15, 7, 0.35);
-    ctx.fillStyle = '#6a655a'; ctx.beginPath(); ctx.arc(b.x, b.y, 13, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#2a261e'; ctx.lineWidth = 2; ctx.stroke();
+    // lò sắt ba chân: vành có đinh tán, lòng lò chứa than (than đỏ khi đã thắp)
+    ctx.strokeStyle = '#2a261e'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { const a = k / 3 * TAU + 0.5; ctx.beginPath(); ctx.moveTo(b.x + Math.cos(a) * 10, b.y + Math.sin(a) * 10); ctx.lineTo(b.x + Math.cos(a) * 17, b.y + Math.sin(a) * 17 + 3); ctx.stroke(); }
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = litGrad('#6a655a', -4, -4, 13); ctx.save(); ctx.translate(b.x, b.y); ctx.beginPath(); ctx.arc(0, 0, 13, 0, TAU); ctx.fill(); ctx.restore();
+    ctx.strokeStyle = '#1e1b16'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(b.x, b.y, 13, 0, TAU); ctx.stroke();
+    ctx.fillStyle = '#b8b0a0'; for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; ctx.beginPath(); ctx.arc(b.x + Math.cos(a) * 11, b.y + Math.sin(a) * 11, 1, 0, TAU); ctx.fill(); }
     ctx.fillStyle = '#1e1b16'; ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, TAU); ctx.fill();
+    for (let k = 0; k < 6; k++) { const a = k * 1.7 + b.x, d = (k % 3) * 2.4; ctx.fillStyle = lit ? (k % 2 ? '#ff7a2a' : '#ffb347') : (k % 2 ? '#2e2a24' : '#3a352c'); ctx.beginPath(); ctx.arc(b.x + Math.cos(a) * d, b.y + Math.sin(a) * d, 2.2, 0, TAU); ctx.fill(); }
     if (lit) {
       const gr = ctx.createRadialGradient(b.x, b.y, 2, b.x, b.y, 60);
       gr.addColorStop(0, 'rgba(255,170,70,.45)'); gr.addColorStop(1, 'rgba(255,170,70,0)');
@@ -718,10 +724,18 @@ function drawPuzzles() {
     const on = S.statues.includes(st.id);
     shadow(st.x + 2, st.y + 8, 17, 8, 0.35);
     if (on) { const gr = ctx.createRadialGradient(st.x, st.y, 2, st.x, st.y, 55); gr.addColorStop(0, 'rgba(150,250,235,.4)'); gr.addColorStop(1, 'rgba(150,250,235,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(st.x, st.y, 55, 0, TAU); ctx.fill(); }
-    ctx.fillStyle = '#7b7a72'; ctx.fillRect(st.x - 14, st.y - 4, 28, 12);
-    ctx.fillStyle = on ? '#b8d8d2' : '#8d8b82'; ctx.beginPath(); ctx.ellipse(st.x, st.y - 10, 9, 12, 0, 0, TAU); ctx.fill();
-    ctx.beginPath(); ctx.arc(st.x, st.y - 24, 6, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#3a3934'; ctx.lineWidth = 1.5; ctx.stroke();
+    // tượng kỵ sĩ quỳ trên bệ: bệ vát, vai, đầu đội mũ, kiếm cắm trước mặt
+    const sc = on ? '#b8d8d2' : '#8d8b82';
+    ctx.fillStyle = '#7b7a72'; ctx.strokeStyle = '#2a2924'; ctx.lineWidth = 1.5; ctx.fillRect(st.x - 15, st.y - 4, 30, 13); ctx.strokeRect(st.x - 15, st.y - 4, 30, 13);
+    ctx.fillStyle = '#9a988e'; ctx.fillRect(st.x - 15, st.y - 4, 30, 2); ctx.fillStyle = '#55544c'; ctx.fillRect(st.x - 15, st.y + 7, 30, 2);
+    ctx.save(); ctx.translate(st.x, st.y - 12);
+    ctx.fillStyle = litGrad(sc, -3, -4, 12); ctx.strokeStyle = '#2a2924'; ctx.beginPath(); ctx.ellipse(0, 0, 10, 11, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    for (const sx of [-8, 8]) { ctx.beginPath(); ctx.arc(sx, -4, 4, 0, TAU); ctx.fill(); ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(0, -12, 6, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(30,30,26,.6)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-3, -12); ctx.lineTo(3, -12); ctx.stroke();
+    ctx.strokeStyle = '#2a2924'; ctx.lineWidth = 3.4; ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(0, 16); ctx.stroke();
+    ctx.strokeStyle = sc; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = sc; ctx.fillRect(-4, 1, 8, 2);
+    ctx.restore();
     if (on && Math.random() < 0.2) addPart(st.x + rand(-10, 10), st.y - 20, 0, -30, 0.9, 2, '#bff5ee', 'mote');
   }
   if (!S.coloDone && inView(FLAG.x, FLAG.y, 60)) {
@@ -1168,7 +1182,7 @@ function drawCanopies() {
   if (inView(TREE_POS.x, TREE_POS.y, 420)) {
     const d = dist(P.x, P.y, TREE_POS.x, TREE_POS.y);
     ctx.globalAlpha = d < 300 ? 0.55 : 0.95;
-    ctx.fillStyle = '#6b4f1f'; ctx.beginPath(); ctx.arc(TREE_POS.x, TREE_POS.y, 58, 0, TAU); ctx.fill();
+    drawTrunk({ x: TREE_POS.x, y: TREE_POS.y, r: 83, seed: 7 });
     const s = 820 + Math.sin(G.clock * 0.8) * 10;
     ctx.drawImage(BIGTREE, TREE_POS.x - s / 2, TREE_POS.y - s / 2 - 40, s, s);
     ctx.globalAlpha = 1;
@@ -1499,8 +1513,10 @@ const DETAIL = (() => {
   return c;
 })();
 let DETAIL_PAT = null;
+const PAVED = new Set(['Kinh Thành Aurumhold', 'Sân Ngai Sunthrone', 'Pháo Đài Greystone', 'Học Viện Starhollow', 'Đấu Trường Bloodsand', 'Cổng Gác Thornwall']);
 function drawGroundDetail() {
-  if (FX_LOW) return;
+  // chỉ phủ cỏ sỏi ngoài trời, không phủ lên sàn đá lát của các công trình và khu biệt lập
+  if (FX_LOW || cam.x > 4800 || PAVED.has(G.region)) return;
   if (!DETAIL_PAT) DETAIL_PAT = ctx.createPattern(DETAIL, 'repeat');
   ctx.save(); ctx.fillStyle = DETAIL_PAT;
   ctx.fillRect(VIEW.x0, VIEW.y0, VIEW.x1 - VIEW.x0, VIEW.y1 - VIEW.y0); ctx.restore();
@@ -1563,6 +1579,18 @@ function drawWater() {
       ctx.strokeStyle = `rgba(210,240,255,${a})`; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(x - 12 + Math.sin(t + h * 9) * 4, y); ctx.lineTo(x + 12 + Math.sin(t + h * 9) * 4, y); ctx.stroke();
     }
+    // bọt sóng quanh bờ hồ, chạy chậm theo nét đứt
+    ctx.strokeStyle = `rgba(230,245,250,${0.3 + 0.1 * Math.sin(t * 1.2)})`; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.beginPath();
+    for (const [px, py, rx, ry] of LAKE) {
+      if (!inView(px, py, Math.max(rx, ry) + 20)) continue;
+      const n = Math.ceil((rx + ry) / 9), sh = Math.sin(t * 0.8) * 2;
+      for (let i = 0; i < n; i++) {
+        const a = (i + t * 0.05) / n * TAU, x = px + Math.cos(a) * (rx - 3 + sh), y = py + Math.sin(a) * (ry - 3 + sh);
+        if (i % 2 || !inView(x, y, 10) || inWater(px + Math.cos(a) * (rx + 12), py + Math.sin(a) * (ry + 12))) continue;
+        const a2 = a + 0.5 / n * TAU; ctx.moveTo(x, y); ctx.lineTo(px + Math.cos(a2) * (rx - 3 + sh), py + Math.sin(a2) * (ry - 3 + sh));
+      }
+    }
+    ctx.stroke(); ctx.lineCap = 'butt';
     for (const e of [P, ...enemies]) if (!e.dead && inView(e.x, e.y, 30) && inWater(e.x, e.y) && !(e.T && e.T.flier)) { ctx.strokeStyle = `rgba(210,240,255,${0.35 + 0.15 * Math.sin(t * 5)})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(e.x, e.y + 6, e.r + 6, (e.r + 6) * 0.45, 0, 0, TAU); ctx.stroke(); }
   }
   if (VIEW.x0 < -2400 && VIEW.y1 > 2600) {
