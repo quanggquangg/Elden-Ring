@@ -130,6 +130,18 @@ function toLocal(x, y) {
   if (document.body.classList.contains('rot')) return [y, window.innerWidth - x];
   const r = canvas.getBoundingClientRect(); return [x - r.left, y - r.top];
 }
+// Safari trên iPhone bỏ qua user-scalable=no, nên chặn trực tiếp cử chỉ phóng to:
+// chụm ngón (gesture*), chạm hai lần nhanh (touchend thứ hai trong 350ms) và dblclick
+['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  // nút bấm đã có touch-action: manipulation (không phóng to) nên để nguyên, tránh nuốt mất cú bấm thứ hai
+  const now = performance.now(), el = e.target && e.target.closest ? e.target.closest('button,input,textarea,a,label') : null;
+  if (now - lastTouchEnd < 350 && !el) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 function enableTouch() { if (G.touch) return; G.touch = true; touchUI.hidden = G.mode !== 'play'; aimMode = 'keys'; }
 try { if (window.matchMedia('(pointer: coarse)').matches) enableTouch(); } catch (e) { /* bỏ qua */ }
 window.addEventListener('touchstart', enableTouch, { passive: true });
