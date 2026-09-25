@@ -146,6 +146,7 @@ function drawHUD() {
     ctx.beginPath(); ctx.moveTo(CW / 2 - w / 2 - 10, ry2 + 12); ctx.lineTo(CW / 2 + w / 2 + 10, ry2 + 12); ctx.stroke();
     ctx.globalAlpha = 1;
   }
+  drawMarkerGuide();
   if (G.banner) drawBanner(G.banner);
   if (G.mode === 'dead') drawDeath();
   if (!G.touch && G.hintT < 24 && G.mode === 'play') {
@@ -183,6 +184,7 @@ function drawMap() {
   ctx.fillStyle = 'rgba(70,52,24,.3)'; ctx.fillRect(mx, my, mw, mh);
   ctx.strokeStyle = 'rgba(214,178,94,.6)'; ctx.lineWidth = 1; ctx.strokeRect(mx + 0.5, my + 0.5, mw - 1, mh - 1);
   const pt = (x, y) => [mx + (x - WX0) * sc, my + (y - WY0) * sc];
+  G.mapRect = { mx, my, mw, mh, sc };
   ctx.fillStyle = '#2a261e';
   for (const w of WALLS) if (!w.void && !w.sea && w.x < MAPW && (wallOn(w, false) || w.gate === 'colo' || w.gate === 'dg')) { const [x, y] = pt(w.x, w.y); ctx.fillRect(x, y, Math.max(1.5, w.w * sc), Math.max(1.5, w.h * sc)); }
   ctx.imageSmoothingEnabled = true; ctx.drawImage(mapMask(), mx, my, mw, mh);
@@ -201,6 +203,7 @@ function drawMap() {
   }
   for (const c of CHESTS) if (S.chests.includes(c.id) && c.x < MAPW) { const [x, y] = pt(c.x, c.y); ctx.fillStyle = 'rgba(160,120,70,.9)'; ctx.fillRect(x - 2.5, y - 2, 5, 4); }
   if (S.lost && S.lost.x < MAPW) { const [x, y] = pt(S.lost.x, S.lost.y); ctx.fillStyle = '#9dffb8'; ctx.beginPath(); ctx.arc(x, y, 4, 0, TAU); ctx.fill(); }
+  if (S.marker) { const [x, y] = pt(S.marker.x, S.marker.y); drawMarkerIcon(x, y, 1); }
   const dg = dungeonAt(P.x, P.y), inMain = P.x < 4800, mpx = inMain ? P.x : dg ? dg.ex : null, mpy = inMain ? P.y : dg ? dg.ey : null;
   if (mpx !== null) {
     const [px, py] = pt(mpx, mpy), pulse = 1 + Math.sin(G.clock * 6) * 0.15;
@@ -208,7 +211,27 @@ function drawMap() {
     ctx.fillStyle = '#e0503c'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-6, -6); ctx.lineTo(-3, 0); ctx.lineTo(-6, 6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
   } else textC('Ngươi đang ở ngoài thế giới thường', CW / 2, my + 24, `500 13px ${FONT_U}`, '#f2dc97');
-  textC(G.touch ? 'Chạm để đóng · khám phá hoặc đọc Bia Bản Đồ để mở rộng' : 'G / Esc để đóng · đi khám phá hoặc đọc Bia Bản Đồ để mở rộng bản đồ', CW / 2, CH - 14, `500 12px ${FONT_U}`, 'rgba(236,227,204,.7)');
+  textC(G.touch ? 'Chạm vào bản đồ để đặt dấu · chạm ra ngoài để đóng' : 'Bấm vào bản đồ để đặt / gỡ dấu · G / Esc để đóng', CW / 2, CH - 14, `500 12px ${FONT_U}`, 'rgba(236,227,204,.7)');
+}
+function drawMarkerIcon(x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = '#6fd0ff'; ctx.strokeStyle = '#0c1a24'; ctx.lineWidth = 1.5; ctx.shadowColor = '#6fd0ff'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-6, -10); ctx.arc(0, -12, 6.3, Math.PI * 0.8, Math.PI * 0.2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 0; ctx.fillStyle = '#0c1a24'; ctx.beginPath(); ctx.arc(0, -12, 2.2, 0, TAU); ctx.fill(); ctx.restore();
+}
+// mũi tên chỉ về dấu trên bản đồ khi nó nằm ngoài màn hình, kèm khoảng cách
+function drawMarkerGuide() {
+  const m = S.marker;
+  if (!m || P.x > 4800 || G.mode !== 'play') return;
+  const d = dist(P.x, P.y, m.x, m.y);
+  if (d < 70) { S.marker = null; toast('Đã tới nơi đánh dấu'); SFX.glint(); return; }
+  const sx = CW / 2 + (m.x - cam.x) * ZOOM, sy = CH / 2 + (m.y - cam.y) * ZOOM, pad = 46;
+  if (sx > pad && sx < CW - pad && sy > pad + 60 && sy < CH - pad) { drawMarkerIcon(sx, sy - 6 + Math.sin(G.clock * 3) * 3, 1.3); return; }
+  const a = Math.atan2(m.y - P.y, m.x - P.x), cx = CW / 2, cy = CH / 2, k = Math.min((CW / 2 - pad) / Math.abs(Math.cos(a) || 1e-6), (CH / 2 - pad - 30) / Math.abs(Math.sin(a) || 1e-6));
+  const ex = cx + Math.cos(a) * k, ey = cy + Math.sin(a) * k;
+  ctx.save(); ctx.translate(ex, ey); ctx.rotate(a); ctx.fillStyle = 'rgba(111,208,255,.9)'; ctx.strokeStyle = '#0c1a24'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-6, -9); ctx.lineTo(-2, 0); ctx.lineTo(-6, 9); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+  textC(Math.round(d / 10) + ' m', ex - Math.cos(a) * 24, ey - Math.sin(a) * 24 + 4, `600 12px ${FONT_U}`, '#bfe8ff');
 }
 function wrapText(str, cx, y, maxW, lh, font, col) {
   ctx.font = font;
@@ -270,14 +293,38 @@ function setMode(m) {
   keys.clear(); stick.x = 0; stick.y = 0; touchGuard = false; mouseGuard = false; dodgeKey.down = false;
   if (m === 'play' && document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
 }
-let currentGrace = null, graceTab = 'level';
+// Một bảng menu dùng cho hai nơi: nghỉ ở Ân Điển (đủ chức năng) và Hành trang mở ở bất cứ đâu.
+// Như Elden Ring: đổi vũ khí, giáp, bùa ở đâu cũng được; lên cấp, ghi nhớ phép, gắn tro chiến tranh
+// và chia bình chỉ làm được ở Ân Điển.
+let currentGrace = null, graceTab = 'level', menuAt = 'grace', pend = {};
+const atGrace = () => menuAt === 'grace';
 function openGrace(g) {
-  currentGrace = g; setMode('menu');
-  $('graceName').textContent = g.name;
+  currentGrace = g; menuAt = 'grace'; pend = {}; setMode('menu');
+  $('graceEyebrow').textContent = g.name; $('graceTitle').textContent = 'Nghỉ ngơi'; $('btnLeave').textContent = 'Rời đi';
   selectTab('level'); renderGrace(); UI.grace.hidden = false;
   setTimeout(() => $('btnLeave').focus({ preventScroll: true }), 30);
 }
-function closeGrace() { UI.grace.hidden = true; setMode('play'); }
+function openInventory(tab = 'gear') {
+  if (G.mode !== 'play' && G.mode !== 'pause') return;
+  UI.pause.hidden = true;
+  currentGrace = null; menuAt = 'field'; pend = {}; setMode('menu');
+  $('graceEyebrow').textContent = regionAt(P.x, P.y); $('graceTitle').textContent = 'Hành trang'; $('btnLeave').textContent = 'Đóng';
+  selectTab(tab); renderGrace(); UI.grace.hidden = false; SFX.glint();
+  setTimeout(() => $('btnLeave').focus({ preventScroll: true }), 30);
+}
+function closeGrace() { if (pendLv()) toast('Các điểm chưa xác nhận đã được hủy'); pend = {}; UI.grace.hidden = true; setMode('play'); }
+// đang giao chiến thì không dịch chuyển nhanh được (như Elden Ring)
+function inCombat() {
+  if (G.bossFight || G.dfight || G.colo.active || G.finalFight || G.dragonFight || P.x > 4800 && areaAt(P.x, P.y) && areaAt(P.x, P.y).id === 'realm') return true;
+  return enemies.some(e => !e.dead && (e.state === 'chase' || e.state === 'atk') && dist(e.x, e.y, P.x, P.y) < 900);
+}
+function travelTo(id) {
+  const g = GRACES.find(q => q.id === id);
+  if (!g) return;
+  P.x = g.x; P.y = g.y + 46; P.vx = P.vy = 0; P.state = 'idle'; P.t = 0; P.mounted = false; P.lock = null; P.atk = null; P.flameT = 0;
+  projs.length = 0; aoes.length = 0; puddles.length = 0;
+  cam.x = P.x; cam.y = P.y; clampCam(); G.fade = 1; buf = null; G.region = null; SFX.grace(); save();
+}
 const scText = Wp => Object.entries(Wp.sc || {}).map(([k, v]) => STAT_SHORT[k] + ' ' + v).join(' ');
 function weaponLine(id) {
   const Wp = WEAPONS[id], lv = upLv(id);
@@ -285,76 +332,168 @@ function weaponLine(id) {
   if (Wp.sp) return `Sức mạnh phép ${Math.round(spellPower(id))} · ${scText(Wp)} · cần ${reqText(Wp.req)} · nặng ${Wp.wt}`;
   return `Công ${Math.round(weaponAR(id, lv))} · ${DT_NAME[Wp.dt]} · ${scText(Wp)} · cần ${reqText(Wp.req)} · nặng ${Wp.wt}${Wp.twoHanded ? ' · hai tay' : ''}`;
 }
+// ── lên cấp: cộng / trừ trước, xác nhận mới trừ rune ──
+const pendLv = () => Object.values(pend).reduce((a, b) => a + b, 0);
+function pendCost(n = pendLv()) { let c = 0; for (let i = 0; i < n; i++) c += Math.floor(150 + 60 * (S.level + i) + 6 * (S.level + i) * (S.level + i)); return c; }
+function withPend(fn) {
+  const old = S.stats; S.stats = Object.assign({}, old);
+  for (const k in pend) S.stats[k] += pend[k];
+  try { return fn(); } finally { S.stats = old; }
+}
+function derivedRows() {
+  const cat = catalyst();
+  return [['Máu', maxHp()], ['Thể lực', maxSt()], ['FP', maxFp()], ['Sức mang', maxLoad().toFixed(1)], ['Kiểu lăn', ROLLS[rollType()].name],
+    ['Công tay phải', Math.round(weaponAR(S.equipped))], [cat ? 'Sức mạnh phép' : 'Hấp thụ', cat ? Math.round(spellPower(S.off)) : Math.round((1 - absorb('phys')) * 100) + '%'], ['Tải trọng', equipLoad().toFixed(1)]];
+}
+function renderLevel() {
+  const g = atGrace(), n = pendLv(), cost = pendCost(), next = pendCost(n + 1) - cost, left = S.runes - cost;
+  $('lvNum').textContent = S.level + (n ? ' → ' + (S.level + n) : '');
+  $('lvRunes').textContent = (n ? left : S.runes).toLocaleString('vi-VN');
+  $('lvCost').textContent = next.toLocaleString('vi-VN');
+  $('lvCost').className = left < next ? 'short' : '';
+  $('statList').innerHTML = STAT_INFO.map(([k, d]) => {
+    const add = pend[k] || 0, v = S.stats[k] + add;
+    const btns = g ? `<button class="plus" data-minus="${k}" aria-label="Bớt ${STAT_NAME[k]}" ${add ? '' : 'disabled'}>−</button><button class="plus" data-stat="${k}" aria-label="Thêm ${STAT_NAME[k]}" ${left < next || v >= 99 ? 'disabled' : ''}>+</button>` : '';
+    return `<li class="${add ? 'up' : ''}"><div class="nm"><span>${STAT_NAME[k]}</span><span>${d}</span></div><span class="val">${v}</span><span class="btns">${btns}</span></li>`;
+  }).join('');
+  const now = derivedRows(), after = withPend(derivedRows);
+  $('derived').innerHTML = now.map(([k, v], i) => { const w = after[i][1], ch = String(w) !== String(v); return `<div><dt class="k">${k}</dt><dd><b class="${ch ? 'chg' : ''}">${ch ? v + ' → ' + w : v}</b></dd></div>`; }).join('');
+  $('lvConfirm').hidden = !g || graceTab !== 'level';
+  $('btnLvOk').disabled = !n; $('btnLvCancel').disabled = !n;
+  $('btnLvOk').textContent = n ? `Xác nhận · ${n} cấp · ${cost.toLocaleString('vi-VN')} rune` : 'Xác nhận';
+  $('lvFieldNote').hidden = g;
+  renderJournal();
+}
+function commitLevels() {
+  const n = pendLv();
+  if (!n || S.runes < pendCost()) return;
+  for (const k in pend) for (let i = 0; i < pend[k]; i++) levelUp(k);
+  pend = {}; SFX.felled(); toast('Đã lên cấp ' + S.level); renderGrace();
+  $('btnLeave').focus({ preventScroll: true });
+}
+// ── nhật ký mục tiêu ──
+function renderJournal() {
+  const main = [
+    [S.bossDead, 'Hạ Varek, Kẻ Canh Cổng', 'Đấu trường ở cuối con đường phía bắc Nhà Nguyện.'],
+    [hasGR('east'), 'Đại Ấn Pháo Đài', 'Dornach trong Pháo Đài Đá Xám (phía đông). Thắp ba lò lửa theo đường đi của mặt trời để mở cổng.'],
+    [hasGR('swamp'), 'Đại Ấn Rồng Tro', 'Rồng Ignarth ngủ giữa Đầm Lầy Tro Độc. Cưỡi ngựa để băng qua ao độc.'],
+    [S.acadOpen || invN('crystalkey') > 0, 'Chìa Khóa Pha Lê', 'Trên hòn đảo phía tây bắc Hồ Pha Lê. Lối vào miền tây ở cạnh Tàn Tích Phía Tây.'],
+    [hasGR('west'), 'Đại Ấn Trăng Pha Lê', 'Nữ hoàng Selvara trong Học Viện Pha Lê, bờ bắc Hồ Pha Lê.'],
+    [S.greatOpen, 'Mở cổng Kinh Thành Vàng', 'Mang đủ ba Đại Ấn tới cổng lớn trên Cao Nguyên Hoàng Kim.'],
+    [S.boss2Dead, 'Hạ Vua Ẩn Mặt', 'Sân Ngai Vàng trong Kinh Thành.'],
+    [S.finalDead, 'Chạm tới Cây Vàng', 'Ở tận cùng phía bắc Kinh Thành.'],
+  ];
+  const nextI = main.findIndex(m => !m[0]);
+  const dg = DUNGEONS.filter(d => S.dg[d.id]).length;
+  $('journal').innerHTML = '<h3 class="sec">Nhật ký hành trình</h3><ul class="journal">' + main.map(([ok, t, h], i) =>
+    `<li class="${ok ? 'ok' : i === nextI ? 'next' : ''}"><span>${ok ? '✓' : i === nextI ? '▸' : '·'}</span><div><b>${t}</b>${!ok && i === nextI ? '<small>' + h + '</small>' : ''}</div></li>`).join('') + '</ul>' +
+    `<p class="note">Phụ: hầm ngục ${dg}/${DUNGEONS.length} · Đấu Trường Thử Thách ${S.coloDone ? '✓' : '—'} · Rừng Linh Hồn ${S.mb.wraith ? '✓' : '—'} · Bia bản đồ ${S.frags.length}/${MAP_FRAGS.length} · Ân Điển ${S.discovered.length}/${GRACES.length} · Số lần chết ${S.deaths}</p>`;
+}
+// ── túi đồ ──
+function renderInv() {
+  const q = quickList(), cur = curQuick();
+  const row = (id, n, desc, act) => `<li><div class="it"><span>${esc(id)}${n !== '' ? ' <small class="tag">×' + n + '</small>' : ''}<br><small>${desc}</small></span>${act}</div></li>`;
+  let h = '<h3 class="sec">Đồ dùng · đang chọn trong ô nhanh: ' + (cur === 'flask' ? 'Bình Máu' : cur === 'fpflask' ? 'Bình FP' : ITEMDEF[cur].name) + '</h3><ul class="travel">';
+  h += row('Bình Máu', P.flasks + '/' + (S.flaskMax - S.flaskFp), 'Hồi ' + flaskHeal() + ' máu. Nạp lại khi nghỉ ở Ân Điển.', `<button class="mini" data-quick="flask" ${cur === 'flask' ? 'disabled' : ''}>Chọn</button>`);
+  h += row('Bình FP', P.fpflasks + '/' + S.flaskFp, 'Hồi ' + fpFlaskAmt() + ' FP.', `<button class="mini" data-quick="fpflask" ${cur === 'fpflask' ? 'disabled' : ''}>Chọn</button>`);
+  for (const id of USE_ORDER) if (invN(id)) {
+    const usable = id === 'cure' || id === 'grease' || id.startsWith('grune');
+    h += row(ITEMDEF[id].name, invN(id), ITEMDEF[id].desc, (usable ? `<button class="mini" data-use="${id}">Dùng</button>` : '') + `<button class="mini" data-quick="${id}" ${cur === id ? 'disabled' : ''}>Chọn</button>`);
+  }
+  h += '</ul>';
+  const mats = Object.keys(ITEMDEF).filter(k => ITEMDEF[k].kind !== 'use' && invN(k));
+  h += '<h3 class="sec">Nguyên liệu và vật phẩm quan trọng</h3>' + (mats.length ? '<ul class="travel">' + mats.map(k => row(ITEMDEF[k].name, invN(k), ITEMDEF[k].desc, '')).join('') + '</ul>' : '<p class="note">Chưa có.</p>');
+  h += `<p class="note">Mũi tên ${S.arrows}/${S.arrowMax} · Nước Mắt Thánh ${S.tears}/${TEAR_CAP} · Hạt Vàng: ${S.flaskMax}/${FLASK_CAP} bình · Ô phép ${S.slots} · Ô bùa ${S.talSlots}</p>`;
+  $('invWrap').innerHTML = h;
+}
 function renderGrace() {
-  const cost = levelCost();
-  $('lvNum').textContent = S.level;
-  $('lvRunes').textContent = S.runes.toLocaleString('vi-VN');
-  $('lvCost').textContent = cost.toLocaleString('vi-VN');
-  $('lvCost').className = S.runes < cost ? 'short' : '';
-  $('statList').innerHTML = STAT_INFO.map(([k, d]) =>
-    `<li><div class="nm"><span>${STAT_NAME[k]}</span><span>${d}</span></div><span class="val">${S.stats[k]}</span><button class="plus" data-stat="${k}" aria-label="Tăng ${STAT_NAME[k]}" ${S.runes < cost ? 'disabled' : ''}>+</button></li>`).join('');
-  const cat = catalyst(), load = equipLoad(), ml = maxLoad();
-  const rows = [['Máu', maxHp()], ['Thể lực', maxSt()], ['FP', maxFp()], ['Tải trọng', load.toFixed(1) + ' / ' + ml.toFixed(1)], ['Kiểu lăn', ROLLS[rollType()].name],
-    ['Công tay phải', Math.round(weaponAR(S.equipped))], ['Hấp thụ', Math.round((1 - absorb('phys')) * 100) + '%'], [cat ? 'Sức mạnh phép' : 'Độ trụ', cat ? Math.round(spellPower(S.off)) : armorDef().poise]];
-  $('derived').innerHTML = rows.map(([k, v]) => `<div><dt class="k">${k}</dt><dd><b>${v}</b></dd></div>`).join('');
+  const g = atGrace();
+  $('tabLevel').textContent = g ? 'Lên cấp' : 'Trạng thái';
+  $('tabFlask').hidden = !g;
+  if (!g && graceTab === 'flask') graceTab = 'gear';
+  renderLevel(); renderInv();
   // trang bị
   const ownR = ownedRight(), ownO = OFF_ORDER.filter(w => S.weapons.includes(w)), Wp = WEAPONS[S.equipped];
   let h = '<h3 class="sec">Tay phải</h3><ul class="travel">' + ownR.map(w => `<li><button data-weapon="${w}" class="${w === S.equipped ? 'on' : ''}"><span>${esc(WEAPONS[w].name)}${upLv(w) ? ' +' + upLv(w) : ''}<br><small>${weaponLine(w)}</small></span><small>${w === S.equipped ? 'Đang cầm' : 'Cầm'}</small></button></li>`).join('') + '</ul>';
   h += '<h3 class="sec">Tay trái' + (Wp.twoHanded ? ' · bị khóa vì tay phải cầm vũ khí hai tay' : '') + '</h3><ul class="travel">' + ownO.map(w => `<li><button data-off="${w}" class="${w === S.off ? 'on' : ''}"><span>${esc(WEAPONS[w].name)}${upLv(w) ? ' +' + upLv(w) : ''}<br><small>${WEAPONS[w].desc} · ${weaponLine(w)}</small></span><small>${w === S.off ? 'Đang cầm' : 'Cầm'}</small></button></li>`).join('') + '</ul>';
   if (Wp.type === 'melee') {
     const cur = ashOf(S.equipped), list = Wp.unique ? [Wp.ash] : [...new Set([Wp.ash, ...S.ashes.filter(a => !ASHES[a].unique && !ASHES[a].bow)])];
-    h += `<h3 class="sec">Kỹ năng của ${esc(Wp.name)}${Wp.unique ? ' · kỹ năng riêng, không đổi được' : ''}</h3><ul class="travel">` + list.map(a => `<li><button data-ash="${a}" class="${a === cur ? 'on' : ''}" ${Wp.unique ? 'disabled' : ''}><span>${ASHES[a].name}<br><small>${ASHES[a].desc} · ${ASHES[a].fp} FP</small></span><small>${a === cur ? 'Đang gắn' : 'Gắn'}</small></button></li>`).join('') + '</ul>';
+    const lock = Wp.unique || !g, why = Wp.unique ? ' · kỹ năng riêng, không đổi được' : !g ? ' · chỉ đổi được khi nghỉ ở Ân Điển' : '';
+    h += `<h3 class="sec">Kỹ năng của ${esc(Wp.name)}${why}</h3><ul class="travel">` + list.map(a => `<li><button data-ash="${a}" class="${a === cur ? 'on' : ''}" ${lock ? 'disabled' : ''}><span>${ASHES[a].name}<br><small>${ASHES[a].desc} · ${ASHES[a].fp} FP</small></span><small>${a === cur ? 'Đang gắn' : 'Gắn'}</small></button></li>`).join('') + '</ul>';
   }
-  h += '<h3 class="sec">Giáp</h3><ul class="travel">' + ARMOR_ORDER.filter(a => S.armors.includes(a)).map(a => { const A = ARMORS[a]; return `<li><button data-armor="${a}" class="${a === S.armor ? 'on' : ''}"><span>${A.name}<br><small>${A.desc} · giảm ${Math.round(A.abs * 100)}% · trụ ${A.poise} · nặng ${A.wt}</small></span><small>${a === S.armor ? 'Đang mặc' : 'Mặc'}</small></button></li>`; }).join('') + '</ul>';
+  h += `<h3 class="sec">Giáp · tải trọng ${equipLoad().toFixed(1)} / ${maxLoad().toFixed(1)} (${ROLLS[rollType()].name})</h3><ul class="travel">` + ARMOR_ORDER.filter(a => S.armors.includes(a)).map(a => { const A = ARMORS[a]; return `<li><button data-armor="${a}" class="${a === S.armor ? 'on' : ''}"><span>${A.name}<br><small>${A.desc} · giảm ${Math.round(A.abs * 100)}% · trụ ${A.poise} · nặng ${A.wt}</small></span><small>${a === S.armor ? 'Đang mặc' : 'Mặc'}</small></button></li>`; }).join('') + '</ul>';
   h += `<h3 class="sec">Bùa hộ mệnh · ${S.tal.length}/${S.talSlots} ô</h3>` + (S.tals.length ? '<ul class="travel">' + TAL_ORDER.filter(t => S.tals.includes(t)).map(t => `<li><button data-tal="${t}" class="${S.tal.includes(t) ? 'on' : ''}"><span>${TALISMANS[t].name}<br><small>${TALISMANS[t].desc}</small></span><small>${S.tal.includes(t) ? 'Đang đeo' : 'Đeo'}</small></button></li>`).join('') + '</ul>' : '<p class="note">Chưa có bùa nào. Tìm trong rương và hầm ngục.</p>');
-  const inv = Object.entries(S.inv).filter(([, n]) => n > 0).map(([k, n]) => `${ITEMDEF[k].name} ×${n}`);
-  h += '<h3 class="sec">Túi đồ</h3><p class="note">' + (inv.length ? inv.join(' · ') : 'Trống') + ` · Nước Mắt Thánh ${S.tears}/${TEAR_CAP}</p>`;
   $('gearWrap').innerHTML = h;
-  // phép
-  const own = SPELL_ORDER.filter(s => S.spells.includes(s));
-  $('spellWrap').innerHTML = `<p class="note">Ghi nhớ ${S.att.length}/${S.slots} ô. Phép Trí Tuệ cần gậy, phép Đức Tin cần ấn ở tay trái. Giữ chuột phải (hoặc X) để niệm, ↑ để đổi phép.</p>` +
-    (own.length ? '<ul class="travel">' + own.map(s => { const sp = SPELLS[s]; return `<li><button data-spell="${s}" class="${S.att.includes(s) ? 'on' : ''}"><span>${sp.name} <small class="tag">${sp.school === 'sorc' ? 'Trí Tuệ' : 'Đức Tin'}</small><br><small>${sp.desc} · ${sp.fp} FP · cần ${reqText(sp.req)}</small></span><small>${S.att.includes(s) ? 'Đã nhớ' : 'Ghi nhớ'}</small></button></li>`; }).join('') + '</ul>' : '<p class="note">Chưa học phép nào. Học Giả Ly và Nữ Tu Liên ở Điện Hội Ngộ có bán phép.</p>');
+  // phép: ghi nhớ ở Ân Điển, ở ngoài chỉ chọn phép đang dùng
+  const own = SPELL_ORDER.filter(s => S.spells.includes(s)), cs = curSpell();
+  $('spellWrap').innerHTML = (g ? `<p class="note">Ghi nhớ ${S.att.length}/${S.slots} ô. Phép Trí Tuệ cần gậy, phép Đức Tin cần ấn ở tay trái. Giữ chuột phải (hoặc X) để niệm, ↑ để đổi phép.</p>`
+    : `<p class="note">Đang ghi nhớ ${S.att.length}/${S.slots} ô. Bấm để chọn phép dùng tiếp theo; ghi nhớ phép mới khi nghỉ ở Ân Điển.</p>`) +
+    (own.length ? '<ul class="travel">' + own.filter(s => g || S.att.includes(s)).map(s => { const sp = SPELLS[s], on = S.att.includes(s); return `<li><button data-spell="${s}" class="${on ? 'on' : ''}"><span>${sp.name} <small class="tag">${sp.school === 'sorc' ? 'Trí Tuệ' : 'Đức Tin'}</small><br><small>${sp.desc} · ${sp.fp} FP · cần ${reqText(sp.req)}</small></span><small>${g ? (on ? 'Đã nhớ' : 'Ghi nhớ') : s === cs ? 'Đang dùng' : 'Dùng'}</small></button></li>`; }).join('') + '</ul>' : '<p class="note">Chưa học phép nào. Học Giả Ly và Nữ Tu Liên ở Điện Hội Ngộ có bán phép.</p>');
   // bình
   const hpF = S.flaskMax - S.flaskFp;
   $('flaskWrap').innerHTML = `<p class="note">Tổng ${S.flaskMax} bình (Hạt Vàng tăng số bình, Nước Mắt Thánh tăng lượng hồi). Chia số bình giữa máu và FP.</p>
     <ul class="stats"><li><div class="nm"><span>Bình Máu</span><span>Hồi ${flaskHeal()} máu mỗi lần</span></div><span class="val">${hpF}</span><button class="plus" data-flask="1" ${S.flaskFp <= 0 ? 'disabled' : ''} aria-label="Thêm Bình Máu">+</button></li>
     <li><div class="nm"><span>Bình FP</span><span>Hồi ${fpFlaskAmt()} FP mỗi lần</span></div><span class="val">${S.flaskFp}</span><button class="plus" data-flask="-1" ${hpF <= 0 ? 'disabled' : ''} aria-label="Thêm Bình FP">+</button></li></ul>`;
-  const list = GRACES.filter(g => S.discovered.includes(g.id));
-  $('travelList').innerHTML = list.map(g => `<li><button data-grace="${g.id}"><span>${g.name}</span><small>${g.id === S.lastGrace ? 'Đang ở đây' : 'Dịch chuyển'}</small></button></li>`).join('');
+  // dịch chuyển
+  const list = GRACES.filter(q => S.discovered.includes(q.id)), busy = !g && inCombat();
+  $('travelNote').textContent = g ? '' : busy ? 'Không thể dịch chuyển khi đang giao chiến.' : 'Dịch chuyển nhanh không hồi máu và không làm quái hồi sinh. Nghỉ ở Ân Điển để hồi phục.';
+  $('travelList').innerHTML = list.map(q => `<li><button data-grace="${q.id}" ${busy ? 'disabled' : ''}><span>${q.name}</span><small>${q.id === S.lastGrace ? 'Nghỉ lần cuối' : 'Dịch chuyển'}</small></button></li>`).join('');
+  for (const t of TABS) $('pane' + t[0].toUpperCase() + t.slice(1)).hidden = graceTab !== t;
+  for (const t of TABS) $('tab' + t[0].toUpperCase() + t.slice(1)).setAttribute('aria-selected', String(graceTab === t));
 }
 $('statList').addEventListener('click', e => {
-  const b = e.target.closest('[data-stat]');
-  if (!b || !levelUp(b.dataset.stat)) return;
-  renderGrace();
-  const nb = $('statList').querySelector(`[data-stat="${b.dataset.stat}"]`);
-  if (nb && !nb.disabled) nb.focus(); else $('btnLeave').focus();
+  const b = e.target.closest('button');
+  if (!b || !atGrace()) return;
+  const k = b.dataset.stat || b.dataset.minus;
+  if (b.dataset.stat) { if (S.runes < pendCost(pendLv() + 1)) return; pend[k] = (pend[k] || 0) + 1; SFX.glint(); }
+  else if (b.dataset.minus && pend[k]) { pend[k]--; if (!pend[k]) delete pend[k]; SFX.glint(); }
+  renderLevel();
+  const nb = $('statList').querySelector(`[data-${b.dataset.stat ? 'stat' : 'minus'}="${k}"]`);
+  if (nb && !nb.disabled) nb.focus(); else { const o = $('statList').querySelector(`[data-${b.dataset.stat ? 'minus' : 'stat'}="${k}"]`); if (o && !o.disabled) o.focus(); }
 });
+$('btnLvOk').onclick = commitLevels;
+$('btnLvCancel').onclick = () => { pend = {}; renderLevel(); };
 $('travelList').addEventListener('click', e => {
   const b = e.target.closest('[data-grace]');
   if (!b) return;
   const id = +b.dataset.grace;
-  S.lastGrace = id; save();
-  UI.grace.hidden = true; respawnAt(id); setMode('play'); G.region = null; SFX.grace();
+  UI.grace.hidden = true; pend = {};
+  if (atGrace()) { S.lastGrace = id; save(); respawnAt(id); SFX.grace(); } else travelTo(id);
+  setMode('play'); G.region = null;
 });
 $('gearWrap').addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b) return;
   const d = b.dataset;
-  if (d.weapon) equip(d.weapon); else if (d.off) equipOff(d.off); else if (d.ash) setAsh(d.ash); else if (d.armor) setArmor(d.armor); else if (d.tal) toggleTal(d.tal);
-  applyStats(true); renderGrace();
+  if (d.weapon) equip(d.weapon); else if (d.off) equipOff(d.off); else if (d.ash) { if (atGrace()) setAsh(d.ash); } else if (d.armor) setArmor(d.armor); else if (d.tal) toggleTal(d.tal);
+  applyStats(atGrace()); renderGrace();
 });
-$('spellWrap').addEventListener('click', e => { const b = e.target.closest('[data-spell]'); if (b) { toggleAttune(b.dataset.spell); renderGrace(); } });
+$('spellWrap').addEventListener('click', e => {
+  const b = e.target.closest('[data-spell]');
+  if (!b) return;
+  if (atGrace()) toggleAttune(b.dataset.spell);
+  else { const i = S.att.indexOf(b.dataset.spell); if (i >= 0) { S.spellIdx = i; SFX.glint(); } }
+  renderGrace();
+});
+$('invWrap').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.quick) { const i = quickList().indexOf(b.dataset.quick); if (i >= 0) { S.quick = i; SFX.glint(); } }
+  else if (b.dataset.use) { useQuickItem(b.dataset.use); }
+  renderGrace();
+});
 $('flaskWrap').addEventListener('click', e => { const b = e.target.closest('[data-flask]'); if (b) { flaskAlloc(-(+b.dataset.flask)); renderGrace(); } });
-const TABS = ['level', 'gear', 'spell', 'flask', 'travel'];
-function selectTab(which) {
-  graceTab = which;
+const TABS = ['level', 'gear', 'inv', 'spell', 'flask', 'travel'];
+function selectTab(which) { graceTab = which; renderGraceTabsOnly(); }
+function renderGraceTabsOnly() {
   for (const t of TABS) {
     const id = t[0].toUpperCase() + t.slice(1);
-    $('tab' + id).setAttribute('aria-selected', String(which === t));
-    $('pane' + id).hidden = which !== t;
+    $('tab' + id).setAttribute('aria-selected', String(graceTab === t));
+    $('pane' + id).hidden = graceTab !== t;
   }
+  $('lvConfirm').hidden = !atGrace() || graceTab !== 'level';
 }
-for (const t of TABS) $('tab' + t[0].toUpperCase() + t.slice(1)).onclick = () => selectTab(t);
+for (const t of TABS) $('tab' + t[0].toUpperCase() + t.slice(1)).onclick = () => { selectTab(t); if (t === 'travel' || t === 'level') renderGrace(); };
 $('btnLeave').onclick = closeGrace;
 
 // ───────────────────────── cửa hàng và lò rèn ─────────────────────────
@@ -405,6 +544,7 @@ function toggleMap() {
 }
 function togglePause() {
   if (G.mode === 'map') { toggleMap(); return; }
+  if (G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { closeGrace(); return; }
   if (G.mode === 'play') { setMode('pause'); UI.pause.hidden = false; $('btnResume').focus({ preventScroll: true }); }
   else if (G.mode === 'pause') { UI.pause.hidden = true; setMode('play'); }
   else if (G.mode === 'menu' && !UI.shop.hidden) closeShop();
@@ -416,6 +556,7 @@ function togglePause() {
 }
 function toggleMute() { muted = !muted; $('btnSound').textContent = 'Âm thanh: ' + (muted ? 'tắt' : 'bật'); toast(muted ? 'Đã tắt âm thanh' : 'Đã bật âm thanh'); }
 $('btnResume').onclick = togglePause;
+$('btnInv').onclick = () => openInventory();
 function updateFxBtn() { $('btnFx').textContent = 'Đồ họa: ' + (FX_LOW ? 'thấp' : 'cao'); }
 $('btnFx').onclick = () => {
   FX_LOW = !FX_LOW;

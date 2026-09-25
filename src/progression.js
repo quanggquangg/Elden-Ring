@@ -113,13 +113,13 @@ function buyRow(npc, i) {
 }
 
 // ───────────────────────── trang bị ở Ân Điển ─────────────────────────
-function setArmor(id) { if (S.armors.includes(id)) { S.armor = id; applyStats(true); save(); SFX.glint(); } }
+function setArmor(id) { if (S.armors.includes(id)) { S.armor = id; applyStats(false); save(); SFX.glint(); } }
 function toggleTal(id) {
   if (!S.tals.includes(id)) return;
   if (S.tal.includes(id)) S.tal = S.tal.filter(t => t !== id);
   else if (S.tal.length < S.talSlots) S.tal.push(id);
   else { toast('Hết ô bùa (' + S.talSlots + ')'); return; }
-  applyStats(true); save(); SFX.glint();
+  applyStats(false); save(); SFX.glint();
 }
 function toggleAttune(id) {
   if (!S.spells.includes(id)) return;

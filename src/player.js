@@ -179,6 +179,16 @@ function useQuick(moving, mx, my) {
   }
   if (!S.inv[q]) delete S.inv[q];
 }
+// dùng vật phẩm từ menu hành trang (giải độc, dầu thánh, rune vàng)
+function useQuickItem(q) {
+  if (!invN(q)) return;
+  if (q === 'cure') { P.poisonB = 0; P.poisonT = 0; toast('Đã giải độc'); SFX.drink(); }
+  else if (q === 'grease') { P.buffs.holy = 40; toast('Vũ khí được phủ Dầu Thánh'); SFX.glint(); }
+  else if (q === 'grune1' || q === 'grune2') { const n = q === 'grune1' ? 400 : 1500; gainRunes(n, P.x, P.y); toast('+' + n + ' rune'); SFX.pickup(); }
+  else return;
+  S.inv[q]--; if (!S.inv[q]) delete S.inv[q];
+  save();
+}
 function equip(id) {
   if (!S.weapons.includes(id)) { toast('Chưa có vũ khí này'); return false; }
   const Wp = WEAPONS[id];

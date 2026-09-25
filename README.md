@@ -39,11 +39,18 @@ Phím đặt theo Elden Ring bản PC. `Space` dùng cho lăn và chạy như b�
 | Tương tác, mở rương, nói chuyện | `E` | Y / △ |
 | Khóa mục tiêu | `Q` hoặc chuột giữa | R3 |
 | Gọi / xuống ngựa | `F` | A / × |
-| Bản đồ / tạm dừng / âm thanh | `G` / `Esc` / `M` | Back / Start |
+| Hành trang (trang bị, túi đồ, trạng thái, dịch chuyển) | `I` hoặc `Tab` | Start → Hành trang |
+| Bản đồ (bấm vào bản đồ để đặt / gỡ dấu) | `G` | Back / Share |
+| Tạm dừng / âm thanh | `Esc` / `M` | Start |
 
 Chỉ dùng bàn phím: `J` đánh thường, `K` đánh mạnh, giữ `X` để đỡ hoặc niệm phép, `C` dùng kỹ năng. Trên điện thoại, game tự hiện cần điều khiển ảo và các nút bấm.
 
 ## Phát triển nhân vật
+
+- **Hành trang mở ở bất cứ đâu** (`I`, `Tab`, nút Túi trên điện thoại, hoặc menu tạm dừng); game tạm dừng khi mở. Như Elden Ring: đổi vũ khí, giáp, bùa ở đâu cũng được; lên cấp, ghi nhớ phép, gắn Tro Chiến Tranh và chia bình chỉ làm ở Ân Điển. Túi đồ cho xem mô tả, chọn đồ cho ô nhanh và dùng thuốc giải độc, dầu thánh, rune vàng. Tab Trạng thái có **nhật ký hành trình** chỉ mục tiêu tiếp theo.
+- **Lên cấp có nút +/−:** cộng thử điểm, xem trước máu, thể lực, sức công phá thay đổi ra sao, rồi bấm **Xác nhận** mới trừ rune. Rời Ân Điển mà chưa xác nhận thì điểm được hủy.
+- **Dịch chuyển nhanh từ Hành trang** tới Ân Điển đã tìm thấy khi không đang giao chiến; không hồi máu và không làm quái hồi sinh.
+- **Dấu bản đồ:** bấm vào bản đồ để đặt dấu, trên màn hình có mũi tên chỉ hướng và khoảng cách; dấu tự gỡ khi tới nơi.
 
 - **5 xuất thân:** Hiệp Sĩ, Kiếm Khách, Pháp Sư, Tu Sĩ, Thợ Săn. Tất cả bắt đầu ở cấp 1 với trang bị tồi tàn; xuất thân chỉ quyết định chỉ số ban đầu.
 - **7 chỉ số:** Sinh Lực (máu), Tâm Trí (FP), Bền Bỉ (thể lực và sức mang vác), Sức Mạnh, Khéo Léo, Trí Tuệ, Đức Tin. Lên cấp bằng rune tại Ân Điển.

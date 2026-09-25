@@ -5,7 +5,7 @@ const keys = new Set();
 let buf = null, aimMode = 'keys';
 const mouse = { x: 0, y: 0, wx: 0, wy: 0, inside: false };
 const stick = { x: 0, y: 0 };
-const KEYMAP = { KeyJ: 'light', KeyK: 'heavy', KeyL: 'spell', KeyC: 'skill', KeyR: 'item', KeyE: 'interact', KeyF: 'mount', KeyQ: 'lock', KeyG: 'map', ArrowRight: 'eqnext', ArrowLeft: 'eqprev', KeyT: 'eqnext', ArrowUp: 'spellnext', ArrowDown: 'itemnext', KeyV: 'itemnext' };
+const KEYMAP = { KeyJ: 'light', KeyK: 'heavy', KeyL: 'spell', KeyC: 'skill', KeyR: 'item', KeyE: 'interact', KeyF: 'mount', KeyQ: 'lock', KeyG: 'map', KeyI: 'inv', Tab: 'inv', ArrowRight: 'eqnext', ArrowLeft: 'eqprev', KeyT: 'eqnext', ArrowUp: 'spellnext', ArrowDown: 'itemnext', KeyV: 'itemnext' };
 for (let i = 1; i <= 9; i++) KEYMAP['Digit' + i] = 'eq' + i;
 let touchGuard = false;
 let mouseGuard = false;
@@ -18,6 +18,7 @@ function act(a) {
   audioInit();
   if (a === 'pause') { togglePause(); return; }
   if (a === 'map') { toggleMap(); return; }
+  if (a === 'inv') { if (G.mode === 'play') openInventory(); return; }
   if (G.mode !== 'play') return;
   if (a === 'lock') { toggleLock(); return; }
   if (a.startsWith('eq')) { equipKey(a); return; }
@@ -32,12 +33,13 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Escape') { e.preventDefault(); togglePause(); return; }
   if (e.code === 'KeyM' && !e.repeat) { toggleMute(); return; }
   if (e.code === 'KeyG' && !e.repeat && G.mode === 'map') { toggleMap(); return; }
+  if (e.code === 'KeyI' && !e.repeat && G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { e.preventDefault(); closeGrace(); return; }
   if (G.mode !== 'play') return;
   keys.add(e.code);
   if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) { dodgeKey.down = true; dodgeKey.at = performance.now(); } return; }
   const a = KEYMAP[e.code];
   if (a && !e.repeat) { if (e.code === 'KeyJ' || e.code === 'KeyK' || e.code === 'KeyL' || e.code === 'KeyC') aimMode = 'keys'; act(a); }
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault();
 });
 window.addEventListener('keyup', e => {
   keys.delete(e.code);
@@ -45,7 +47,17 @@ window.addEventListener('keyup', e => {
 });
 window.addEventListener('blur', () => { keys.clear(); dodgeKey.down = false; mouseGuard = false; });
 window.addEventListener('mouseup', e => { if (e.button === 2) mouseGuard = false; });
-canvas.addEventListener('pointerdown', () => { if (G.mode === 'map') { toggleMap(); G.ignoreClick = true; } });
+// trên bản đồ: bấm vào bản đồ để đặt / gỡ dấu đánh dấu, bấm ra ngoài để đóng
+canvas.addEventListener('pointerdown', e => {
+  if (G.mode !== 'map') return;
+  G.ignoreClick = true;
+  const r = canvas.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top, M = G.mapRect;
+  if (!M || mx < M.mx || my < M.my || mx > M.mx + M.mw || my > M.my + M.mh) { toggleMap(); return; }
+  const wx = WX0 + (mx - M.mx) / M.sc, wy = WY0 + (my - M.my) / M.sc;
+  if (e.button === 2 || (S.marker && Math.hypot((S.marker.x - wx) * M.sc, (S.marker.y - wy) * M.sc) < 14)) { S.marker = null; toast('Đã gỡ dấu'); }
+  else { S.marker = { x: wx, y: wy }; toast('Đã đặt dấu trên bản đồ'); }
+  SFX.glint(); save();
+});
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('mousemove', e => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; mouse.inside = true; if (!G.touch) aimMode = 'mouse'; });
 canvas.addEventListener('mouseleave', () => { mouse.inside = false; });
