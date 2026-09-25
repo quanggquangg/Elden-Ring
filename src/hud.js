@@ -253,7 +253,7 @@ function mapMask() {
     // đã đi qua: rõ nét; chỉ có bia: phác thảo mờ màu giấy da; chưa biết: tối hẳn
     if (walked) { img.data[i + 3] = 0; continue; }
     if (sketch) { img.data[i] = 96; img.data[i + 1] = 78; img.data[i + 2] = 50; img.data[i + 3] = 118; }
-    else { img.data[i] = 24; img.data[i + 1] = 19; img.data[i + 2] = 13; img.data[i + 3] = 255; }
+    else { img.data[i] = 34; img.data[i + 1] = 27; img.data[i + 2] = 18; img.data[i + 3] = 255; }
   }
   m.putImageData(img, 0, 0);
   return maskCanvas;
@@ -261,51 +261,119 @@ function mapMask() {
 const MAP_LABELS = [['Pháo Đài Greystone', 3600, 900], ['Rừng Wraithwood', 3650, 2180], ['Đấu Trường Bloodsand', 3600, 3230], ['Cao Nguyên Cinderreach', 3700, 1580], ['Đồng Cỏ Mistveil', 1400, 2620],
   ['Tàn Tích Hollowmere', 700, 1900], ['Đầm Lầy Ashmire', 2420, 1520], ['Cổng Gác Thornwall', 1400, 760], ['Nhà Nguyện Dawnrest', 1400, 3480], ['Hồ Crystalmere', -1400, 1500], ['Bờ Biển Saltreach', -1300, 3300],
   ['Học Viện Starhollow', -1550, -300], ['Cao Nguyên Aurelia', 2200, -100], ['Sườn Núi Goldspire', 3500, -1400], ['Kinh Thành Aurumhold', 1400, -1300], ['Cây Aurum', 1400, -1720]];
+// ── biểu tượng trên bản đồ ──
+function mapGrace(x, y, s = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = 'rgba(255,215,110,.28)'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ffe9a8'; ctx.strokeStyle = '#5a3c10'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, -7); ctx.quadraticCurveTo(4.5, -1, 0, 4); ctx.quadraticCurveTo(-4.5, -1, 0, -7); ctx.fill(); ctx.stroke(); ctx.restore();
+}
+function mapDungeon(x, y, done, s = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = done ? '#9a9080' : '#e0d0a8'; ctx.strokeStyle = '#2a1e10'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(-6, 5); ctx.lineTo(-6, -1); ctx.quadraticCurveTo(0, -9, 6, -1); ctx.lineTo(6, 5); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1a1208'; ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(-3, 0); ctx.quadraticCurveTo(0, -4.5, 3, 0); ctx.lineTo(3, 5); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function mapStele(x, y, a = 1, s = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.globalAlpha *= a;
+  ctx.fillStyle = '#bcd7ff'; ctx.shadowColor = '#bcd7ff'; ctx.shadowBlur = 8; ctx.strokeStyle = '#1a2a40'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-4, 5); ctx.lineTo(-3, -5); ctx.lineTo(0, -8); ctx.lineTo(3, -5); ctx.lineTo(4, 5); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke(); ctx.restore();
+}
+function mapPlayer(x, y, a) {
+  const pulse = 1 + Math.sin(G.clock * 6) * 0.12;
+  ctx.strokeStyle = 'rgba(255,90,60,.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 10 * pulse, 0, TAU); ctx.stroke();
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+  ctx.fillStyle = '#e0503c'; ctx.strokeStyle = '#fff6e0'; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-6, -7); ctx.lineTo(-2.5, 0); ctx.lineTo(-6, 7); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+}
+// khung giấy da: hai đường viền vàng, hoa văn góc hình thoi và bóng tối quanh mép
+function mapFrame(x, y, w, h) {
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x - 12, y - 12, w + 24, h + 24);
+  ctx.strokeStyle = 'rgba(214,178,94,.75)'; ctx.lineWidth = 1.5; ctx.strokeRect(x - 8.5, y - 8.5, w + 17, h + 17);
+  ctx.strokeStyle = 'rgba(214,178,94,.35)'; ctx.lineWidth = 1; ctx.strokeRect(x - 4.5, y - 4.5, w + 9, h + 9);
+  for (const [cx, cy] of [[x - 8.5, y - 8.5], [x + w + 8.5, y - 8.5], [x - 8.5, y + h + 8.5], [x + w + 8.5, y + h + 8.5]]) {
+    ctx.fillStyle = '#1a150e'; ctx.strokeStyle = '#d6b25e'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(cx, cy - 7); ctx.lineTo(cx + 7, cy); ctx.lineTo(cx, cy + 7); ctx.lineTo(cx - 7, cy); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d6b25e'; ctx.beginPath(); ctx.arc(cx, cy, 1.8, 0, TAU); ctx.fill();
+  }
+  for (const [cx, cy] of [[x + w / 2, y - 8.5], [x + w / 2, y + h + 8.5]]) { ctx.fillStyle = '#d6b25e'; ctx.beginPath(); ctx.moveTo(cx, cy - 4); ctx.lineTo(cx + 4, cy); ctx.lineTo(cx, cy + 4); ctx.lineTo(cx - 4, cy); ctx.closePath(); ctx.fill(); }
+}
+function mapCompass(x, y, r) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = 'rgba(30,22,12,.55)'; ctx.beginPath(); ctx.arc(0, 0, r + 4, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(214,178,94,.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
+  for (let k = 0; k < 4; k++) {
+    ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = k === 3 ? '#f0d27a' : '#a08a5a'; ctx.beginPath(); ctx.moveTo(0, -r + 2); ctx.lineTo(4, 0); ctx.lineTo(0, 3); ctx.lineTo(-4, 0); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+  textC('B', x, y - r - 7, `700 11px ${FONT_D}`, '#f0d27a', 0.9);
+}
 function drawMap() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.fillStyle = 'rgba(8,7,5,.94)'; ctx.fillRect(0, 0, CW, CH);
-  const MW = MAPW - WX0, MH = H - WY0, top = 58, bottom = 40, sc = Math.min((CW - 32) / MW, (CH - top - bottom) / MH), mw = MW * sc, mh = MH * sc, mx = (CW - mw) / 2, my = top;
-  textC('Bản đồ', CW / 2, 36, spacedFont(CW < 500 ? 24 : 30, 700), '#ece3cc');
+  const bg = ctx.createRadialGradient(CW / 2, CH / 2, 40, CW / 2, CH / 2, Math.max(CW, CH) * 0.7);
+  bg.addColorStop(0, 'rgba(30,24,15,.97)'); bg.addColorStop(1, 'rgba(6,5,3,.99)'); ctx.fillStyle = bg; ctx.fillRect(0, 0, CW, CH);
+  const small = CW < 500, MW = MAPW - WX0, MH = H - WY0, top = small ? 56 : 66, bottom = small ? 46 : 62;
+  const sc = Math.min((CW - 44) / MW, (CH - top - bottom) / MH), mw = MW * sc, mh = MH * sc, mx = (CW - mw) / 2, my = top;
+  // tiêu đề có hai đường hoa văn hai bên
+  const tw = small ? 60 : 90;
+  textC('Bản đồ', CW / 2, top - 22, spacedFont(small ? 24 : 30, 700), '#f0e2c0');
+  ctx.strokeStyle = 'rgba(214,178,94,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(CW / 2 - tw - 60, top - 30); ctx.lineTo(CW / 2 - tw, top - 30); ctx.moveTo(CW / 2 + tw, top - 30); ctx.lineTo(CW / 2 + tw + 60, top - 30); ctx.stroke();
+  mapFrame(mx, my, mw, mh);
+  // nền bản đồ nhuộm màu giấy da
   ctx.drawImage(GROUND, 0, 0, MW / 2, MH / 2, mx, my, mw, mh);
-  ctx.fillStyle = 'rgba(70,52,24,.3)'; ctx.fillRect(mx, my, mw, mh);
-  ctx.strokeStyle = 'rgba(214,178,94,.6)'; ctx.lineWidth = 1; ctx.strokeRect(mx + 0.5, my + 0.5, mw - 1, mh - 1);
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = 0.55; ctx.fillStyle = '#d4b47c'; ctx.fillRect(mx, my, mw, mh); ctx.restore();
+  ctx.fillStyle = 'rgba(70,52,24,.14)'; ctx.fillRect(mx, my, mw, mh);
   const pt = (x, y) => [mx + (x - WX0) * sc, my + (y - WY0) * sc];
   G.mapRect = { mx, my, mw, mh, sc };
-  ctx.fillStyle = '#2a261e';
+  ctx.fillStyle = '#2a2016';
   for (const w of WALLS) if (!w.void && !w.sea && w.x < MAPW && (wallOn(w, false) || w.gate === 'colo' || w.gate === 'dg')) { const [x, y] = pt(w.x, w.y); ctx.fillRect(x, y, Math.max(1.5, w.w * sc), Math.max(1.5, w.h * sc)); }
+  // lưới tọa độ mờ
+  ctx.strokeStyle = 'rgba(60,44,22,.16)'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let gx = Math.ceil(WX0 / 600) * 600; gx < MAPW; gx += 600) { const [x] = pt(gx, 0); ctx.moveTo(x, my); ctx.lineTo(x, my + mh); }
+  for (let gy = Math.ceil(WY0 / 600) * 600; gy < H; gy += 600) { const [, y] = pt(0, gy); ctx.moveTo(mx, y); ctx.lineTo(mx + mw, y); }
+  ctx.stroke();
   ctx.imageSmoothingEnabled = true; ctx.drawImage(mapMask(), mx, my, mw, mh);
-  ctx.fillStyle = 'rgba(255,214,110,.8)'; { const [x, y] = pt(TREE_POS.x, TREE_POS.y); ctx.beginPath(); ctx.arc(x, y, 7, 0, TAU); ctx.fill(); }
-  const fs = CW < 500 ? 11 : 14;
-  for (const [n, x, y] of MAP_LABELS) { if (!revealedAt(x, y)) continue; const [px, py] = pt(x, y); textC(n, px, py, `600 ${fs}px ${FONT_D}`, 'rgba(236,227,204,.9)', 0.9); }
-  for (const d of DUNGEONS) {
-    if (!revealedAt(d.ex, d.ey)) continue;
-    const [x, y] = pt(d.ex, d.ey);
-    ctx.fillStyle = S.dg[d.id] ? 'rgba(160,150,130,.9)' : '#d8c8a0'; ctx.fillRect(x - 4, y - 4, 8, 8); ctx.fillStyle = '#1a1612'; ctx.fillRect(x - 2, y - 1, 4, 5);
+  // mép giấy tối dần vào trong như tấm bản đồ cũ
+  { const vg = ctx.createRadialGradient(mx + mw / 2, my + mh / 2, Math.min(mw, mh) * 0.35, mx + mw / 2, my + mh / 2, Math.hypot(mw, mh) * 0.55); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(12,8,4,.5)'); ctx.fillStyle = vg; ctx.fillRect(mx, my, mw, mh); }
+  // Cây Aurum: tán vàng và thân
+  { const [x, y] = pt(TREE_POS.x, TREE_POS.y); const gr = ctx.createRadialGradient(x, y, 1, x, y, 16); gr.addColorStop(0, 'rgba(255,230,140,.9)'); gr.addColorStop(1, 'rgba(255,214,110,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(x, y, 16, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffe08a'; ctx.strokeStyle = '#5a3c10'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y - 2, 5, 0, TAU); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#6a4a1a'; ctx.fillRect(x - 1, y + 2, 2, 5); }
+  // cỡ chữ theo kích thước bản đồ; nhãn nào đè lên nhãn đã vẽ thì bỏ qua để khỏi rối
+  const fs = Math.round(clamp(mw / 62, 9.5, 14)), placed = [];
+  ctx.font = `600 ${fs}px ${FONT_D}`; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+  for (const [n, x, y] of MAP_LABELS) {
+    if (!revealedAt(x, y)) continue; const [px, py] = pt(x, y), hw = ctx.measureText(n).width / 2 + 3;
+    if (placed.some(r => Math.abs(r[0] - px) < r[1] + hw && Math.abs(r[2] - py) < fs + 2)) continue;
+    placed.push([px, hw, py]); ctx.strokeStyle = 'rgba(24,16,8,.85)'; ctx.lineWidth = 3; ctx.strokeText(n, px, py); ctx.fillStyle = '#f4e6c4'; ctx.fillText(n, px, py);
   }
-  for (const g of GRACES) {
-    if (!S.discovered.includes(g.id) || g.x > MAPW) continue;
-    const [x, y] = pt(g.x, g.y);
-    ctx.fillStyle = '#ffe28a'; ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
-  }
-  for (const c of CHESTS) if (S.chests.includes(c.id) && c.x < MAPW) { const [x, y] = pt(c.x, c.y); ctx.fillStyle = 'rgba(160,120,70,.9)'; ctx.fillRect(x - 2.5, y - 2, 5, 4); }
+  ctx.textAlign = 'left';
+  for (const d of DUNGEONS) { if (!revealedAt(d.ex, d.ey)) continue; const [x, y] = pt(d.ex, d.ey); mapDungeon(x, y, S.dg[d.id]); }
+  for (const g of GRACES) { if (!S.discovered.includes(g.id) || g.x > MAPW) continue; const [x, y] = pt(g.x, g.y); mapGrace(x, y); }
+  for (const c of CHESTS) if (S.chests.includes(c.id) && c.x < MAPW) { const [x, y] = pt(c.x, c.y); ctx.fillStyle = 'rgba(140,100,55,.95)'; ctx.strokeStyle = '#2a1e10'; ctx.lineWidth = 0.8; ctx.fillRect(x - 3, y - 2, 6, 4.5); ctx.strokeRect(x - 3, y - 2, 6, 4.5); }
   // bia bản đồ chưa đọc ở những nơi đã đi qua: đánh dấu để người chơi quay lại
-  for (const f of MAP_FRAGS) {
-    if (S.frags.includes(f.id) || !revealedAt(f.x, f.y)) continue;
-    const [x, y] = pt(f.x, f.y), p = 0.7 + Math.sin(G.clock * 4) * 0.3;
-    ctx.fillStyle = `rgba(190,215,255,${p})`; ctx.shadowColor = '#bcd7ff'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.moveTo(x - 4, y + 5); ctx.lineTo(x - 3, y - 5); ctx.lineTo(x, y - 8); ctx.lineTo(x + 3, y - 5); ctx.lineTo(x + 4, y + 5); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
-  }
-  if (!S.frags.length) textC('Bản đồ còn trống. Hãy tìm những Bia Bản Đồ phát sáng xanh để phác họa từng vùng.', CW / 2, my + 24, `500 ${CW < 500 ? 11 : 13}px ${FONT_U}`, '#bfe0ff', 0.9);
-  if (S.lost && S.lost.x < MAPW) { const [x, y] = pt(S.lost.x, S.lost.y); ctx.fillStyle = '#9dffb8'; ctx.beginPath(); ctx.arc(x, y, 4, 0, TAU); ctx.fill(); }
+  for (const f of MAP_FRAGS) { if (S.frags.includes(f.id) || !revealedAt(f.x, f.y)) continue; const [x, y] = pt(f.x, f.y); mapStele(x, y, 0.7 + Math.sin(G.clock * 4) * 0.3); }
+  if (!S.frags.length) textC('Bản đồ còn trống. Hãy tìm những Bia Bản Đồ phát sáng xanh để phác họa từng vùng.', CW / 2, my + 24, `500 ${small ? 11 : 13}px ${FONT_U}`, '#cfe4ff', 0.9);
+  if (S.lost && S.lost.x < MAPW) { const [x, y] = pt(S.lost.x, S.lost.y); ctx.fillStyle = 'rgba(157,255,184,.3)'; ctx.beginPath(); ctx.arc(x, y, 8, 0, TAU); ctx.fill(); ctx.fillStyle = '#9dffb8'; ctx.strokeStyle = '#123a1e'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 4, 0, TAU); ctx.fill(); ctx.stroke(); }
   if (S.marker) { const [x, y] = pt(S.marker.x, S.marker.y); drawMarkerIcon(x, y, 1); }
+  mapCompass(mx + mw - (small ? 22 : 30), my + (small ? 26 : 36), small ? 12 : 17);
   const dg = dungeonAt(P.x, P.y), inMain = P.x < 4800, mpx = inMain ? P.x : dg ? dg.ex : null, mpy = inMain ? P.y : dg ? dg.ey : null;
-  if (mpx !== null) {
-    const [px, py] = pt(mpx, mpy), pulse = 1 + Math.sin(G.clock * 6) * 0.15;
-    ctx.save(); ctx.translate(px, py); ctx.rotate(P.face); ctx.scale(pulse, pulse);
-    ctx.fillStyle = '#e0503c'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-6, -6); ctx.lineTo(-3, 0); ctx.lineTo(-6, 6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
-  } else textC('Ngươi đang ở ngoài thế giới thường', CW / 2, my + 46, `500 13px ${FONT_U}`, '#f2dc97');
-  textC(G.touch ? 'Chạm vào bản đồ để đặt dấu · chạm ra ngoài để đóng' : 'Bấm vào bản đồ để đặt / gỡ dấu · G / Esc để đóng', CW / 2, CH - 14, `500 12px ${FONT_U}`, 'rgba(236,227,204,.7)');
+  if (mpx !== null) { const [px, py] = pt(mpx, mpy); mapPlayer(px, py, P.face); }
+  else textC('Ngươi đang ở ngoài thế giới thường', CW / 2, my + 46, `500 13px ${FONT_U}`, '#f2dc97');
+  // chú thích biểu tượng
+  if (!small) {
+    const ly = my + mh + 26, items = [['grace', 'Ân Điển'], ['dg', 'Hầm ngục'], ['stele', 'Bia chưa đọc'], ['lost', 'Rune đánh rơi'], ['mark', 'Dấu của ngươi'], ['you', 'Ngươi']];
+    ctx.font = `500 12px ${FONT_U}`;
+    let total = 0; const ws = items.map(([, t]) => ctx.measureText(t).width + 34); total = ws.reduce((a, b) => a + b, 0);
+    let lx = CW / 2 - total / 2;
+    items.forEach(([k, t], i) => {
+      const ix = lx + 8;
+      if (k === 'grace') mapGrace(ix, ly - 2, 0.9); else if (k === 'dg') mapDungeon(ix, ly - 2, false, 0.9); else if (k === 'stele') mapStele(ix, ly - 1, 1, 0.9);
+      else if (k === 'lost') { ctx.fillStyle = '#9dffb8'; ctx.beginPath(); ctx.arc(ix, ly - 3, 4, 0, TAU); ctx.fill(); }
+      else if (k === 'mark') drawMarkerIcon(ix, ly + 4, 0.7); else { ctx.save(); ctx.translate(ix, ly - 3); ctx.fillStyle = '#e0503c'; ctx.beginPath(); ctx.moveTo(7, 0); ctx.lineTo(-4, -5); ctx.lineTo(-2, 0); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill(); ctx.restore(); }
+      ctx.fillStyle = 'rgba(236,227,204,.8)'; ctx.fillText(t, lx + 20, ly + 1); lx += ws[i];
+    });
+  }
+  textC(G.touch ? 'Chạm vào bản đồ để đặt dấu · chạm ra ngoài để đóng' : 'Bấm vào bản đồ để đặt / gỡ dấu · G / Esc để đóng', CW / 2, CH - 12, `500 12px ${FONT_U}`, 'rgba(236,227,204,.6)');
 }
 function drawMarkerIcon(x, y, s) {
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
