@@ -15,7 +15,7 @@ const pad = { prev: [], stick: { x: 0, y: 0 }, guard: false, dodgeDown: false, d
 const guardHeld = () => keys.has('KeyX') || touchGuard || mouseGuard || pad.guard;
 const sprintHeld = () => (dodgeKey.down && performance.now() - dodgeKey.at >= DASH_HOLD) || (pad.dodgeDown && performance.now() - pad.dodgeAt >= DASH_HOLD);
 function act(a) {
-  audioInit();
+  audioInit(); tutAct(a);
   if (a === 'pause') { togglePause(); return; }
   if (a === 'map') { toggleMap(); return; }
   if (a === 'inv') { if (G.mode === 'play') openInventory(); return; }

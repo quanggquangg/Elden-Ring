@@ -146,6 +146,13 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 .ach li.on{opacity:1;border-color:rgba(214,178,94,.55);background:rgba(214,178,94,.07)}
 .ach b{font:600 17px/1.15 var(--display);color:var(--gold-hi)}
 .ach small{font-size:12px;color:var(--muted)}
+.tut{position:absolute;top:84px;left:50%;transform:translateX(-50%);width:min(420px,calc(100% - 32px));box-sizing:border-box;background:rgba(10,9,7,.86);border:1px solid rgba(214,178,94,.6);padding:10px 14px;display:grid;gap:4px;text-align:center;pointer-events:none;z-index:5}
+.tut small{font:600 10px/1 var(--ui);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.tut b{font:600 20px/1.2 var(--display);color:var(--parch)}
+.tut span{font:500 13px/1.4 var(--ui);color:#f2dc97}
+.tut kbd{font:600 12px var(--ui);border:1px solid #f2dc97;padding:1px 6px;margin:0 2px}
+.tut button{pointer-events:auto;justify-self:center;appearance:none;background:none;border:0;color:var(--muted);font:500 12px var(--ui);text-decoration:underline;cursor:pointer;padding:4px}
+.tut.done{border-color:#9fdc8a}
 .btabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .btabs button{appearance:none;background:none;border:1px solid var(--line);color:var(--muted);font:600 13px/1 var(--ui);padding:8px 12px;cursor:pointer}
 .btabs button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi);background:rgba(214,178,94,.1)}
@@ -177,6 +184,7 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 <div id="app">
   <canvas id="game" aria-label="Màn chơi"></canvas>
 
+  <div id="tut" class="tut" hidden><small id="tutStep"></small><b id="tutText"></b><span id="tutKeys"></span><button id="btnTutSkip" type="button">Bỏ qua hướng dẫn</button></div>
   <div id="touch" hidden>
     <div id="stickZone"><div id="stickBase" hidden><div id="knob"></div></div></div>
     <button class="tb big" data-act="light" style="--x:62px;--y:124px;--s:78px">Đánh</button>
