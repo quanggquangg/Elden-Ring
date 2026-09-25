@@ -290,7 +290,12 @@ function tick(dt) {
   if (G.runeGainT > 0) { G.runeGainT -= dt; if (G.runeGainT <= 0) G.runeGain = 0; }
 }
 let last = performance.now();
+// một lỗi bất ngờ trong một khung hình không được làm đứng cả game: ghi lại lỗi rồi chạy tiếp khung sau
 function frame(now) {
+  try { step(now); } catch (err) { console.error(err); }
+  requestAnimationFrame(frame);
+}
+function step(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   pollPad();
   updateAmbient(dt);
@@ -304,5 +309,4 @@ function frame(now) {
     updateParts(dt); ambient(dt);
   }
   render();
-  requestAnimationFrame(frame);
 }

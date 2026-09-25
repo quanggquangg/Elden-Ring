@@ -179,7 +179,7 @@ function drawPlayer() {
   const o = { anim: p.walk, trail, thrust, stab, charge, flash: p.invuln > 0.25, shield: th || cat ? 0 : p.state === 'guard' ? 2 : 1, kite: off.id === 'kite', cat: cat ? cat.type : null, castK };
   if (p.state === 'attack' && p.atk && p.atk.kind === 'heavy') o.trailCol = 'rgba(255,220,150,.45)';
   if (p.state === 'roll') {
-    const k = p.t / ROLL_DUR;
+    const k = p.t / p.roll.dur;
     ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1 - Math.sin(k * Math.PI) * 0.22, 1 - Math.sin(k * Math.PI) * 0.22); ctx.translate(-p.x, -p.y);
     drawHumanoid(p.x, p.y, p.rollDir, LOOK, wAng, o);
     ctx.restore();
@@ -904,7 +904,7 @@ function drawGraceBeams() {
   }
 }
 function render() {
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.shadowBlur = 0;
   ctx.fillStyle = '#0b0a07'; ctx.fillRect(0, 0, canvas.width, canvas.height);
   const sh = G.shake > 0.1 ? G.shake : 0, sx = (Math.random() * 2 - 1) * sh, sy = (Math.random() * 2 - 1) * sh;
   const vw = CW / ZOOM, vh = CH / ZOOM, x0 = cam.x - vw / 2 + sx, y0 = cam.y - vh / 2 + sy;
