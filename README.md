@@ -50,9 +50,12 @@ And **Varek**, the masked gatekeeper, swore that no Gravebound would ever touch 
   - Red Gravebound who invade your world.
   - Bosses that call for help.
   - Messages from yourself on a previous run.
-- **26 achievements**, a **shared leaderboard** per difficulty, and **3 save slots**.
+- **28 achievements**, a **shared leaderboard** per difficulty, and **3 save slots**.
 - **Bestiary:** every species you defeat gets a page with a portrait, where it lives, weaknesses, rare drops and a tip. The death screen tells you what killed you and how to beat it next time.
 - **Settings:** music and effects volume, screen shake, text size, and fully rebindable keys (on-screen hints follow your keys).
+- **Day and night:** a 14-minute cycle with cool moonlit nights, fireflies and warm dusks. Rest at a Site of Grace to wait until nightfall or morning.
+- **Night Rider:** a mounted field boss that patrols the Mistveil high road only at night and drops the Nightrider Glaive.
+- **Spirit Ashes:** a witch who appears at a Site of Grace at night gives you the Spirit Calling Bell. Ring it in combat to summon spectral allies: Lone Wolves, Skeletal Militia, a Swamp Jellyfish or a Banished Knight. Enemies fight back against them.
 - **Combat effects:** crescent sword trails tinted by element (fire, holy, magic, blood), impact flashes, blood that stains the ground, foes that crumble into golden embers while their runes stream back to you, glowing spell trails, dust and water ripples under your feet, rain and lightning over the swamp and coast, and a heartbeat vignette when you are close to death.
 - **Runs smoothly on phones:** on high-density screens the game lowers its render resolution on its own when the frame rate drops.
 
@@ -145,9 +148,12 @@ Và **Varek**, kẻ gác cổng đeo mặt nạ, đã thề không một Gravebo
   - Gravebound Đỏ xâm nhập thế giới của ngươi.
   - Boss gọi thêm tay sai.
   - Lời nhắn từ chính ngươi ở lần chơi trước.
-- **26 thành tựu**, **bảng xếp hạng chung** chia theo độ khó và **3 ô lưu**.
+- **28 thành tựu**, **bảng xếp hạng chung** chia theo độ khó và **3 ô lưu**.
 - **Sổ tay quái vật:** mỗi loài đã hạ có một trang riêng với chân dung, nơi sống, điểm yếu, đồ hiếm và mẹo đánh. Màn hình chết cho biết ai đã hạ ngươi và cách thắng lần sau.
 - **Cài đặt:** âm lượng nhạc và hiệu ứng, rung màn hình, cỡ chữ, đổi được mọi phím bấm (chữ hướng dẫn hiện đúng phím đã gán).
+- **Ngày và đêm:** một vòng 14 phút, đêm xanh ánh trăng có đom đóm, hoàng hôn ấm. Nghỉ ở Ân Điển để chờ đến đêm hoặc sáng.
+- **Kỵ Sĩ Đêm:** boss cưỡi ngựa chỉ tuần tra đường cái Đồng Cỏ Mistveil lúc đêm, rơi Nightrider Glaive.
+- **Tro Triệu Hồi:** phù thủy hiện ra bên Ân Điển lúc đêm trao Chuông Gọi Hồn. Rung chuông khi giao chiến để gọi hồn đồng minh: Sói Cô Độc, Dân Quân Xương, Sứa Đầm Lầy hoặc Hiệp Sĩ Lưu Đày. Quái cũng sẽ quay sang đánh chúng.
 - **Hiệu ứng chiến đấu:** vệt chém hình lưỡi liềm đổi màu theo nguyên tố (lửa, thánh, phép, máu), tia sáng khi đòn trúng, máu vương trên đất, quái ngã xuống tan thành tro vàng và rune bay về phía ngươi, đuôi sáng của phép, bụi và gợn nước dưới chân, mưa và sấm sét ở đầm lầy và bờ biển, viền tối đập theo nhịp tim khi sắp chết.
 - **Mượt trên điện thoại:** trên màn hình mật độ cao, game tự hạ độ phân giải khi khung hình tụt.
 

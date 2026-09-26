@@ -25,6 +25,7 @@ function grant(L, x = P.x, y = P.y, quiet = false) {
   if (L.armor) own(S.armors, L.armor, ARMORS[L.armor], ' · mặc tại Ân Điển');
   if (L.tal) own(S.tals, L.tal, TALISMANS[L.tal], ' · đeo tại Ân Điển');
   if (L.ash) own(S.ashes, L.ash, ASHES[L.ash], ' · gắn vào vũ khí tại Ân Điển');
+  if (L.spirit) { S.spirits = S.spirits || []; own(S.spirits, L.spirit, SPIRITS[L.spirit], S.bell ? ' · chọn trong Túi đồ, dùng Chuông Gọi Hồn khi giao chiến' : ' · cần Chuông Gọi Hồn để dùng'); if (!S.spiritSel) S.spiritSel = L.spirit; }
   if (L.spell) {
     const had = S.spells.includes(L.spell);
     own(S.spells, L.spell, SPELLS[L.spell], ' · ghi nhớ tại Ân Điển');

@@ -15,6 +15,7 @@ const BOSS_MOVES = {
 const restAfter = A => (A.steps.length >= 3 ? 0.8 : A.steps.length === 2 ? 0.3 : 0);
 function aoeBlast(x, y, r, dmg, col) {
   if (dist(x, y, P.x, P.y) < r + P.r) hurtPlayer(dmg, x, y, true, null, 'aoe');
+  for (const a of allies) if (!a.dead && dist(x, y, a.x, a.y) < r + a.r) hurtAlly(a, dmg, x, y);
   aoes.push({ kind: 'flash', x, y, r, t: 0, dur: 0.35, col });
 }
 function addRing(x, y, r0, r1, dur, dmg) { aoes.push({ kind: 'ring', x, y, r0, r1, dur, dmg, t: 0, hit: false }); }
@@ -45,6 +46,7 @@ function bossAtk(dt, ang) {
       if (t < s.wind) { b.face = turn(b.face, ang, 2.6 * dt); if (cross(s.wind * 0.3)) { addPart(b.x + Math.cos(b.face) * 40, b.y + Math.sin(b.face) * 40 - 20, 0, 0, 0.4, 16, '#fff6d8', 'glint'); SFX.glint(); } }
       else if (t < s.wind + s.act) {
         if (cross(s.wind)) { b.vx += Math.cos(b.face) * s.lunge; b.vy += Math.sin(b.face) * s.lunge; SFX.heavy(); }
+        allyArcHit(A, b.x, b.y, b.face, s.range, s.arc, s.dmg);
         if (!A.hit && inArc(b.x, b.y, b.face, s.range, s.arc, P.x, P.y, P.r) && hurtPlayer(s.dmg, b.x, b.y, true, b)) A.hit = true;
       } else if (t >= s.wind + s.act + s.rec) done();
       break;
@@ -248,6 +250,7 @@ function dragonAtk(dt, ang) {
       if (t < s.wind) { d.face = turn(d.face, ang, s.track * dt); if (cross(s.wind * 0.35)) { const h = dragonHead(d); addPart(h.x, h.y - 10, 0, 0, 0.4, 18, '#ffe0b0', 'glint'); SFX.glint(); } }
       else if (t < s.wind + s.act) {
         if (cross(s.wind)) { d.vx += Math.cos(d.face) * s.lunge; d.vy += Math.sin(d.face) * s.lunge; SFX.heavy(); }
+        allyArcHit(A, d.x, d.y, d.face, s.range, s.arc, s.dmg);
         if (!A.hit && inArc(d.x, d.y, d.face, s.range, s.arc, P.x, P.y, P.r) && hurtPlayer(s.dmg, d.x, d.y, true, d)) A.hit = true;
       } else if (t >= s.wind + s.act + s.rec) done();
       break;
@@ -256,6 +259,7 @@ function dragonAtk(dt, ang) {
       else if (t < s.wind + s.act) {
         if (cross(s.wind)) SFX.heavy();
         d.spin = -0.4 + ((t - s.wind) / s.act) * (TAU + 0.4);
+        allyArcHit(A, d.x, d.y, 0, s.r + 12, TAU, s.dmg);
         if (!A.hit && dist(d.x, d.y, P.x, P.y) < s.r + P.r && hurtPlayer(s.dmg, d.x, d.y, true, d)) A.hit = true;
       } else { d.spin = 0; if (t >= s.wind + s.act + s.rec) done(); }
       break;
@@ -424,6 +428,7 @@ function finalAtk(dt, ang) {
       if (t < s.wind) { f.face = turn(f.face, ang, 2.6 * dt); if (cross(s.wind * 0.3)) { addPart(f.x + Math.cos(f.face) * 40, f.y + Math.sin(f.face) * 40 - 20, 0, 0, 0.4, 16, '#fff6d8', 'glint'); SFX.glint(); } }
       else if (t < s.wind + s.act) {
         if (cross(s.wind)) { f.vx += Math.cos(f.face) * s.lunge; f.vy += Math.sin(f.face) * s.lunge; SFX.heavy(); }
+        allyArcHit(A, f.x, f.y, f.face, s.range, s.arc, s.dmg);
         if (!A.hit && inArc(f.x, f.y, f.face, s.range, s.arc, P.x, P.y, P.r) && hurtPlayer(s.dmg, f.x, f.y, true, f)) A.hit = true;
       } else if (t >= s.wind + s.act + s.rec) done();
       break;

@@ -42,6 +42,7 @@ const BEAST_HINT = {
   crabking: 'Kẹp hai nhịp rồi dậm mai. Gọi thêm cua khi bị dồn.',
   admiral: 'Nhảy bổ tạo sóng tròn. Lăn qua vòng sóng, đừng lùi ra xa.',
   ramking: 'Húc hai lần liên tiếp. Né lần đầu, chuẩn bị né tiếp.',
+  nightrider: 'Chỉ hiện ra lúc đêm. Lăn ngang khi con ngựa cúi đầu phi tới, đánh vào chân ngựa sau mỗi lần nó dậm.',
   graveknight: 'Dịch chuyển ra sau lưng rồi chém. Nghe tiếng rít là quay người.',
   minerg: 'Lao thẳng rất xa. Nấp sau cột pha lê.',
   golem: 'Ném đá lửa khi ngươi ở xa. Áp sát và đánh vào chân.',
@@ -51,9 +52,9 @@ const BEAST_HINT = {
 };
 const BEAST_ORDER = ['soldier', 'wolf', 'mage', 'archer', 'boar', 'skeleton', 'ghoul', 'toad', 'bomber', 'shield', 'troll', 'bat', 'spider', 'salamander', 'warhound', 'ghost', 'wisp', 'knight',
   'lakehound', 'crab', 'jelly', 'sorcerer', 'crystal', 'drowned', 'grimoire', 'royal', 'priest', 'lion', 'garcher', 'eagle', 'ram', 'gargoyle',
-  'varek', 'warden', 'dragon', 'wraith', 'selvara', 'crabking', 'admiral', 'ramking', 'graveknight', 'minerg', 'golem', 'royalchamp', 'varek2', 'final'];
+  'varek', 'warden', 'dragon', 'wraith', 'selvara', 'crabking', 'admiral', 'ramking', 'nightrider', 'graveknight', 'minerg', 'golem', 'royalchamp', 'varek2', 'final'];
 const BEAST_BOSS = { varek: 'Varek, Kẻ Gác Cổng Bội Thề', dragon: 'Ignarth, Rồng Tro Cổ Đại', varek2: 'Varek, Vua Ẩn Mặt', final: 'Aurel, Vị Vua Tro Tàn' };
-const BEAST_WHERE = { varek: 'Cổng Gác Thornwall', dragon: 'Đầm Lầy Ashmire', varek2: 'Sân Ngai Sunthrone', final: 'Cõi Aurum', wraith: 'Rừng Wraithwood', selvara: 'Học Viện Starhollow' };
+const BEAST_WHERE = { nightrider: 'Đồng Cỏ Mistveil · ban đêm', varek: 'Cổng Gác Thornwall', dragon: 'Đầm Lầy Ashmire', varek2: 'Sân Ngai Sunthrone', final: 'Cõi Aurum', wraith: 'Rừng Wraithwood', selvara: 'Học Viện Starhollow' };
 const RES_NAME = { phys: 'Vật lý', magic: 'Ma thuật', fire: 'Lửa', holy: 'Thánh' };
 function beastWhere(id) {
   if (BEAST_WHERE[id]) return BEAST_WHERE[id];

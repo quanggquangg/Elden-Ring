@@ -187,6 +187,16 @@ function drawQuickIcon(q, cx, cy) {
   if (q === 'fpflask') return drawFlaskIcon(cx, cy, '#3566d8', P.fpflasks <= 0);
   const col = ITEMDEF[q].col || '#ddd';
   ctx.save(); ctx.translate(cx, cy); ctx.lineJoin = 'round';
+  if (q === 'bell') {
+    // chuông đồng nhỏ có quai, ánh hồn xanh quanh miệng chuông
+    ctx.shadowColor = '#9fc0ff'; ctx.shadowBlur = 10;
+    const g = ctx.createLinearGradient(-9, 0, 9, 0); g.addColorStop(0, '#6a5230'); g.addColorStop(0.45, '#e8c880'); g.addColorStop(1, '#5a4428');
+    ctx.fillStyle = g; ctx.strokeStyle = OL; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-5, -7); ctx.quadraticCurveTo(-6, 4, -10, 7); ctx.lineTo(10, 7); ctx.quadraticCurveTo(6, 4, 5, -7); ctx.quadraticCurveTo(0, -11, -5, -7); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+    ctx.strokeStyle = '#c9a44e'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, -11, 3, Math.PI, 0); ctx.stroke();
+    ctx.fillStyle = '#bcd6ff'; ctx.beginPath(); ctx.arc(0, 9.5, 2, 0, TAU); ctx.fill();
+    ctx.restore(); return;
+  }
   if (q === 'knife') {
     ctx.rotate(-0.8);
     for (const dx of [-5, 3]) {
@@ -303,6 +313,7 @@ function drawHUD() {
   if (G.runeGain > 0) { ctx.font = `600 14px ${FONT_U}`; ctx.fillStyle = `rgba(242,220,151,${Math.min(1, G.runeGainT)})`; ctx.fillText('+' + G.runeGain.toLocaleString(numLoc()), rx, ry + (G.touch ? 26 : -26)); }
   ctx.textAlign = 'left';
   ['east', 'swamp', 'west'].forEach((id, i) => greatRuneGem(dx - 30 - (2 - i) * 19, dy, GREAT_RUNES[id].col, S.gr.includes(id)));
+  if (P.x < 4800) drawSkyDial(dx - 30 - 2 * 19 - 26, dy);
   // lời nhắc tương tác: khung tối viền vàng, hai hạt kim cương hai đầu, phím dạng nắp phím
   if (G.prompt && G.mode === 'play') {
     const txt = G.prompt.text, py = CH * (G.touch ? 0.56 : 0.7);
@@ -608,6 +619,7 @@ const atGrace = () => menuAt === 'grace';
 function openGrace(g) {
   currentGrace = g; menuAt = 'grace'; pend = {}; setMode('menu');
   $('graceEyebrow').textContent = g.name; $('graceTitle').textContent = 'Nghỉ ngơi'; $('btnLeave').textContent = 'Rời đi';
+  $('btnWait').hidden = g.x > 4800; $('btnWait').textContent = isNight() ? 'Chờ đến sáng' : 'Chờ đến đêm';
   selectTab('level'); renderGrace(); UI.grace.hidden = false;
   setTimeout(() => $('btnLeave').focus({ preventScroll: true }), 30);
 }
@@ -615,7 +627,7 @@ function openInventory(tab = 'gear') {
   if (G.mode !== 'play' && G.mode !== 'pause') return;
   UI.pause.hidden = true;
   currentGrace = null; menuAt = 'field'; pend = {}; setMode('menu');
-  $('graceEyebrow').textContent = regionAt(P.x, P.y); $('graceTitle').textContent = 'Hành trang'; $('btnLeave').textContent = 'Đóng';
+  $('graceEyebrow').textContent = regionAt(P.x, P.y); $('graceTitle').textContent = 'Hành trang'; $('btnLeave').textContent = 'Đóng'; $('btnWait').hidden = true;
   selectTab(tab); renderGrace(); UI.grace.hidden = false; SFX.glint();
   setTimeout(() => $('btnLeave').focus({ preventScroll: true }), 30);
 }
@@ -629,7 +641,7 @@ function travelTo(id) {
   const g = GRACES.find(q => q.id === id);
   if (!g) return;
   P.x = g.x; P.y = g.y + 46; P.vx = P.vy = 0; P.state = 'idle'; P.t = 0; P.mounted = false; P.lock = null; P.atk = null; P.flameT = 0;
-  projs.length = 0; aoes.length = 0; puddles.length = 0;
+  projs.length = 0; aoes.length = 0; puddles.length = 0; allies = [];
   cam.x = P.x; cam.y = P.y; clampCam(); G.fade = 1; buf = null; G.region = null; SFX.grace(); save();
 }
 const scText = Wp => Object.entries(Wp.sc || {}).map(([k, v]) => STAT_SHORT[k] + ' ' + v).join(' ');
@@ -706,12 +718,20 @@ function renderInv() {
   let h = '<h3 class="sec">Đồ dùng · đang chọn trong ô nhanh: ' + (cur === 'flask' ? 'Bình Máu' : cur === 'fpflask' ? 'Bình FP' : ITEMDEF[cur].name) + '</h3><ul class="travel">';
   h += row('Bình Máu', P.flasks + '/' + (S.flaskMax - S.flaskFp), 'Hồi ' + flaskHeal() + ' máu. Nạp lại khi nghỉ ở Ân Điển.', `<button class="mini" data-quick="flask" ${cur === 'flask' ? 'disabled' : ''}>Chọn</button>`);
   h += row('Bình FP', P.fpflasks + '/' + S.flaskFp, 'Hồi ' + fpFlaskAmt() + ' FP.', `<button class="mini" data-quick="fpflask" ${cur === 'fpflask' ? 'disabled' : ''}>Chọn</button>`);
+  if (S.bell) h += row(ITEMDEF.bell.name, '', ITEMDEF.bell.desc + '.', `<button class="mini" data-quick="bell" ${cur === 'bell' ? 'disabled' : ''}>Chọn</button>`);
   for (const id of USE_ORDER) if (invN(id)) {
     const usable = id === 'cure' || id === 'grease' || id.startsWith('grune');
     h += row(ITEMDEF[id].name, invN(id), ITEMDEF[id].desc, (usable ? `<button class="mini" data-use="${id}">Dùng</button>` : '') + `<button class="mini" data-quick="${id}" ${cur === id ? 'disabled' : ''}>Chọn</button>`);
   }
   h += '</ul>';
-  const mats = Object.keys(ITEMDEF).filter(k => ITEMDEF[k].kind !== 'use' && invN(k));
+  // tro triệu hồi: chọn loại hồn mà chuông sẽ gọi
+  const sps = SPIRIT_ORDER.filter(k => (S.spirits || []).includes(k));
+  if (sps.length) {
+    h += '<h3 class="sec">Tro Triệu Hồi' + (S.bell ? '' : ' · cần Chuông Gọi Hồn') + '</h3><ul class="travel">';
+    for (const k of sps) { const sp = SPIRITS[k]; h += row(sp.name, '', sp.desc + ' · ' + sp.fp + ' FP', `<button class="mini" data-spirit="${k}" ${S.spiritSel === k ? 'disabled' : ''}>${S.spiritSel === k ? 'Đang chọn' : 'Chọn'}</button>`); }
+    h += '</ul>';
+  }
+  const mats = Object.keys(ITEMDEF).filter(k => ITEMDEF[k].kind !== 'use' && ITEMDEF[k].kind !== 'bell' && invN(k));
   h += '<h3 class="sec">Nguyên liệu và vật phẩm quan trọng</h3>' + (mats.length ? '<ul class="travel">' + mats.map(k => row(ITEMDEF[k].name, invN(k), ITEMDEF[k].desc, '')).join('') + '</ul>' : '<p class="note">Chưa có.</p>');
   h += `<p class="note">Mũi tên ${S.arrows}/${S.arrowMax} · Nước Mắt Thánh ${S.tears}/${TEAR_CAP} · Hạt Vàng: ${S.flaskMax}/${FLASK_CAP} bình · Ô phép ${S.slots} · Ô bùa ${S.talSlots}</p>`;
   $('invWrap').innerHTML = h;
@@ -790,6 +810,7 @@ $('invWrap').addEventListener('click', e => {
   if (!b) return;
   if (b.dataset.quick) { const i = quickList().indexOf(b.dataset.quick); if (i >= 0) { S.quick = i; SFX.glint(); } }
   else if (b.dataset.use) { useQuickItem(b.dataset.use); }
+  else if (b.dataset.spirit) { S.spiritSel = b.dataset.spirit; SFX.glint(); save(); }
   renderGrace();
 });
 $('flaskWrap').addEventListener('click', e => { const b = e.target.closest('[data-flask]'); if (b) { flaskAlloc(-(+b.dataset.flask)); renderGrace(); } });
@@ -805,6 +826,7 @@ function renderGraceTabsOnly() {
 }
 for (const t of TABS) $('tab' + t[0].toUpperCase() + t.slice(1)).onclick = () => { selectTab(t); if (t === 'travel' || t === 'level') renderGrace(); };
 $('btnLeave').onclick = closeGrace;
+$('btnWait').onclick = () => { passTime(); $('btnWait').textContent = isNight() ? 'Chờ đến sáng' : 'Chờ đến đêm'; };
 
 // ───────────────────────── cửa hàng và lò rèn ─────────────────────────
 let currentShop = null;
@@ -942,6 +964,8 @@ const ACHS = [
   ['map', 'Người Vẽ Bản Đồ', 'Đọc hết Bia Bản Đồ', () => S.frags.length >= MAP_FRAGS.length],
   ['bestiary', 'Nhà Nghiên Cứu Quái Vật', 'Ghi chép 30 loài trong Sổ tay quái vật', () => Object.keys(S.kills || {}).filter(k => BEAST_ORDER.includes(k)).length >= 30],
   ['wilds', 'Chúa Tể Miền Hoang', 'Hạ Karkos, Veyl và Aurion ở hồ, bờ biển và sườn núi', () => S.mb.crabking && S.mb.admiral && S.mb.ramking],
+  ['nightrider', 'Thợ Săn Bóng Đêm', 'Hạ Kỵ Sĩ Đêm trên đường cái lúc nửa đêm', () => !!S.mb.nightrider],
+  ['spirits', 'Kẻ Gọi Hồn', 'Sở hữu cả bốn loại Tro Triệu Hồi', () => SPIRIT_ORDER.every(k => (S.spirits || []).includes(k))],
   ['travel', 'Kẻ Lữ Hành', 'Tìm thấy 20 Ân Điển', () => S.discovered.length >= 20],
   ['level', 'Vững Như Đá', 'Đạt cấp 40', () => S.level >= 40],
   ['smith', 'Lưỡi Kiếm Tôi Luyện', 'Cường hóa một vũ khí lên +5', () => Object.values(S.wup).some(v => v >= 5)],

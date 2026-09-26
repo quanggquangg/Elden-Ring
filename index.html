@@ -156,6 +156,9 @@ kbd{font:600 11px/1 var(--ui);padding:3px 6px;border:1px solid var(--line);borde
 .mini{appearance:none;border:1px solid var(--gold-dim);background:rgba(214,178,94,.08);color:var(--gold-hi);font:600 13px/1 var(--ui);padding:8px 12px;cursor:pointer;flex:none}
 .mini:disabled{opacity:.35;cursor:default}
 .mini:hover:not(:disabled),.mini:focus-visible{background:rgba(214,178,94,.22);outline:none;border-color:var(--gold)}
+.travel .it .mini{width:auto;display:inline-block;flex:none;font:600 13px/1 var(--ui);padding:8px 12px;color:var(--gold-hi)}
+.it>span{flex:1;min-width:0}
+.travel .it small.tag{display:inline-block;margin-left:6px;padding:1px 6px;vertical-align:2px}
 .pbtn:disabled{opacity:.35;cursor:default}
 .sec{margin:14px 0 6px;font:600 12px/1.3 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
 .sec:first-child{margin-top:0}
@@ -538,7 +541,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
         <p class="note" id="travelNote"></p>
         <ul class="travel" id="travelList"></ul>
       </div>
-      <div class="row"><span id="lvConfirm" class="row"><button id="btnLvOk" class="pbtn">Xác nhận</button><button id="btnLvCancel" class="pbtn ghost">Đặt lại</button></span><button id="btnLeave" class="pbtn">Rời đi</button></div>
+      <div class="row"><span id="lvConfirm" class="row"><button id="btnLvOk" class="pbtn">Xác nhận</button><button id="btnLvCancel" class="pbtn ghost">Đặt lại</button></span><button id="btnWait" class="pbtn ghost" hidden>Chờ đến đêm</button><button id="btnLeave" class="pbtn">Rời đi</button></div>
     </div>
   </section>
 
@@ -615,6 +618,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
 <script src="src/enemies.js"></script>
 <script src="src/bosses.js"></script>
 <script src="src/content.js"></script>
+<script src="src/spirits.js"></script>
 <script src="src/systems.js"></script>
 <script src="src/render.js"></script>
 <script src="src/fx.js"></script>

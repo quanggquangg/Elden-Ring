@@ -117,7 +117,7 @@ function punishHeal() {
 }
 function startEnemyAtk(e, idx) {
   if (Math.abs(e.x - P.x) < 900 && Math.abs(e.y - P.y) < 900) G.caster = { e, t: G.clock };
-  e.state = 'atk'; e.atk = e.T.attacks[idx]; e.t = 0; e.atkHit = false; e.lunged = false; e.fired = false; e.glinted = false; e.fade = 0; e.landed = false;
+  e.state = 'atk'; e.atk = e.T.attacks[idx]; e.t = 0; e.atkTok = (e.atkTok || 0) + 1; e.atkHit = false; e.lunged = false; e.fired = false; e.glinted = false; e.fade = 0; e.landed = false;
 }
 function enemyShot(e, a, pr) {
   projs.push({ x: e.x + Math.cos(a) * 22, y: e.y + Math.sin(a) * 22, vx: Math.cos(a) * pr.speed, vy: Math.sin(a) * pr.speed, r: pr.r, dmg: pr.dmg * e.dm, kind: pr.kind || 'orb', friendly: false, life: pr.life || 3, from: e, puddle: pr.puddle, homing: pr.homing, dt: PROJ_DT[pr.kind] || 'phys' });
@@ -149,6 +149,7 @@ function warpAway(e, d0) {
 }
 function updateEnemyAtk(e, dt, ang) {
   const A = e.atk, t = e.t, T = e.T, kind = A.kind || 'melee';
+  const tg = e.foe && !e.foe.dead ? e.foe : P;
   const finish = () => { if (A.next !== undefined) startEnemyAtk(e, A.next); else endEnemyAtk(e); };
   if (t < A.wind) {
     e.face = turn(e.face, ang, T.track * dt);
@@ -163,6 +164,7 @@ function updateEnemyAtk(e, dt, ang) {
     case 'melee':
       if (t < A.wind + A.act) {
         if (!e.lunged) { e.lunged = true; e.vx += Math.cos(e.face) * A.lunge; e.vy += Math.sin(e.face) * A.lunge; if (!T.beast && T.id !== 'bat' && T.id !== 'spider') SFX.swing(); }
+        allyArcHit(e, e.x, e.y, e.face, A.range, A.arc, A.dmg * e.dm);
         if (!e.atkHit && P.state !== 'dead' && inArc(e.x, e.y, e.face, A.range, A.arc, P.x, P.y, P.r)) {
           if (hurtPlayer(A.dmg, e.x, e.y, A.dmg * e.dm >= 45, e)) { e.atkHit = true; if (A.poison && P.state !== 'guard') P.poisonB += A.poison * poisonMul(); }
         }
@@ -170,15 +172,15 @@ function updateEnemyAtk(e, dt, ang) {
       return;
     case 'shot':
       if (once) {
-        const lead = dist(e.x, e.y, P.x, P.y) / A.proj.speed * 0.5;
-        const a0 = Math.atan2(P.y + P.mvy * lead - e.y, P.x + P.mvx * lead - e.x);
+        const lead = dist(e.x, e.y, tg.x, tg.y) / A.proj.speed * 0.5;
+        const a0 = Math.atan2(tg.y + (tg.mvy || 0) * lead - e.y, tg.x + (tg.mvx || 0) * lead - e.x);
         for (let i = 0; i < A.n; i++) enemyShot(e, a0 + (i - (A.n - 1) / 2) * A.spread, A.proj);
         if (A.proj.kind === 'arrow') noise(0.12, 0.12, 2400, 1.5); else SFX.spell();
       }
       break;
     case 'lob':
       if (once) {
-        for (let i = 0; i < A.n; i++) spawnFireball(e.x, e.y, P.x + P.mvx * 0.5 + (i ? rand(-90, 90) : 0), P.y + P.mvy * 0.5 + (i ? rand(-90, 90) : 0), A.dmg * e.dm, A.r, 300);
+        for (let i = 0; i < A.n; i++) spawnFireball(e.x, e.y, tg.x + (tg.mvx || 0) * 0.5 + (i ? rand(-90, 90) : 0), tg.y + (tg.mvy || 0) * 0.5 + (i ? rand(-90, 90) : 0), A.dmg * e.dm, A.r, 300);
         SFX.swing();
       }
       break;
@@ -201,8 +203,8 @@ function updateEnemyAtk(e, dt, ang) {
       if (t < A.wind + A.air) {
         if (!e.lunged) {
           e.lunged = true; e.lx = e.x; e.ly = e.y;
-          let tx = P.x + P.mvx * 0.3, ty = P.y + P.mvy * 0.3;
-          if (pointBlocked(tx, ty)) { tx = P.x; ty = P.y; }
+          let tx = tg.x + (tg.mvx || 0) * 0.3, ty = tg.y + (tg.mvy || 0) * 0.3;
+          if (pointBlocked(tx, ty)) { tx = tg.x; ty = tg.y; }
           e.ltx = tx; e.lty = ty; addMark(tx, ty, A.r, A.air); SFX.wing();
         }
         const k = (t - A.wind) / A.air, ez = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
@@ -223,6 +225,7 @@ function updateEnemyAtk(e, dt, ang) {
         moveCircle(e, Math.cos(e.face) * A.speed * dt, Math.sin(e.face) * A.speed * dt, true);
         if (Math.random() < dt * 30) addPart(e.x + rand(-8, 8), e.y + rand(-8, 8), 0, 0, 0.5, rand(4, 7), 'rgba(120,105,80,.5)');
         if (!e.atkHit && dist(e.x, e.y, P.x, P.y) < e.r + P.r + 10 && hurtPlayer(A.dmg, e.x, e.y, true, e)) e.atkHit = true;
+        allyArcHit(e, e.x, e.y, e.face, e.r + 16, TAU, A.dmg * e.dm);
         return;
       }
       if (t >= A.wind + A.dur + A.rec) finish();
@@ -236,15 +239,15 @@ function updateEnemyAtk(e, dt, ang) {
       break;
     case 'pillars':
       if (once) {
-        const a = Math.atan2(P.y - e.y, P.x - e.x);
+        const a = Math.atan2(tg.y - e.y, tg.x - e.x);
         for (let i = 0; i < A.n; i++) addDelayed(e.x + Math.cos(a) * (70 + i * 70), e.y + Math.sin(a) * (70 + i * 70), A.r, A.delay + i * 0.1, A.dmg * e.dm);
         SFX.spell();
       }
       break;
     case 'rain':
       if (once) {
-        addDelayed(P.x + P.mvx * 0.3, P.y + P.mvy * 0.3, A.r, A.delay, A.dmg * e.dm);
-        for (let i = 1; i < A.n; i++) { const a = rand(0, TAU), rr = Math.sqrt(Math.random()) * A.spread; addDelayed(P.x + Math.cos(a) * rr, P.y + Math.sin(a) * rr, A.r, A.delay + rand(0, 0.5), A.dmg * e.dm); }
+        addDelayed(tg.x + (tg.mvx || 0) * 0.3, tg.y + (tg.mvy || 0) * 0.3, A.r, A.delay, A.dmg * e.dm);
+        for (let i = 1; i < A.n; i++) { const a = rand(0, TAU), rr = Math.sqrt(Math.random()) * A.spread; addDelayed(tg.x + Math.cos(a) * rr, tg.y + Math.sin(a) * rr, A.r, A.delay + rand(0, 0.5), A.dmg * e.dm); }
         SFX.spell();
       }
       break;
@@ -289,7 +292,10 @@ function updateEnemies(dt) {
   for (const e of enemies) {
     e.t += dt;
     if (e.dead) continue;
-    const T = e.T, d = dist(e.x, e.y, P.x, P.y);
+    // mục tiêu: người chơi, hoặc hồn triệu hồi vừa đánh nó
+    const foe = e.foe && !e.foe.dead && e.foe.hp > 0 && e.state !== 'idle' && e.state !== 'return' ? e.foe : (e.foe = null);
+    const tx = foe ? foe.x : P.x, ty = foe ? foe.y : P.y, tr = foe ? foe.r : P.r;
+    const T = e.T, d = dist(e.x, e.y, tx, ty);
     if (e.state === 'idle' && d > 1400) continue; // quái ở xa đứng yên để đỡ tốn tính toán
     e.cd -= dt; e.anim += dt; e.lastHit += dt; e.moving = false;
     if (e.invuln > 0) e.invuln -= dt;
@@ -298,7 +304,7 @@ function updateEnemies(dt) {
     if (e.alertT > 0) e.alertT -= dt;
     // tầm nhìn không bị tường chắn: tính lại vài lần mỗi giây cho nhẹ
     e.losT = (e.losT || rand(0, 0.2)) - dt;
-    if (e.losT <= 0 && d < 900) { e.losT = 0.2; e.los = losClear(e.x, e.y, P.x, P.y); }
+    if (e.losT <= 0 && d < 900) { e.losT = 0.2; e.los = losClear(e.x, e.y, tx, ty); }
     if (e.lastHit > 2.5) e.poiseAcc = Math.max(0, e.poiseAcc - dt * e.poise * 0.5);
     if (e.bleed && e.lastHit > 2) e.bleed = Math.max(0, e.bleed - 12 * dt);
     if (T.ghost && Math.random() < dt * 4) addPart(e.x + rand(-10, 10), e.y + rand(-10, 10), 0, -20, 0.7, 2, 'rgba(200,235,255,.7)', 'mote');
@@ -309,7 +315,7 @@ function updateEnemies(dt) {
       const f = Math.exp(-9 * dt); e.vx *= f; e.vy *= f;
       if (Math.abs(e.vx) < 1) e.vx = 0; if (Math.abs(e.vy) < 1) e.vy = 0;
     }
-    const ang = Math.atan2(P.y - e.y, P.x - e.x), homeD = dist(e.x, e.y, e.hx, e.hy);
+    const ang = Math.atan2(ty - e.y, tx - e.x), homeD = dist(e.x, e.y, e.hx, e.hy);
     const wet = !T.swim && !T.flier && !T.floats && inWater(e.x, e.y), spd = T.speed * e.spd * (wet ? 0.6 : 1);
     const go = (a, s) => { moveCircle(e, Math.cos(a) * s * dt, Math.sin(a) * s * dt, true); e.moving = true; };
     const goTo = (a, s) => go(steer(e, a), s);
@@ -343,7 +349,7 @@ function updateEnemies(dt) {
         break;
       }
       case 'chase': {
-        if (!alive || asleep || (homeD > (T.leash || LEASH) && !e.challenge) || (pInArena && !e.arena)) { e.state = 'return'; e.t = 0; break; }
+        if ((!alive && !foe) || asleep || (homeD > (T.leash || LEASH) && !e.challenge) || (pInArena && !e.arena && !foe)) { e.state = 'return'; e.t = 0; break; }
         // mất dấu: không thấy người chơi đủ lâu và đã ở xa thì quay về
         e.lostT = !e.los && d > sightR(T) * 0.5 && !e.challenge ? (e.lostT || 0) + dt : 0;
         if (e.lostT > LOST_T) { e.state = 'return'; e.t = 0; e.lostT = 0; break; }
@@ -351,27 +357,27 @@ function updateEnemies(dt) {
         const pick = e.p2 && T.p2.pick ? T.p2.pick : T.pick;
         if (T.flier) {
           e.orbit = (e.orbit || rand(0, TAU)) + dt * 2.2 * e.strafe;
-          const tx = P.x + Math.cos(e.orbit) * 95, ty = P.y + Math.sin(e.orbit) * 95;
-          goTo(Math.atan2(ty - e.y, tx - e.x), spd);
+          const ox = tx + Math.cos(e.orbit) * 95, oy = ty + Math.sin(e.orbit) * 95;
+          goTo(Math.atan2(oy - e.y, ox - e.x), spd);
           if (e.cd <= 0 && d < 140) tryAttack(e, 0);
         } else if (T.ranged) {
           let mv = 0, side = 0;
           // chưa bắn được (ngoài khung hình hoặc bị tường chắn) thì tiến lại gần tìm góc bắn
           if (d > T.keep + 50 || (!canShoot(e) && d > 90)) mv = 1; else if (d < T.keep - 70) mv = -1; else side = e.strafe;
           if (Math.random() < dt * 0.4) e.strafe *= -1;
-          if (mv > 0) { goTo(ang, spd); trackProgress(e, dt, [P.x, P.y]); }
+          if (mv > 0) { goTo(ang, spd); trackProgress(e, dt, [tx, ty]); }
           else if (mv < 0) goTo(ang + Math.PI, spd);
           else if (side) goTo(ang + Math.PI / 2 * side, spd * 0.6);
-          if (e.cd <= 0 && d < sightR(T) + 60) { const idx = pick ? pick(e, d) : 0; if (idx >= 0) tryAttack(e, idx); }
+          if (e.cd <= 0 && d < sightR(T) + 60) { const idx = pick ? pick(e, d) : 0; if (idx >= 0) { if (foe && e.los) startEnemyAtk(e, idx); else tryAttack(e, idx); } }
         } else {
           // đang chờ lượt thì giữ khoảng cách, lượn quanh người chơi thay vì cùng lao vào
-          const reach = (T.atkRange || 50) + P.r, hold = e.waiting > 0, ring = reach * 0.85 + (hold ? 50 : 0);
-          if (d > ring) { goTo(ang, spd * (hold && d < ring + 80 ? 0.5 : 1)); trackProgress(e, dt, [P.x, P.y]); }
+          const reach = (T.atkRange || 50) + tr, hold = e.waiting > 0 && !foe, ring = reach * 0.85 + (hold ? 50 : 0);
+          if (d > ring) { goTo(ang, spd * (hold && d < ring + 80 ? 0.5 : 1)); trackProgress(e, dt, [tx, ty]); }
           else if (hold && d < reach + 25) go(ang + Math.PI + Math.PI / 3 * e.strafe, spd * 0.4);
           else if (e.cd > 0 || hold) { go(ang + Math.PI / 2 * e.strafe, spd * 0.45); if (Math.random() < dt * 0.5) e.strafe *= -1; }
           if (e.cd <= 0) {
             const idx = pick ? pick(e, d) : d < reach ? (e.type === 'knight' && Math.random() < 0.35 ? 2 : 0) : -1;
-            if (idx >= 0) tryAttack(e, idx);
+            if (idx >= 0) { if (foe) startEnemyAtk(e, idx); else tryAttack(e, idx); }
           }
         }
         break;

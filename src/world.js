@@ -308,13 +308,13 @@ const CHESTS = [
   { id: 'c_swamp', x: 2720, y: 2000, loot: { items: { stone1: 2, cure: 2 }, ash: 'whirl' } },
   { id: 'c_troll', x: 2900, y: 1150, loot: { seed: 1, items: { stone2: 1 } } },
   { id: 'c_fort_secret', x: 3284, y: 1190, loot: { tal: 'claw', items: { somber1: 1 } } },
-  { id: 'c_keep', x: 3700, y: 610, loot: { items: { stone2: 2 }, armor: 'knightset' } },
+  { id: 'c_keep', x: 3700, y: 610, loot: { items: { stone2: 2 }, armor: 'knightset', spirit: 'knight' } },
   { id: 'c_hut', x: 3025, y: 3225, loot: { ash: 'flame', items: { stone1: 2 } } },
   { id: 'c_glade', x: 3650, y: 2300, loot: { seed: 1, tear: 1 }, req: () => S.glade },
   { id: 'c_colo', x: 3600, y: 3330, loot: { runes: 2500, items: { stone2: 2 }, tal: 'blade' }, req: () => S.coloDone, noObst: true },
   // Hồ Crystalmere và bờ biển
   { id: 'c_isle1', x: -1750, y: 1250, loot: { items: { crystalkey: 1, stone2: 1 } } },
-  { id: 'c_isle2', x: -950, y: 1700, loot: { tal: 'cerulean', runes: 600 } },
+  { id: 'c_isle2', x: -950, y: 1700, loot: { tal: 'cerulean', runes: 600, spirit: 'jelly' } },
   { id: 'c_lake_w', x: -2600, y: 1100, loot: { weapon: 'rapier' } },
   { id: 'c_lake_n', x: -400, y: 650, loot: { items: { stone1: 3 }, ash: 'lunge' } },
   { id: 'c_wreck', x: -2300, y: 3300, loot: { weapon: 'axe' } },
@@ -336,7 +336,7 @@ const CHESTS = [
   { id: 'c_cap4', x: 850, y: -1350, loot: { items: { somber2: 1, stone3: 2 }, tear: 1 } },
 ];
 // rương trong hầm ngục (tọa độ cục bộ)
-[['d1', 860, 1200, { items: { stone1: 2, cure: 2 } }], ['d1', 100, 690, { ash: 'unsheathe' }],
+[['d1', 860, 1200, { items: { stone1: 2, cure: 2 }, spirit: 'skeletons' }], ['d1', 100, 690, { ash: 'unsheathe' }],
   ['d2', 130, 1200, { items: { stone1: 3 } }], ['d2', 910, 700, { items: { stone2: 2, somber1: 1 } }],
   ['d3', 130, 1200, { items: { firepot: 4, stone2: 1 } }], ['d3', 880, 690, { items: { stone2: 2 }, tal: 'green' }],
   ['d4', 860, 1200, { items: { grune2: 1, stone3: 1 } }], ['d4', 90, 700, { items: { stone3: 2, somber2: 1 } }]]

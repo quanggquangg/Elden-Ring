@@ -35,10 +35,12 @@ function updateProjs(dt) {
       for (const e of targets()) {
         if ((e.z || 0) > 30 || (q.hits && q.hits.has(e))) continue;
         if (dist(q.x, q.y, e.x, e.y) < q.r + e.r) {
-          hitEnemy(e, q.parts, q.poise || 18, q.x - q.vx * 0.05, q.y - q.vy * 0.05, q.akind || 'spell');
+          if (q.allyShot) allyStrike(q.allyShot, e, q.parts.phys); else hitEnemy(e, q.parts, q.poise || 18, q.x - q.vx * 0.05, q.y - q.vy * 0.05, q.akind || 'spell');
           if (q.pierce) q.hits.add(e); else { dead = true; break; }
         }
       }
+    } else if (!dead && allies.length && (dead = allies.some(a => !a.dead && a.state !== 'bones' && dist(q.x, q.y, a.x, a.y) < q.r + a.r && hurtAlly(a, q.dmg, q.x - q.vx * 0.05, q.y - q.vy * 0.05)))) {
+      // đạn của quái trúng hồn triệu hồi
     } else if (!dead && dist(q.x, q.y, P.x, P.y) < q.r + P.r) {
       if (q.from) noteFoe(q.from);
       if (hurtPlayer(q.dmg, q.x - q.vx * 0.05, q.y - q.vy * 0.05, q.kind === 'comet', null, 'proj', q.dt || 'phys')) dead = true;
@@ -56,6 +58,7 @@ function updateAoes(dt) {
     if (a.kind === 'ring') {
       const cur = lerp(a.r0, a.r1, a.t / a.dur);
       if (a.dmg > 0 && !a.hit && Math.abs(dist(a.x, a.y, P.x, P.y) - cur) < 16 + P.r && hurtPlayer(a.dmg, a.x, a.y, false, null, 'aoe')) a.hit = true;
+      if (a.dmg > 0) for (const al of allies) if (!al.dead && Math.abs(dist(a.x, a.y, al.x, al.y) - cur) < 16 + al.r) allyArcHit(a, a.x, a.y, 0, 1e9, TAU, a.dmg, al);
       if (a.t >= a.dur) aoes.splice(i, 1);
     } else if (a.kind === 'pring') {
       const cur = lerp(a.r0, a.r1, a.t / a.dur);
@@ -216,6 +219,7 @@ function restAtGrace(g) {
   applyStats(true); spawnEnemies(); save(); SFX.grace();
   burst(g.x, g.y, 30, '#f3d27a', 80, 3, 'mote', 1.4);
   openGrace(g);
+  witchVisit();
 }
 // lần đầu nhìn thấy mỗi loại vật tương tác, nhắc người chơi mới cách dùng nó (mỗi loại chỉ nhắc một lần)
 const TIP_TEXT = {
@@ -306,7 +310,7 @@ function update(dt) {
   G.expT = (G.expT || 0) + dt;
   if (G.expT > 0.25 && P.state !== 'dead') { G.expT = 0; explore(P.x, P.y, 380); }
   mouse.wx = cam.x + (mouse.x - CW / 2) / ZOOM; mouse.wy = cam.y + (mouse.y - CH / 2) / ZOOM;
-  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateTraps(dt); updateInvasions(); updateLoot(dt); updateParts(dt); updateFx(dt);
+  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateTraps(dt); updateInvasions(); updateLoot(dt); updateParts(dt); updateFx(dt); updateSky(dt); updateRider(dt); updateAllies(dt);
   updateCam(dt); worldChecks(dt); ambient(dt);
   for (let i = G.timers.length - 1; i >= 0; i--) { const tm = G.timers[i]; tm.t -= dt; if (tm.t <= 0) { G.timers.splice(i, 1); tm.fn(); } }
   if (G.mode === 'dead') { G.deathT += dt; if (G.deathT > 4.6) { G.mode = 'play'; respawnAt(S.lastGrace); } }

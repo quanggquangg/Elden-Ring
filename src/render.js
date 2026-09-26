@@ -252,11 +252,11 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   ctx.restore();
 }
 // ngựa linh: thân đen ánh xanh, bờm và đuôi là lửa hồn, yên da viền vàng; phi thì bốn chân so le
-function drawHorse(x, y, face, anim) {
-  const moving = Math.hypot(P.mvx || 0, P.mvy || 0) > 20, g = moving ? anim * 2.2 : 0, bob = moving ? Math.abs(Math.sin(g)) * 2 : Math.sin(G.clock * 2) * 0.8;
+function drawHorse(x, y, face, anim, V) {
+  const moving = V ? V.moving : Math.hypot(P.mvx || 0, P.mvy || 0) > 20, g = moving ? anim * 2.2 : 0, bob = moving ? Math.abs(Math.sin(g)) * 2 : Math.sin(G.clock * 2) * 0.8;
   shadow(x, y + 5, 32, 14, 0.32);
   ctx.save(); ctx.translate(x, y); ctx.rotate(face);
-  const col = '#2d3038', dark = '#1a1c22';
+  const col = V ? V.col : '#2d3038', dark = V ? V.dark : '#1a1c22';
   // bốn chân có móng, so le khi phi
   for (const [bx, sy, ph] of [[16, -1, 0], [16, 1, Math.PI], [-17, -1, Math.PI * 0.5], [-17, 1, Math.PI * 1.5]]) {
     const sw = moving ? Math.sin(g + ph) * 9 : 0;
@@ -265,19 +265,20 @@ function drawHorse(x, y, face, anim) {
   }
   // đuôi lửa hồn bay theo gió
   const tw = Math.sin(G.clock * 4) * 5;
-  for (const [w, c] of [[7, 'rgba(120,180,255,.25)'], [4, 'rgba(170,215,255,.6)'], [1.6, 'rgba(235,248,255,.9)']]) {
+  const FL = V ? V.flame : ['rgba(120,180,255,.25)', 'rgba(170,215,255,.6)', 'rgba(235,248,255,.9)'];
+  for (const [w, c] of [[7, FL[0]], [4, FL[1]], [1.6, FL[2]]]) {
     ctx.strokeStyle = c; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-27, 0); ctx.quadraticCurveTo(-40, tw, -52 - (moving ? 6 : 0), tw * 1.6); ctx.stroke();
   }
   ctx.lineCap = 'butt';
   // thân đổ sáng, cơ vai và hông
-  ctx.shadowColor = 'rgba(150,200,255,.5)'; ctx.shadowBlur = 10;
+  ctx.shadowColor = V ? V.glow : 'rgba(150,200,255,.5)'; ctx.shadowBlur = 10;
   ctx.fillStyle = litGrad(col, 6, -4, 30); ctx.strokeStyle = OL; ctx.lineWidth = 1.8;
   ctx.beginPath(); ctx.ellipse(0, 0, 29, 12 + bob * 0.3, 0, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
   ctx.strokeStyle = 'rgba(10,10,14,.45)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(14, 0, 9, -1.2, 1.2); ctx.moveTo(-10, -9); ctx.arc(-16, 0, 11, -0.9, 0.9); ctx.stroke();
   ctx.strokeStyle = 'rgba(150,190,255,.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-22, -4); ctx.quadraticCurveTo(0, -9, 20, -5); ctx.stroke();
   // yên da, chăn yên đỏ viền vàng, bàn đạp
-  ctx.fillStyle = '#6a1f1a'; ctx.strokeStyle = OL; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.roundRect(-11, -11, 18, 22, 3); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle = '#c9a44e'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(-9.5, -9.5, 15, 19, 2); ctx.stroke();
+  ctx.fillStyle = V ? V.saddle : '#6a1f1a'; ctx.strokeStyle = OL; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.roundRect(-11, -11, 18, 22, 3); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = V ? V.trim : '#c9a44e'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(-9.5, -9.5, 15, 19, 2); ctx.stroke();
   ctx.fillStyle = litGrad('#5a3a22', -1, -3, 9); ctx.strokeStyle = OL; ctx.beginPath(); ctx.ellipse(-2, 0, 8, 7.5, 0, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#c9a44e'; for (const sy of [-1, 1]) ctx.fillRect(-3, sy * 12.5 - 1, 3, 2);
   // cổ và đầu vươn ra trước, bờm lửa hồn dọc cổ
@@ -290,11 +291,11 @@ function drawHorse(x, y, face, anim) {
   ctx.fillStyle = col; for (const sy of [-1, 1]) { ctx.beginPath(); ctx.moveTo(hx - 3, sy * 3); ctx.lineTo(hx - 7, sy * 6.5); ctx.lineTo(hx - 1, sy * 4.5); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   for (let k = 0; k < 6; k++) {
     const mx = 16 + k * 3.4, my = Math.sin(G.clock * 6 + k) * 1.5 - 1;
-    ctx.fillStyle = k % 2 ? 'rgba(170,215,255,.7)' : 'rgba(120,180,255,.45)'; ctx.beginPath(); ctx.ellipse(mx - 2, my, 4, 2.2, -0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = k % 2 ? FL[1] : FL[0]; ctx.beginPath(); ctx.ellipse(mx - 2, my, 4, 2.2, -0.3, 0, TAU); ctx.fill();
   }
   // dây cương vàng và mắt sáng xanh
   ctx.strokeStyle = '#c9a44e'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(4, -4); ctx.lineTo(hx + 5, -3.5); ctx.moveTo(4, 4); ctx.lineTo(hx + 5, 3.5); ctx.stroke();
-  ctx.fillStyle = '#bfe4ff'; ctx.shadowColor = '#9fd0ff'; ctx.shadowBlur = 6; ctx.beginPath(); ctx.arc(hx + 3, -3.4, 1.1, 0, TAU); ctx.arc(hx + 3, 3.4, 1.1, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.fillStyle = V ? V.eye : '#bfe4ff'; ctx.shadowColor = V ? V.eye : '#9fd0ff'; ctx.shadowBlur = 6; ctx.beginPath(); ctx.arc(hx + 3, -3.4, 1.1, 0, TAU); ctx.arc(hx + 3, 3.4, 1.1, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
   ctx.restore();
 }
 function drawPlayer() {
@@ -1015,6 +1016,7 @@ function drawEnemy(e) {
   if (e.T.ghost) alpha = (alpha ?? 1) * (0.62 + Math.sin(e.anim * 5) * 0.08) * (1 - (e.fade || 0) * 0.85);
   else if (e.fade) alpha = (alpha ?? 1) * (1 - e.fade * 0.85);
   const z = (e.z || 0) + (e.T.floats && !e.dead ? 10 + Math.sin(e.anim * 2) * 4 : 0);
+  if (e.T.mount) { ctx.save(); if (alpha !== undefined) ctx.globalAlpha = Math.max(0, alpha); drawHorse(e.x, e.y, e.face, e.anim * 2, Object.assign({ moving: e.moving || e.state === 'atk' }, NIGHT_HORSE)); ctx.restore(); }
   if (e.state === 'phase') { const gr = ctx.createRadialGradient(e.x, e.y, 4, e.x, e.y, 90); gr.addColorStop(0, 'rgba(255,240,200,.35)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(e.x, e.y, 90, 0, TAU); ctx.fill(); }
   drawHumanoid(e.x + jitter, e.y, e.face, L, wAng, {
     anim: e.anim, trail, thrust, z, aura: e.p2, trailCol: e.T.ghost ? 'rgba(200,240,255,.4)' : 'rgba(255,200,170,.3)', flash: e.hurtFlash > 0, charge, kneel: e.state === 'broken' || e.dead,
@@ -1050,6 +1052,12 @@ function drawAwareness(e, y) {
 }
 function drawEnemyBar(e) {
   if (e.dead || e.isBoss) return;
+  if (e.ally) {
+    // thanh máu xanh nhạt của hồn đồng minh
+    const w = 30, x = e.x - w / 2, y = e.y - e.r * (e.T.look ? e.T.look.scale : 1) - 20, f = Math.max(0, e.hp / e.maxHp);
+    ctx.fillStyle = 'rgba(8,7,5,.8)'; ctx.fillRect(x - 1, y - 1, w + 2, 5); ctx.fillStyle = '#8fb4ff'; ctx.fillRect(x, y, w * f, 3);
+    return;
+  }
   drawAwareness(e, e.y - e.r * (e.T.look ? e.T.look.scale : 1) - 30 - (e.T.flier ? 20 : 0));
   const w = e.elite ? 54 : 34, x = e.x - w / 2, y = e.y - e.r * (e.T.look ? e.T.look.scale : 1) - 22;
   if (e.aff) {
@@ -1837,8 +1845,9 @@ function render() {
   if (dragon && (dragon.z || 0) <= 40) list.push(dragon);
   if (fb && (fb.z || 0) <= 40) list.push(fb);
   if (G.mode !== 'title') list.push(P);
+  for (const a of allies) if (inView(a.x, a.y, 80)) list.push(a);
   list.sort((a, b) => a.y - b.y);
-  for (const e of list) { if (e === P) drawPlayer(); else if (e.isBoss) drawBoss(); else if (e.isDragon) drawDragon(); else if (e.isFinal) drawFinal(); else drawEnemy(e); }
+  for (const e of list) { if (e === P) drawPlayer(); else if (e.ally) drawAlly(e); else if (e.isBoss) drawBoss(); else if (e.isDragon) drawDragon(); else if (e.isFinal) drawFinal(); else drawEnemy(e); }
   if (P.lock && !P.lock.dead) {
     const l = P.lock, y = l.y - (l.z || 0);
     // điểm khóa sáng trắng, bốn góc nhọn xoay chậm quanh
@@ -1916,7 +1925,8 @@ const AMB = {
 const AMB_DEFAULT = AMB['Đồng Cỏ Mistveil'];
 G.amb = AMB_DEFAULT.slice();
 function updateAmbient(dt) {
-  const tgt = AMB[G.region] || AMB_DEFAULT, k = 1 - Math.exp(-1.4 * dt);
+  let tgt = AMB[G.region] || AMB_DEFAULT; const k = 1 - Math.exp(-1.4 * dt);
+  if (G.mode !== 'title' && cam.x <= 4800) tgt = skyMix(tgt);
   for (let i = 0; i < 8; i++) G.amb[i] += (tgt[i] - G.amb[i]) * k;
 }
 const LIGHTS = [];
@@ -2040,6 +2050,9 @@ function weather(dt, x0, y0, vw, vh) {
     addPart(x0 - 150 + Math.random() * (vw + 150), y0 + Math.random() * vh, rand(6, 16), rand(-3, 3), rand(10, 16), rand(120, 240), fogCol, 'fog', { alpha: reg === 'Đồng Cỏ Mistveil' || reg === 'Nhà Nguyện Dawnrest' || reg === 'Bờ Biển Saltreach' ? rand(0.05, 0.08) : rand(0.07, 0.11) });
   if (['Cao Nguyên Cinderreach', 'Pháo Đài Greystone', 'Đấu Trường Bloodsand', 'Cổng Gác Thornwall', 'Hang Emberdeep'].includes(reg) && Math.random() < dt * (FX_LOW ? 8 : 22))
     addPart(x0 + Math.random() * vw, y0 - 10, rand(5, 20), rand(18, 36), 7, rand(1, 2), Math.random() < 0.8 ? '#b8b0a4' : '#e09060', 'ash');
+  const nk = G.mode === 'title' || cam.x > 4800 ? 0 : nightK();
+  if (nk > 0.5 && ff < 30 && Math.random() < dt * 5 * nk && !['Kinh Thành Aurumhold', 'Sân Ngai Sunthrone'].includes(reg))
+    addPart(x0 + Math.random() * vw, y0 + Math.random() * vh, rand(-10, 10), rand(-10, 10), rand(4, 7), rand(1.3, 2), '#e8f08a', 'firefly', { seed: rand(0, 10) });
   if ((reg === 'Rừng Wraithwood' || reg === 'Đầm Lầy Ashmire') && ff < 40 && Math.random() < dt * (reg === 'Rừng Wraithwood' ? 10 : 4))
     addPart(x0 + Math.random() * vw, y0 + Math.random() * vh, rand(-10, 10), rand(-10, 10), rand(4, 7), rand(1.4, 2.2), reg === 'Rừng Wraithwood' ? '#9ff5e6' : '#d4f07a', 'firefly', { seed: rand(0, 10) });
   if ((reg === 'Hồ Crystalmere' || reg === 'Học Viện Starhollow' || reg === 'Mỏ Shardvein') && Math.random() < dt * 6)

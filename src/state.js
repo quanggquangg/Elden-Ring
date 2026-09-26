@@ -16,7 +16,7 @@ function defaultSave() {
     ashes: [], ash: {}, inv: {}, quick: 0, arrows: 0, arrowMax: 40, dragonDead: false, finalDead: false, chests: [],
     fortOpen: false, statues: [], glade: false, illusory: [], coloDone: false, mb: {}, explored: '', frags: [],
     gr: [], greatOpen: false, acadOpen: false, levers: [], dg: {}, bought: [], name: '', submitted: false, runId: null, marker: null,
-    readN: [], tips: {}, diff: 'normal', inv: {}, parries: 0, kills: {},
+    readN: [], tips: {}, diff: 'normal', inv: {}, parries: 0, kills: {}, tod: 0.12, bell: false, spirits: [], spiritSel: 'wolves',
   };
 }
 let S = defaultSave();
@@ -140,6 +140,7 @@ function makeEnemy(type, x, y) {
     strafe: Math.random() < 0.5 ? 1 : -1, elite: !!T.elite, dead: false, anim: rand(0, 10), moving: false, stagDur: 0.5, dm: 1, spd: 1, noParry: !!T.noParry };
 }
 function spawnEnemies() {
+  allies = [];
   enemies = SPAWNS.filter(([t]) => !(ETYPES[t].miniboss && S.mb[t])).map(([t, x, y]) => makeEnemy(t, x, y));
   enemies.forEach(applyAffixes);
   if (S.glade && !S.mb.wraith) enemies.push(makeEnemy('wraith', BARRIER.x, BARRIER.y));

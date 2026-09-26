@@ -150,7 +150,7 @@ function castSpell(id) {
   }
 }
 // ───────────────────────── vật phẩm dùng nhanh ─────────────────────────
-function quickList() { return ['flask', 'fpflask', ...USE_ORDER.filter(id => (S.inv[id] || 0) > 0)]; }
+function quickList() { return ['flask', 'fpflask', ...(S.bell ? ['bell'] : []), ...USE_ORDER.filter(id => (S.inv[id] || 0) > 0)]; }
 function curQuick() { const l = quickList(); return l[S.quick % l.length]; }
 function useQuick(moving, mx, my) {
   const q = curQuick();
@@ -164,6 +164,7 @@ function useQuick(moving, mx, my) {
     return;
   }
   if (P.mounted) { toast('Xuống ngựa để dùng đồ'); return; }
+  if (q === 'bell') { summonSpirits(); return; }
   S.inv[q] = (S.inv[q] || 0) - 1;
   P.face = aimFace(moving, mx, my);
   const a = P.face;
@@ -579,6 +580,7 @@ function hitEnemy(e, dmgIn, poise, fx, fy, kind, opt = {}) {
   }
   dmg = Math.max(1, Math.round(dmg * rand(0.94, 1.06)));
   if (hasTal('batfang') && P.state !== 'dead') P.hp = Math.min(P.maxHp, P.hp + dmg * 0.03);
+  if (!opt.ally && e.foe && Math.random() < 0.5) e.foe = null;
   e.hp -= dmg; e.hurtFlash = 0.12; e.lastHit = 0; e.lastParts = typeof dmgIn === 'number' ? null : dmgIn;
   const quiet = opt.quiet;
   if (!quiet) { G.hitStop = crit ? 0.14 : kind === 'heavy' ? 0.075 : 0.045; shake(crit ? 11 : kind === 'heavy' ? 6 : 3); }
