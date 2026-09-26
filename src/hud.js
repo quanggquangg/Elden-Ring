@@ -568,7 +568,7 @@ function drawDeath() {
 }
 
 // ───────────────────────── menu HTML ─────────────────────────
-const UI = { title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name'), lore: $('lore'), controls: $('controlsBox'), diff: $('diffSel'), ach: $('achBox') };
+const UI = { slots: $('slots'), settings: $('settings'), title: $('title'), pause: $('pause'), grace: $('grace'), ending: $('ending'), shop: $('shop'), cls: $('cls'), board: $('board'), name: $('name'), lore: $('lore'), controls: $('controlsBox'), diff: $('diffSel'), ach: $('achBox') };
 const STAT_INFO = [
   ['vig', 'Tăng máu tối đa'], ['mnd', 'Tăng FP'], ['end', 'Tăng thể lực và sức mang vác'],
   ['str', 'Vũ khí nặng, sát thương theo Sức Mạnh'], ['dex', 'Vũ khí nhanh, cung, theo Khéo Léo'],
@@ -836,7 +836,7 @@ function toggleMap() {
   else if (G.mode === 'map') setMode('play');
 }
 function togglePause() {
-  if (!UI.lore.hidden || !UI.controls.hidden || !UI.ach.hidden) { closeInfo(); return; }
+  if (!UI.lore.hidden || !UI.controls.hidden || !UI.ach.hidden || !UI.settings.hidden || !UI.slots.hidden) { closeInfo(); return; }
   if (G.mode === 'map') { toggleMap(); return; }
   if (G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { closeGrace(); return; }
   if (G.mode === 'play') { setMode('pause'); UI.pause.hidden = false; $('pauseEyebrow').textContent = 'Tạm dừng · Độ khó ' + DIFF.name; resetPauseNew(); $('btnResume').focus({ preventScroll: true }); }
@@ -861,7 +861,7 @@ function openInfo(el, from) {
   el.querySelector('.pbtn').focus({ preventScroll: true });
 }
 function closeInfo() {
-  UI.lore.hidden = true; UI.controls.hidden = true; UI.ach.hidden = true;
+  UI.lore.hidden = true; UI.controls.hidden = true; UI.ach.hidden = true; UI.settings.hidden = true; UI.slots.hidden = true; G.rebind = null;
   if (infoBack) { infoBack.hidden = false; const b = infoBack.querySelector('.mbtn:not([hidden]),.pbtn'); if (b) b.focus({ preventScroll: true }); }
   infoBack = null;
 }
@@ -1106,6 +1106,35 @@ $('btnNew').onclick = () => {
   openNameEntry();
 };
 if (loadSave()) $('btnContinue').hidden = false;
+// ── ô lưu ──
+let slotDelArmed = -1;
+function slotSummary(i) {
+  const s = loadSave(i);
+  if (!s) return null;
+  const c = CLASSES.find(q => q.id === s.cls) || CLASSES[0], g = GRACES.find(q => q.id === s.lastGrace), d = DIFFS[s.diff] || DIFFS.normal;
+  return { a: `${esc(s.name || 'Gravebound')} · ${c.name} · Cấp ${s.level}`, b: `${d.name} · ${fmtTime(s.time || 0)} · ${s.deaths || 0} lần chết · Đại Ấn ${(s.gr || []).length}/3${s.finalDead ? ' · Đã phá đảo' : ''}`, c: g ? g.name : '' };
+}
+function renderSlots() {
+  let h = '';
+  for (let i = 0; i < SLOTS; i++) {
+    const m = slotSummary(i), cur = i === SLOT;
+    h += `<li class="${cur ? 'cur' : ''}"><div class="sn"><b>Ô ${i + 1}${cur ? ' · đang chọn' : ''}</b>` + (m ? `<span>${m.a}</span><span>${m.b}</span>${m.c ? `<span>${m.c}</span>` : ''}` : '<span class="empty">Trống</span>') + '</div><div class="row">'
+      + (m ? `<button type="button" class="pbtn" data-play="${i}">Chơi tiếp</button><button type="button" class="pbtn ghost" data-del="${i}">${slotDelArmed === i ? 'Chắc chắn xóa?' : 'Xóa'}</button>` : `<button type="button" class="pbtn" data-fresh="${i}">Hành trình mới</button>`) + '</div></li>';
+  }
+  $('slotList').innerHTML = h;
+}
+$('btnSlots').onclick = () => { slotDelArmed = -1; renderSlots(); openInfo(UI.slots, UI.title); };
+$('btnSlotsClose').onclick = () => closeInfo();
+$('slotList').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.play) { const i = +b.dataset.play; setSlot(i); UI.slots.hidden = true; infoBack = null; audioInit(); startGame(loadSave(i)); return; }
+  if (b.dataset.fresh) { setSlot(+b.dataset.fresh); closeInfo(); confirmNew = false; openNameEntry(); return; }
+  if (b.dataset.del) {
+    const i = +b.dataset.del;
+    if (slotDelArmed !== i) { slotDelArmed = i; renderSlots(); return; }
+    deleteSave(i); slotDelArmed = -1; renderSlots(); $('btnContinue').hidden = !loadSave(); toast('Đã xóa ô lưu ' + (i + 1));
+  }
+};
 window.addEventListener('pagehide', () => { if (G.mode !== 'title') save(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.mode === 'play') togglePause(); });
 

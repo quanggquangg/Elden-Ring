@@ -275,6 +275,28 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
 .langsel button[aria-pressed="true"]{color:#15120c;background:linear-gradient(180deg,#f2dc97,#c9a44e)}
 .langsel button:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
 .panel .langsel{position:static;justify-self:center}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 0;background:linear-gradient(90deg,rgba(214,178,94,0),rgba(214,178,94,.18),rgba(214,178,94,0)) 50% 100%/100% 1px no-repeat}
+.setrow>span{font:600 17px/1.2 var(--display);color:var(--parch)}
+.setrow input[type=range]{width:min(260px,50%);accent-color:var(--gold)}
+.seg{display:flex;border:1px solid rgba(214,178,94,.45)}
+.seg button{appearance:none;background:none;border:0;color:var(--muted);font:600 13px/1 var(--ui);padding:8px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid rgba(214,178,94,.3)}
+.seg button[aria-pressed="true"]{color:#15120c;background:linear-gradient(180deg,#f2dc97,#c9a44e)}
+.binds{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 16px}
+.binds li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0}
+.binds li span{font-size:13.5px;color:var(--parch)}
+.binds button{appearance:none;min-width:86px;font:700 12px/1 var(--ui);color:#f7e6b0;background:linear-gradient(180deg,#3a3122,#16120c);border:1px solid #e2c26c;box-shadow:0 2px 0 rgba(0,0,0,.5);padding:7px 10px;cursor:pointer}
+.binds button.wait{color:#15120c;background:linear-gradient(180deg,#f2dc97,#c9a44e);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.6}}
+.panel{zoom:var(--uiz,1)}
+.slotlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.slotlist li{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border:1px solid rgba(214,178,94,.22);background:linear-gradient(90deg,rgba(214,178,94,.08),rgba(214,178,94,.02))}
+.slotlist li.cur{border-color:rgba(242,220,151,.7);box-shadow:inset 3px 0 0 var(--gold)}
+.slotlist .sn{display:grid;gap:3px}
+.slotlist .sn b{font:600 19px/1.15 var(--display);color:var(--gold-hi)}
+.slotlist .sn span{font-size:12.5px;color:var(--muted)}
+.slotlist .sn .empty{font:italic 500 15px var(--display);color:var(--muted)}
+.slotlist .row{gap:6px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -325,6 +347,8 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
           <button id="btnControls" class="sbtn">Điều khiển</button>
           <button id="btnBoard" class="sbtn">Bảng xếp hạng</button>
           <button id="btnAch" class="sbtn">Thành tựu</button>
+          <button id="btnSlots" class="sbtn">Ô lưu</button>
+          <button id="btnSettings" class="sbtn">Cài đặt</button>
         </div>
       </div>
       <p class="fine">Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring.</p>
@@ -410,10 +434,39 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
         <button id="btnPauseFull" class="pbtn" hidden>Toàn màn hình</button>
         <button id="btnRot" class="pbtn" hidden>Xoay ngang: bật</button>
         <button id="btnPauseAch" class="pbtn">Thành tựu</button>
+        <button id="btnPauseSet" class="pbtn">Cài đặt</button>
         <button id="btnPauseNew" class="pbtn ghost">Hành trình mới</button>
         <button id="btnQuit" class="pbtn ghost">Về màn hình chính</button>
       </div>
       <div class="langsel" data-notr role="group" aria-label="Language"><button type="button" data-lang="vi">Tiếng Việt</button><button type="button" data-lang="en">English</button></div>
+    </div>
+  </section>
+
+  <section id="slots" class="overlay title" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow">Hành trình</p><h2>Ô lưu</h2></header>
+      <p class="note">Ba ô lưu độc lập: mỗi ô là một nhân vật, một độ khó riêng. Thành tựu dùng chung cho cả ba ô.</p>
+      <ul class="slotlist" id="slotList"></ul>
+      <div class="row"><button type="button" id="btnSlotsClose" class="pbtn">Quay lại</button></div>
+    </div>
+  </section>
+
+  <section id="settings" class="overlay title" hidden>
+    <div class="panel wide">
+      <header><p class="eyebrow">Tùy chỉnh</p><h2>Cài đặt</h2></header>
+      <div class="scroll">
+        <h3 class="sec">Âm thanh</h3>
+        <label class="setrow"><span>Nhạc nền</span><input type="range" id="setMusic" min="0" max="100" step="5"></label>
+        <label class="setrow"><span>Hiệu ứng âm thanh</span><input type="range" id="setSfx" min="0" max="100" step="5"></label>
+        <h3 class="sec">Hiển thị</h3>
+        <div class="setrow"><span>Rung màn hình</span><div class="seg" id="setShake"><button type="button" data-v="1">Bật</button><button type="button" data-v="0">Tắt</button></div></div>
+        <div class="setrow"><span>Cỡ chữ</span><div class="seg" id="setText"><button type="button" data-v="0.9">Nhỏ</button><button type="button" data-v="1">Vừa</button><button type="button" data-v="1.2">Lớn</button></div></div>
+        <h3 class="sec">Phím bấm</h3>
+        <p class="note">Bấm vào một ô phím rồi nhấn phím mới. Phím đang dùng cho việc khác sẽ được đổi chỗ cho nhau. Esc để hủy.</p>
+        <ul class="binds" id="bindList"></ul>
+        <div class="row"><button type="button" id="setResetKeys" class="pbtn ghost">Khôi phục phím mặc định</button></div>
+      </div>
+      <div class="row"><button type="button" id="btnSetClose" class="pbtn">Xong</button></div>
     </div>
   </section>
 
@@ -514,6 +567,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
 <script src="src/config.js"></script>
 <script src="src/core.js"></script>
 <script src="src/lang.js"></script>
+<script src="src/music.js"></script>
 <script src="src/world.js"></script>
 <script src="src/data.js"></script>
 <script src="src/state.js"></script>
@@ -526,6 +580,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
 <script src="src/systems.js"></script>
 <script src="src/render.js"></script>
 <script src="src/hud.js"></script>
+<script src="src/settings.js"></script>
 <script src="src/leaderboard.js"></script>
 </body>
 </html>

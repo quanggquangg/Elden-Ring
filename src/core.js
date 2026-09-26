@@ -62,7 +62,7 @@ function audioInit() {
   try {
     if (!AC) {
       AC = new (window.AudioContext || window.webkitAudioContext)();
-      master = AC.createGain(); master.gain.value = 0.5; master.connect(AC.destination);
+      master = AC.createGain(); master.gain.value = 0.62 * (typeof SET !== 'undefined' ? SET.sfx : 0.8); master.connect(AC.destination);
     }
     if (AC.state === 'suspended') AC.resume();
   } catch (e) { AC = null; }

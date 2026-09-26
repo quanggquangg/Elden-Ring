@@ -1867,7 +1867,12 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   if (G.flash > 0) { ctx.fillStyle = `rgba(150,10,10,${G.flash * 0.35})`; ctx.fillRect(0, 0, CW, CH); }
   drawInteractHints();
-  if (G.mode !== 'title') drawHUD();
+  if (G.mode !== 'title') {
+    // cỡ chữ trong Cài đặt: phóng to / thu nhỏ cả HUD bằng cách vẽ trên khung hình nhỏ hơn rồi kéo giãn
+    const k = SET.text;
+    if (k === 1) drawHUD();
+    else { const cw = CW, ch = CH, z = ZOOM; CW = cw / k; CH = ch / k; ZOOM = z / k; ctx.setTransform(DPR * k, 0, 0, DPR * k, 0, 0); try { drawHUD(); } finally { CW = cw; CH = ch; ZOOM = z; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); } }
+  }
   if (G.mode === 'map') drawMap();
   if (G.white > 0) { ctx.fillStyle = `rgba(255,246,220,${G.white})`; ctx.fillRect(0, 0, CW, CH); }
   if (G.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${G.fade})`; ctx.fillRect(0, 0, CW, CH); }

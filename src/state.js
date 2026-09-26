@@ -1,7 +1,12 @@
 'use strict';
 // Gravebound — Trạng thái, chỉ số nhân vật, kẻ địch, va chạm và hiệu ứng
 // ───────────────────────── trạng thái ─────────────────────────
-const SAVE_KEY = 'vong-vang-vo-save-v2';
+// ba ô lưu: ô 1 dùng lại khóa cũ nên bản lưu có sẵn tự nằm ở ô 1
+const SLOT_KEY = 'gravebound-slot', SLOTS = 3;
+let SLOT = (() => { try { const v = +localStorage.getItem(SLOT_KEY); return v >= 0 && v < SLOTS ? v : 0; } catch (e) { return 0; } })();
+const saveKey = (i = SLOT) => 'vong-vang-vo-save-v2' + (i ? '-s' + i : '');
+function setSlot(i) { SLOT = i; try { localStorage.setItem(SLOT_KEY, String(i)); } catch (e) { /* bỏ qua */ } }
+function deleteSave(i) { try { localStorage.removeItem(saveKey(i)); } catch (e) { /* bỏ qua */ } }
 function defaultSave() {
   return {
     cls: 'knight', level: 1, stats: { vig: 10, mnd: 10, end: 10, str: 10, dex: 10, int: 10, fai: 10 }, runes: 0,
@@ -15,9 +20,9 @@ function defaultSave() {
   };
 }
 let S = defaultSave();
-function save() { try { S.explored = expEncode(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* bộ nhớ trình duyệt bị chặn */ } }
-function loadSave() {
-  try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.stats && s.stats.dex !== undefined) return s; } catch (e) { /* bỏ qua */ }
+function save() { try { S.explored = expEncode(); localStorage.setItem(saveKey(), JSON.stringify(S)); } catch (e) { /* bộ nhớ trình duyệt bị chặn */ } }
+function loadSave(i = SLOT) {
+  try { const s = JSON.parse(localStorage.getItem(saveKey(i)) || 'null'); if (s && s.stats && s.stats.dex !== undefined) return s; } catch (e) { /* bỏ qua */ }
   return null;
 }
 const FLASK_CAP = 10, TEAR_CAP = 5, SLOT_CAP = 5, TAL_CAP = 4;
@@ -223,7 +228,7 @@ function burst(x, y, n, color, spd, size, kind = 'dot', life = 0.5, dir) {
   }
 }
 function floatText(x, y, text, color, big) { addPart(x + rand(-6, 6), y, rand(-10, 10), -38, big ? 1.3 : 0.9, big ? 20 : 14, color, 'text', { text }); }
-function shake(n) { G.shake = Math.max(G.shake, n); }
+function shake(n) { if (SET.shake) G.shake = Math.max(G.shake, n); }
 function banner(kind, title, sub, dur = 3.4) { G.banner = { kind, title, sub, t: 0, dur }; }
 function subtitle(text, dur = 4.2) { G.sub = { text, t: 0, dur }; }
 function later(t, fn) { G.timers.push({ t, fn }); }

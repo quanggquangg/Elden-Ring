@@ -5,14 +5,34 @@ const keys = new Set();
 let buf = null, aimMode = 'keys';
 const mouse = { x: 0, y: 0, wx: 0, wy: 0, inside: false };
 const stick = { x: 0, y: 0 };
-const KEYMAP = { KeyJ: 'light', KeyK: 'heavy', KeyL: 'spell', KeyC: 'skill', KeyR: 'item', KeyE: 'interact', KeyF: 'mount', KeyQ: 'lock', KeyG: 'map', KeyI: 'inv', Tab: 'inv', ArrowRight: 'eqnext', ArrowLeft: 'eqprev', KeyT: 'eqnext', ArrowUp: 'spellnext', ArrowDown: 'itemnext', KeyV: 'itemnext' };
-for (let i = 1; i <= 9; i++) KEYMAP['Digit' + i] = 'eq' + i;
+// cài đặt người chơi: âm lượng, rung màn hình, cỡ chữ và phím bấm (đổi được trong bảng Cài đặt)
+const SET_KEY = 'gravebound-settings';
+const BINDS_DEFAULT = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', roll: 'Space', guard: 'KeyX', light: 'KeyJ', heavy: 'KeyK', spell: 'KeyL', skill: 'KeyC',
+  item: 'KeyR', interact: 'KeyE', mount: 'KeyF', lock: 'KeyQ', map: 'KeyG', inv: 'KeyI', itemnext: 'ArrowDown', spellnext: 'ArrowUp', eqprev: 'ArrowLeft', eqnext: 'ArrowRight' };
+const SET = (() => {
+  const d = { music: 0.6, sfx: 0.8, shake: true, text: 1, binds: Object.assign({}, BINDS_DEFAULT) };
+  try { const s = JSON.parse(localStorage.getItem(SET_KEY) || 'null'); if (s) { Object.assign(d, s); d.binds = Object.assign({}, BINDS_DEFAULT, s.binds || {}); } } catch (e) { /* bỏ qua */ }
+  return d;
+})();
+function saveSet() { try { localStorage.setItem(SET_KEY, JSON.stringify(SET)); } catch (e) { /* bỏ qua */ } }
+const KEYMAP = {};
+const MOVE_ACTS = ['up', 'down', 'left', 'right', 'roll', 'guard'];
+function rebuildKeymap() {
+  for (const k in KEYMAP) delete KEYMAP[k];
+  // phím phụ mặc định (Tab, T, V, số 1–9) vẫn dùng được nếu không trùng phím đã gán
+  const extra = { Tab: 'inv', KeyT: 'eqnext', KeyV: 'itemnext' };
+  for (let i = 1; i <= 9; i++) extra['Digit' + i] = 'eq' + i;
+  const used = new Set(Object.values(SET.binds));
+  for (const [c, a] of Object.entries(extra)) if (!used.has(c)) KEYMAP[c] = a;
+  for (const [a, c] of Object.entries(SET.binds)) if (!MOVE_ACTS.includes(a)) KEYMAP[c] = a;
+}
+rebuildKeymap();
 let touchGuard = false;
 let mouseGuard = false;
 const DASH_HOLD = 280; // giữ nút lăn lâu hơn mức này thì chạy nhanh, nhả sớm thì lăn (giống Elden Ring)
 const dodgeKey = { down: false, at: 0 };
 const pad = { prev: [], stick: { x: 0, y: 0 }, guard: false, dodgeDown: false, dodgeAt: 0 };
-const guardHeld = () => keys.has('KeyX') || touchGuard || mouseGuard || pad.guard;
+const guardHeld = () => keys.has(SET.binds.guard) || touchGuard || mouseGuard || pad.guard;
 const sprintHeld = () => (dodgeKey.down && performance.now() - dodgeKey.at >= DASH_HOLD) || (pad.dodgeDown && performance.now() - pad.dodgeAt >= DASH_HOLD);
 function act(a) {
   audioInit();
@@ -29,21 +49,22 @@ function act(a) {
 const peekBuf = () => (buf && G.clock - buf.t < 0.32 ? buf.a : null);
 function takeBuf() { const a = peekBuf(); buf = null; return a; }
 window.addEventListener('keydown', e => {
+  if (G.rebind) { e.preventDefault(); finishRebind(e.code); return; } // đang chờ gán phím mới
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return; // đang gõ tên
   if (e.code === 'Escape') { e.preventDefault(); togglePause(); return; }
   if (e.code === 'KeyM' && !e.repeat) { toggleMute(); return; }
-  if (e.code === 'KeyG' && !e.repeat && G.mode === 'map') { toggleMap(); return; }
-  if (e.code === 'KeyI' && !e.repeat && G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { e.preventDefault(); closeGrace(); return; }
+  if (e.code === SET.binds.map && !e.repeat && G.mode === 'map') { toggleMap(); return; }
+  if (e.code === SET.binds.inv && !e.repeat && G.mode === 'menu' && !UI.grace.hidden && menuAt === 'field') { e.preventDefault(); closeGrace(); return; }
   if (G.mode !== 'play') return;
   keys.add(e.code);
-  if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) { dodgeKey.down = true; dodgeKey.at = performance.now(); } return; }
+  if (e.code === SET.binds.roll) { e.preventDefault(); if (!e.repeat) { dodgeKey.down = true; dodgeKey.at = performance.now(); } return; }
   const a = KEYMAP[e.code];
-  if (a && !e.repeat) { if (e.code === 'KeyJ' || e.code === 'KeyK' || e.code === 'KeyL' || e.code === 'KeyC') aimMode = 'keys'; act(a); }
+  if (a && !e.repeat) { if (a === 'light' || a === 'heavy' || a === 'spell' || a === 'skill') aimMode = 'keys'; act(a); }
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault();
 });
 window.addEventListener('keyup', e => {
   keys.delete(e.code);
-  if (e.code === 'Space' && dodgeKey.down) { dodgeKey.down = false; if (performance.now() - dodgeKey.at < DASH_HOLD) act('roll'); }
+  if (e.code === SET.binds.roll && dodgeKey.down) { dodgeKey.down = false; if (performance.now() - dodgeKey.at < DASH_HOLD) act('roll'); }
 });
 window.addEventListener('blur', () => { keys.clear(); dodgeKey.down = false; mouseGuard = false; });
 window.addEventListener('mouseup', e => { if (e.button === 2) mouseGuard = false; });
@@ -76,10 +97,11 @@ canvas.addEventListener('mousedown', e => {
 canvas.addEventListener('auxclick', e => e.preventDefault());
 function moveInput() {
   let x = 0, y = 0;
-  if (keys.has('KeyW')) y -= 1;
-  if (keys.has('KeyS')) y += 1;
-  if (keys.has('KeyA')) x -= 1;
-  if (keys.has('KeyD')) x += 1;
+  const B = SET.binds;
+  if (keys.has(B.up)) y -= 1;
+  if (keys.has(B.down)) y += 1;
+  if (keys.has(B.left)) x -= 1;
+  if (keys.has(B.right)) x += 1;
   const l = Math.hypot(x, y); if (l > 0) { x /= l; y /= l; }
   return [x + stick.x + pad.stick.x, y + stick.y + pad.stick.y];
 }
@@ -87,7 +109,7 @@ function moveInput() {
 const PB = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 window.addEventListener('gamepadconnected', () => { audioInit(); toast('Đã kết nối tay cầm'); });
 function padMenuNav(dir) {
-  const ov = [UI.ach, UI.lore, UI.controls, UI.board, UI.name, UI.diff, UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
+  const ov = [UI.settings, UI.slots, UI.ach, UI.lore, UI.controls, UI.board, UI.name, UI.diff, UI.shop, UI.cls, UI.grace, UI.pause, UI.ending, UI.title].find(o => !o.hidden);
   if (!ov) return;
   const els = [...ov.querySelectorAll('button:not([disabled])')].filter(el => el.offsetParent !== null);
   if (!els.length) return;

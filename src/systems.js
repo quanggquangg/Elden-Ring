@@ -319,6 +319,7 @@ function step(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   pollPad();
   updateAmbient(dt);
+  updateMusic(dt);
   if (G.mode === 'play' || G.mode === 'dead') {
     // khựng hình khi trúng đòn, rồi chậm lại một nhịp sau phản đòn cho cảm giác nặng tay
     if (G.hitStop > 0) G.hitStop -= dt; else if (G.slow > 0) { G.slow -= dt; update(dt * 0.4); } else update(dt);
