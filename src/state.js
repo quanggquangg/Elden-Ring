@@ -70,13 +70,17 @@ const ROLLS = {
   back: { name: 'Nhảy lùi', dur: 0.34, iframe: [0.02, 0.18], speed: 330, st: 10, back: true },
 };
 // hấp thụ sát thương từ giáp và bùa
+const poisonMul = () => (hasTal('tidelocket') ? 0 : hasTal('toadskin') ? 0.4 : 1);
 function absorb(kind) {
   let k = 1 - armorDef().abs;
+  if (kind === 'fire' && hasTal('emberscale')) k *= 0.7;
+  if ((kind === 'phys' || !kind) && hasTal('stoneskin')) k *= 0.9;
+  if (kind === 'magic' && hasTal('jellypearl')) k *= 0.8;
   if (hasTal('shieldtal')) k *= 0.88;
   if (kind === 'magic' && armorBonus('magicRes')) k *= 1 - armorBonus('magicRes');
   return k;
 }
-const dmgBonus = () => (hasGR('swamp') ? 1.08 : 1) * (P.buffs.bless > 0 ? 1.15 : 1) * (hasTal('redseal') && P.hp < P.maxHp * 0.5 ? 1.2 : 1);
+const dmgBonus = () => (hasTal('lionmane') && P.hp >= P.maxHp - 0.5 ? 1.1 : 1) * (hasTal('anchor') && inWater(P.x, P.y) ? 1.15 : 1) * (hasGR('swamp') ? 1.08 : 1) * (P.buffs.bless > 0 ? 1.15 : 1) * (hasTal('redseal') && P.hp < P.maxHp * 0.5 ? 1.2 : 1);
 const flaskHeal = () => Math.round(P.maxHp * (0.4 + 0.06 * S.tears) + 15);
 const fpFlaskAmt = () => Math.round(P.maxFp * (0.4 + 0.05 * S.tears) + 10);
 // Như Elden Ring: quái mạnh theo vùng đất, không theo cấp người chơi.
@@ -107,6 +111,7 @@ const projs = [], aoes = [], parts = [], puddles = [], loot = [];
 function applyStats(full) {
   P.maxHp = maxHp(); P.maxSt = maxSt(); P.maxFp = maxFp();
   if (full) {
+    P.boneUsed = false;
     P.hp = P.maxHp; P.st = P.maxSt; P.fp = P.maxFp; P.flasks = S.flaskMax - S.flaskFp; P.fpflasks = S.flaskFp;
     P.ghost = P.hp; P.poisonB = 0; P.poisonT = 0; S.arrows = S.arrowMax;
   } else { P.hp = Math.min(P.hp, P.maxHp); P.st = Math.min(P.st, P.maxSt); P.fp = Math.min(P.fp, P.maxFp); }

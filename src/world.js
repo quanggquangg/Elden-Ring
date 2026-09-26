@@ -430,6 +430,7 @@ const SPAWNS = [
   ['grimoire', -1400, -60], ['grimoire', -1820, -200], ['grimoire', -1200, 140], ['grimoire', -1960, -600], ['grimoire', -1060, -600],
   ['eagle', 1200, 200], ['eagle', 2600, -200], ['eagle', 3500, 0], ['eagle', 300, -300],
   ['ram', 3000, -1300], ['ram', 3600, -1600], ['ram', 3880, -1100], ['ram', 3270, -1760],
+  ['crabking', -1620, 2150], ['admiral', -1540, 3550], ['ramking', 3500, -1890],
   ['gargoyle', 1000, -1500], ['gargoyle', 1800, -1200], ['gargoyle', 1300, -1080], ['gargoyle', 700, -1100],
 ];
 // quái trong hầm ngục (tọa độ cục bộ)

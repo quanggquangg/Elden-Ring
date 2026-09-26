@@ -15,7 +15,7 @@ const sightR = T => Math.min(T.aggro, T.miniboss ? T.aggro : T.elite ? ELITE_SIG
 function playerNoise() {
   if (P.state === 'dead') return 0;
   if (P.mounted) return 0.5;
-  if (P.sprinting) return 0.45;
+  if (P.sprinting) return 0.55;
   if (P.state === 'roll' || P.state === 'attack') return 0.35;
   return Math.hypot(P.mvx || 0, P.mvy || 0) > 20 ? 0.12 : 0.07;
 }
@@ -35,6 +35,16 @@ function losClear(x0, y0, x1, y1) {
   return true;
 }
 function onScreen(x, y, m = 16) { return Math.abs(x - cam.x) < CW / ZOOM / 2 - m && Math.abs(y - cam.y) < CH / ZOOM / 2 - m; }
+// mức độ nhận ra người chơi mỗi giây (0 = không thấy, không nghe): quái không phát hiện ngay lập tức
+// mà nghi ngờ dần, quay đầu về phía tiếng động; đầy thanh nghi ngờ mới lao vào. Thấy rõ ở gần thì gần như tức thì.
+function perceive(e, d, ang) {
+  const T = e.T, R = sightR(T);
+  if (T.miniboss) return d < T.aggro ? 99 : 0;
+  let rate = 0;
+  if (d < R * NOISE && (CHASERS < CROWD_CAP || NOISE < 0.13)) rate = NOISE < 0.13 ? 6 : 4;
+  if (d < R && e.los && (T.flier || T.floats || Math.abs(angDiff(e.face, ang)) <= 1.05)) rate = Math.max(rate, d < R * 0.45 ? 9 : 3.6);
+  return rate;
+}
 function seesPlayer(e, d, ang) {
   const T = e.T, R = sightR(T);
   if (d < R * NOISE && (CHASERS < CROWD_CAP || NOISE < 0.13)) return true;
@@ -54,7 +64,7 @@ function alertGroup(e) {
   mates.sort((a, b) => dist(a.x, a.y, e.x, e.y) - dist(b.x, b.y, e.x, e.y));
   for (const o of mates.slice(0, Math.min(GROUP_MAX, CROWD_CAP - CHASERS))) o.wakeAt = G.clock + rand(0.2, 0.6);
 }
-function wake(e, group) { e.state = 'chase'; e.t = 0; e.wakeAt = 0; e.alertT = 0.7; if (group) alertGroup(e); }
+function wake(e, group) { e.state = 'chase'; e.t = 0; e.wakeAt = 0; e.sus = 0; e.alertT = 0.9; if (e.T.intro && !e.introd) { e.introd = true; subtitle(e.T.intro); SFX.roar(); } if (group) alertGroup(e); }
 // quái thường chỉ được ra đòn khi còn lượt: mỗi lúc tối đa 2 con cận chiến và 2 con bắn xa (theo độ khó);
 // boss, quái tinh anh và Kẻ Xâm Nhập không bị giới hạn. Đòn bắn xa chỉ bắn khi đã vào khung hình và không bị tường chắn.
 const tokExempt = e => e.elite || e.T.miniboss || e.invader || e.punish;
@@ -153,7 +163,7 @@ function updateEnemyAtk(e, dt, ang) {
       if (t < A.wind + A.act) {
         if (!e.lunged) { e.lunged = true; e.vx += Math.cos(e.face) * A.lunge; e.vy += Math.sin(e.face) * A.lunge; if (!T.beast && T.id !== 'bat' && T.id !== 'spider') SFX.swing(); }
         if (!e.atkHit && P.state !== 'dead' && inArc(e.x, e.y, e.face, A.range, A.arc, P.x, P.y, P.r)) {
-          if (hurtPlayer(A.dmg, e.x, e.y, A.dmg * e.dm >= 45, e)) { e.atkHit = true; if (A.poison && P.state !== 'guard') P.poisonB += A.poison; }
+          if (hurtPlayer(A.dmg, e.x, e.y, A.dmg * e.dm >= 45, e)) { e.atkHit = true; if (A.poison && P.state !== 'guard') P.poisonB += A.poison * poisonMul(); }
         }
       } else if (t >= A.wind + A.act + A.rec) finish();
       return;
@@ -310,7 +320,14 @@ function updateEnemies(dt) {
       case 'idle': {
         if (alive && !asleep && !(pInArena && !e.arena)) {
           if (e.challenge || (e.wakeAt && G.clock >= e.wakeAt)) { wake(e, false); break; }
-          if (seesPlayer(e, d, ang)) { wake(e, true); break; }
+          const pr = perceive(e, d, ang);
+          if (pr) {
+            e.sus = Math.min(1, (e.sus || 0) + pr * dt);
+            e.face = turn(e.face, ang, (1.2 + e.sus * 3) * dt); // nghe động thì quay đầu nhìn
+            if (e.sus >= 1) { e.sus = 0; wake(e, true); break; }
+            break;
+          }
+          if (e.sus > 0) e.sus = Math.max(0, e.sus - dt * 0.3);
         }
         if (!e.wander || e.t > e.wander.until) e.wander = { x: e.hx + rand(-70, 70), y: e.hy + rand(-70, 70), until: e.t + rand(2, 5) };
         if (!e.room && dist(e.x, e.y, e.wander.x, e.wander.y) > 10) { const a = Math.atan2(e.wander.y - e.y, e.wander.x - e.x); e.face = turn(e.face, a, 4 * dt); go(a, spd * 0.32); }

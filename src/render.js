@@ -22,7 +22,7 @@ function olLine(x0, y0, x1, y1, w, col) {
 }
 // màu sáng / tối hơn của một màu (có bộ nhớ đệm để khỏi tạo chuỗi mới mỗi khung hình)
 const TONES = new Map();
-function tone(c, k) {
+function tint(c, k) {
   const key = c + k; let v = TONES.get(key); if (v) return v;
   v = typeof c === 'string' && c[0] === '#' && c.length === 7 ? shade(c, k) : c; TONES.set(key, v); return v;
 }
@@ -32,7 +32,7 @@ const LIT = new Map();
 function litGrad(c, x, y, r) {
   const key = c + '|' + x + '|' + y + '|' + r; let g = LIT.get(key); if (g) return g;
   g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r * 1.35);
-  g.addColorStop(0, tone(c, 1.35)); g.addColorStop(0.45, c); g.addColorStop(1, tone(c, 0.62));
+  g.addColorStop(0, tint(c, 1.35)); g.addColorStop(0.45, c); g.addColorStop(1, tint(c, 0.62));
   if (LIT.size < 400) LIT.set(key, g); return g;
 }
 // vũ khí hai tay: tay trái nắm ngay sau tay phải trên chuôi (cán dài thì nắm cao hơn, cung thì kéo dây)
@@ -71,7 +71,7 @@ function drawWeapon(L, s, wAng, o) {
     const c = o.charge || 0;
     ctx.strokeStyle = OL; ctx.lineWidth = 2.4 * s + 2; ctx.beginPath(); ctx.arc(6 * s, 0, 13 * s, -1.25, 1.25); ctx.stroke();
     ctx.strokeStyle = L.wcol; ctx.lineWidth = 2.4 * s; ctx.stroke();
-    ctx.strokeStyle = tone(L.wcol, 1.3); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(6 * s, 0, 13.6 * s, -1.1, 1.1); ctx.stroke();
+    ctx.strokeStyle = tint(L.wcol, 1.3); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(6 * s, 0, 13.6 * s, -1.1, 1.1); ctx.stroke();
     const ex = 6 * s + Math.cos(1.25) * 13 * s, ey = Math.sin(1.25) * 13 * s, px = ex - 3 * s - c * 10 * s;
     ctx.strokeStyle = 'rgba(230,225,210,.85)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(px, 0); ctx.lineTo(ex, ey); ctx.stroke();
     if (c > 0) {
@@ -85,13 +85,13 @@ function drawWeapon(L, s, wAng, o) {
     ctx.fillStyle = L.wcol; ctx.strokeStyle = OL; ctx.lineWidth = 1.3;
     ctx.beginPath(); ctx.moveTo(len - 12 * s, -2 * s); ctx.quadraticCurveTo(len - 4 * s, -16 * s, len + 4 * s, -14 * s); ctx.quadraticCurveTo(len - 1 * s, -7 * s, len + 2 * s, 2 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(len + 2.5 * s, -12.5 * s); ctx.quadraticCurveTo(len - 1.5 * s, -7 * s, len + 1 * s, 0); ctx.stroke();
-    ctx.fillStyle = tone(L.wcol, 0.6); ctx.beginPath(); ctx.arc(len - 7 * s, -3 * s, 1.3 * s, 0, TAU); ctx.fill();
+    ctx.fillStyle = tint(L.wcol, 0.6); ctx.beginPath(); ctx.arc(len - 7 * s, -3 * s, 1.3 * s, 0, TAU); ctx.fill();
   } else if (L.weapon === 'club') {
     // chùy: cán quấn da, đầu nặng có đinh tán
     olLine(-4 * s, 0, len - 6 * s, 0, 3.2 * s, '#4a3a28');
     ctx.fillStyle = litGrad(L.wcol, len - 2 * s, -2.5 * s, 8 * s); ctx.strokeStyle = OL; ctx.lineWidth = 1.3;
     ctx.beginPath(); ctx.ellipse(len - 4 * s, 0, 8 * s, 6.5 * s, 0, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = tone(L.wcol, 1.4); for (const [dx, dy] of [[-4, -3], [0, 4], [3, -2], [-2, 1.5]]) { ctx.beginPath(); ctx.arc(len - 4 * s + dx * s, dy * s, 1.1 * s, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = tint(L.wcol, 1.4); for (const [dx, dy] of [[-4, -3], [0, 4], [3, -2], [-2, 1.5]]) { ctx.beginPath(); ctx.arc(len - 4 * s + dx * s, dy * s, 1.1 * s, 0, TAU); ctx.fill(); }
   } else if (L.weapon === 'scythe') {
     // lưỡi hái: cán tối, lưỡi cong phát sáng có mép sắc
     olLine(-8 * s, 0, len, 0, 2.6 * s, '#3a3a4a');
@@ -147,7 +147,7 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
       ctx.fillStyle = L.wings; ctx.strokeStyle = OL; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(0, 8 * s); ctx.lineTo(-6 * s, 30 * s * spread); ctx.quadraticCurveTo(-12 * s, 24 * s * spread, -16 * s, 27 * s * spread);
       ctx.quadraticCurveTo(-18 * s, 19 * s * spread, -24 * s, 20 * s * spread); ctx.quadraticCurveTo(-20 * s, 13 * s, -8 * s, 9 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.strokeStyle = tone(L.wings, 1.35); ctx.lineWidth = 1.4 * s; ctx.beginPath();
+      ctx.strokeStyle = tint(L.wings, 1.35); ctx.lineWidth = 1.4 * s; ctx.beginPath();
       ctx.moveTo(0, 8 * s); ctx.lineTo(-6 * s, 30 * s * spread); ctx.moveTo(-2 * s, 9 * s); ctx.lineTo(-16 * s, 27 * s * spread); ctx.moveTo(-4 * s, 9 * s); ctx.lineTo(-24 * s, 20 * s * spread); ctx.stroke();
       ctx.restore();
     }
@@ -158,7 +158,7 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   ctx.quadraticCurveTo(-15 * s, 12 * s - wave, -1 * s, 10 * s); ctx.closePath(); ctx.fill();
   ctx.strokeStyle = 'rgba(10,8,6,.8)'; ctx.lineWidth = 1.6; ctx.stroke();
   // nếp gấp áo choàng
-  ctx.strokeStyle = tone(L.cloak, 0.62); ctx.lineWidth = 1.3 * s;
+  ctx.strokeStyle = tint(L.cloak, 0.62); ctx.lineWidth = 1.3 * s;
   ctx.beginPath(); ctx.moveTo(-6 * s, -6 * s); ctx.quadraticCurveTo(-13 * s, -5 * s + wave, -17 * s, -2 * s + wave);
   ctx.moveTo(-6 * s, 6 * s); ctx.quadraticCurveTo(-13 * s, 7 * s - wave, -18 * s, 5 * s - wave); ctx.stroke();
   if (o.trail) {
@@ -177,7 +177,7 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.8;
   ctx.fillStyle = litGrad(L.body, 3 * s, -3 * s, 13 * s); ctx.beginPath(); ctx.ellipse(0, 0, 9 * s, 12 * s, 0, 0, TAU); ctx.fill(); ctx.stroke();
   // giáp ngực: đường nẹp giữa và thắt lưng
-  ctx.strokeStyle = tone(L.body, 0.6); ctx.lineWidth = 1.2 * s;
+  ctx.strokeStyle = tint(L.body, 0.6); ctx.lineWidth = 1.2 * s;
   ctx.beginPath(); ctx.moveTo(4 * s, -8 * s); ctx.quadraticCurveTo(7.5 * s, 0, 4 * s, 8 * s); ctx.stroke();
   ctx.strokeStyle = L.trim; ctx.lineWidth = 1.8 * s; ctx.beginPath(); ctx.moveTo(-3 * s, -10.5 * s); ctx.lineTo(-3 * s, 10.5 * s); ctx.stroke();
   if (L.bones) {
@@ -208,7 +208,7 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
     // cánh tay trái vươn qua ngực nắm vũ khí
     const [hx, hy] = HAND2;
     ctx.lineCap = 'round'; ctx.strokeStyle = OL; ctx.lineWidth = 4.8 * s; ctx.beginPath(); ctx.moveTo(1 * s, -9 * s); ctx.quadraticCurveTo(7 * s, -2 * s, hx, hy); ctx.stroke();
-    ctx.strokeStyle = tone(L.body, 0.85); ctx.lineWidth = 3 * s; ctx.stroke(); ctx.lineCap = 'butt';
+    ctx.strokeStyle = tint(L.body, 0.85); ctx.lineWidth = 3 * s; ctx.stroke(); ctx.lineCap = 'butt';
     ctx.fillStyle = '#3a2f24'; ctx.strokeStyle = OL; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(hx, hy, 2.7 * s, 0, TAU); ctx.fill(); ctx.stroke();
     ctx.strokeStyle = 'rgba(10,8,6,.85)'; ctx.lineWidth = 1.6;
   }
@@ -237,7 +237,7 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   ctx.fillStyle = litGrad(L.head, 4 * s, -2.5 * s, 8 * s); ctx.beginPath(); ctx.arc(2 * s, 0, 6.4 * s, 0, TAU); ctx.fill(); ctx.stroke();
   if (L.hood) {
     ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.arc(4.2 * s, 0, 4 * s, -1.25, 1.25); ctx.fill();
-    ctx.strokeStyle = tone(L.cloak, 0.7); ctx.lineWidth = 1.1 * s; ctx.beginPath(); ctx.arc(2 * s, 0, 5 * s, 1.9, 4.4); ctx.stroke();
+    ctx.strokeStyle = tint(L.cloak, 0.7); ctx.lineWidth = 1.1 * s; ctx.beginPath(); ctx.arc(2 * s, 0, 5 * s, 1.9, 4.4); ctx.stroke();
   } else {
     ctx.strokeStyle = L.trim; ctx.lineWidth = 1.4 * s; ctx.beginPath(); ctx.moveTo(-3.5 * s, 0); ctx.lineTo(7 * s, 0); ctx.stroke();
     ctx.strokeStyle = 'rgba(0,0,0,.75)'; ctx.lineWidth = 1.8 * s; ctx.beginPath(); ctx.moveTo(6.4 * s, -3.4 * s); ctx.lineTo(6.4 * s, 3.4 * s); ctx.stroke();
@@ -686,9 +686,11 @@ const eAct = e => e.state === 'atk' && e.atk && e.t >= e.atk.wind && e.t < e.atk
 function mobBegin(e, rx, ry, lift = 0) {
   const alpha = e.dead ? Math.max(0, 1 - e.t / 1.2) : 1;
   if (alpha <= 0) return 0;
-  const z = e.z || 0;
-  shadow(e.x, e.y + 4, rx * (1 - Math.min(0.5, (z + lift) / 200)), ry * (1 - Math.min(0.5, (z + lift) / 200)), 0.32 * alpha);
-  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(e.x, e.y - z - lift); ctx.rotate(e.face);
+  const z = e.z || 0, sc = e.T.scale || 1;
+  shadow(e.x, e.y + 4 * sc, rx * sc * (1 - Math.min(0.5, (z + lift) / 200)), ry * sc * (1 - Math.min(0.5, (z + lift) / 200)), 0.32 * alpha);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(e.x, e.y - z - lift); ctx.rotate(e.face); if (sc !== 1) ctx.scale(sc, sc);
+  // boss giai đoạn hai: hào quang theo màu vết máu của nó
+  if (e.p2 && !e.dead) { const g = ctx.createRadialGradient(0, 0, 4, 0, 0, rx * 1.6); g.addColorStop(0, 'rgba(255,214,110,.28)'); g.addColorStop(1, 'rgba(255,214,110,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx * 1.6, 0, TAU); ctx.fill(); }
   return alpha;
 }
 function mobEyes(x, y, gap, r, col, wk) {
@@ -1027,8 +1029,34 @@ function drawEnemy(e) {
   });
   drawEnemyBar(e);
 }
+// dấu hiệu nhận biết trên đầu quái: mắt mở dần khi đang nghi ngờ, dấu chấm than khi vừa phát hiện
+function drawAwareness(e, y) {
+  if (e.dead || e.state === 'bones') return;
+  const sus = e.state === 'idle' ? e.sus || 0 : 0, alert = e.alertT > 0 && e.state !== 'idle' ? e.alertT : 0;
+  if (sus < 0.04 && !alert) return;
+  const x = e.x, cy = y - 12;
+  ctx.save();
+  if (alert) {
+    const k = Math.min(1, alert / 0.3), s = 1 + (0.9 - Math.min(0.9, alert)) * 0.6;
+    ctx.globalAlpha = Math.min(1, alert * 2.5); ctx.translate(x, cy); ctx.scale(s * 1.3, s * 1.3);
+    ctx.fillStyle = '#ffd36b'; ctx.strokeStyle = OL; ctx.lineWidth = 1.2; ctx.shadowColor = '#ff9a4a'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.moveTo(-2.2, -9); ctx.lineTo(2.2, -9); ctx.lineTo(1.2, 1); ctx.lineTo(-1.2, 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 4.5, 1.8, 0, TAU); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+  } else {
+    // con mắt: mí mở theo mức nghi ngờ, viền ngoài là vòng đếm
+    const open = 0.25 + sus * 0.75;
+    ctx.translate(x, cy); ctx.scale(1.3, 1.3); ctx.globalAlpha = 0.55 + sus * 0.45;
+    ctx.fillStyle = 'rgba(10,8,6,.7)'; ctx.beginPath(); ctx.arc(0, 0, 7, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(242,220,151,.3)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, 0, 7, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = sus > 0.6 ? '#ffb04a' : '#f2dc97'; ctx.beginPath(); ctx.arc(0, 0, 7, -Math.PI / 2, -Math.PI / 2 + TAU * sus); ctx.stroke();
+    ctx.fillStyle = '#efe4c8'; ctx.beginPath(); ctx.ellipse(0, 0, 4.4, 2.8 * open, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = sus > 0.6 ? '#c0501c' : '#3a2a14'; ctx.beginPath(); ctx.arc(0, 0, 1.6 * Math.max(0.5, open), 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+}
 function drawEnemyBar(e) {
   if (e.dead || e.isBoss) return;
+  drawAwareness(e, e.y - e.r * (e.T.look ? e.T.look.scale : 1) - 30 - (e.T.flier ? 20 : 0));
   const w = e.elite ? 54 : 34, x = e.x - w / 2, y = e.y - e.r * (e.T.look ? e.T.look.scale : 1) - 22;
   if (e.aff) {
     wText(e.aff.map(k => AFFIXES[k].name).join(' · '), e.x, y - 5, 9, `rgb(${AFFIXES[e.aff[0]].col})`, 1);
@@ -1391,9 +1419,9 @@ function drawWall(w) {
   }
   const pal = w.dgw ? WALL_PAL[w.dgw] : w.acad ? ['#4a5268', '#6a7490'] : w.cliff ? ['#3d382e', '#4c463a'] : ['#6f6a5b', '#8c8672'];
   // tường đá xây so le: mỗi viên có màu hơi khác, cạnh trên sáng, cạnh dưới tối, mạch vữa sẫm
-  ctx.fillStyle = tone(pal[0], 0.6); ctx.fillRect(w.x, w.y, w.w, w.h);
+  ctx.fillStyle = tint(pal[0], 0.6); ctx.fillRect(w.x, w.y, w.w, w.h);
   const bw = 22, bh = 11, x0 = Math.max(w.x, VIEW.x0 - bw), x1 = Math.min(w.x + w.w, VIEW.x1 + bw), y0 = Math.max(w.y, VIEW.y0 - bh), y1 = Math.min(w.y + w.h, VIEW.y1 + bh);
-  const tones = [pal[0], tone(pal[0], 0.88), tone(pal[0], 1.1), tone(pal[0], 0.95)], hi = tone(pal[1], 1.12), lo = tone(pal[0], 0.55);
+  const tones = [pal[0], tint(pal[0], 0.88), tint(pal[0], 1.1), tint(pal[0], 0.95)], hi = tint(pal[1], 1.12), lo = tint(pal[0], 0.55);
   for (let row = Math.floor((y0 - w.y) / bh); w.y + row * bh < y1; row++) {
     const by = w.y + row * bh, h = Math.min(bh, w.y + w.h - by) - 1, off = row % 2 ? bw / 2 : 0;
     if (h <= 0) continue;

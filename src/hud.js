@@ -13,7 +13,7 @@ function bar(x, y, w, h, frac, ghost, col) {
   if (ghost != null) { ctx.fillStyle = '#d9b85c'; ctx.fillRect(x, y, w * clamp(ghost, 0, 1), h); }
   if (f > 0) {
     const g = ctx.createLinearGradient(0, y, 0, y + h);
-    g.addColorStop(0, tone(col, 1.35)); g.addColorStop(0.5, col); g.addColorStop(1, tone(col, 0.6));
+    g.addColorStop(0, tint(col, 1.35)); g.addColorStop(0.5, col); g.addColorStop(1, tint(col, 0.6));
     ctx.fillStyle = g; ctx.fillRect(x, y, w * f, h);
     ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(x, y, w * f, Math.max(1, h * 0.28));
     ctx.fillStyle = 'rgba(255,245,220,.55)'; ctx.fillRect(x + w * f - 1.5, y, 1.5, h);
@@ -83,7 +83,7 @@ function drawFlaskIcon(cx, cy, col, empty) {
   ctx.fillStyle = 'rgba(200,220,230,.1)'; ctx.beginPath(); ctx.arc(cx, by, r, 0, TAU); ctx.fill();
   if (!empty) {
     ctx.save(); ctx.beginPath(); ctx.arc(cx, by, r - 1.2, 0, TAU); ctx.clip();
-    const g = ctx.createRadialGradient(cx - 3, by - 2, 1, cx, by + 2, r + 2); g.addColorStop(0, tone(col, 1.7)); g.addColorStop(0.5, col); g.addColorStop(1, tone(col, 0.45));
+    const g = ctx.createRadialGradient(cx - 3, by - 2, 1, cx, by + 2, r + 2); g.addColorStop(0, tint(col, 1.7)); g.addColorStop(0.5, col); g.addColorStop(1, tint(col, 0.45));
     ctx.fillStyle = g; const wy = by - r * 0.35;
     ctx.beginPath(); ctx.moveTo(cx - r, wy); for (let k = 0; k <= 8; k++) ctx.lineTo(cx - r + k * r / 4, wy + Math.sin(G.clock * 3 + k) * 0.8); ctx.lineTo(cx + r, by + r); ctx.lineTo(cx - r, by + r); ctx.closePath(); ctx.fill();
     ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.fillStyle = `rgba(255,255,255,.12)`; ctx.fillRect(cx - r, wy, r * 2, 1); ctx.restore();
@@ -204,14 +204,14 @@ function drawQuickIcon(q, cx, cy) {
     ctx.fillStyle = '#fff0b0'; ctx.beginPath(); ctx.moveTo(-1, -8); ctx.quadraticCurveTo(0, -11, f * 0.6, -13); ctx.quadraticCurveTo(1.5, -10, 1, -8); ctx.fill();
   } else if (q.startsWith('grune')) {
     const big = q === 'grune2', r = big ? 12 : 10;
-    ctx.shadowColor = col; ctx.shadowBlur = 12; ctx.fillStyle = tone(col, 0.7); ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.7, 0); ctx.lineTo(0, r); ctx.lineTo(-r * 0.7, 0); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
-    ctx.fillStyle = tone(col, 1.35); ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.7, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+    ctx.shadowColor = col; ctx.shadowBlur = 12; ctx.fillStyle = tint(col, 0.7); ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.7, 0); ctx.lineTo(0, r); ctx.lineTo(-r * 0.7, 0); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = tint(col, 1.35); ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.7, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
     ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(-r * 0.7, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = OL; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.7, 0); ctx.lineTo(0, r); ctx.lineTo(-r * 0.7, 0); ctx.closePath(); ctx.stroke();
     ctx.strokeStyle = 'rgba(90,50,10,.7)'; ctx.beginPath(); ctx.moveTo(0, -r * 0.5); ctx.lineTo(0, r * 0.5); ctx.moveTo(-r * 0.25, -r * 0.1); ctx.lineTo(r * 0.25, r * 0.2); ctx.stroke();
   } else if (q === 'cure' || q === 'grease') {
     // lọ nhỏ: thuốc giải độc xanh lá, dầu thánh vàng
-    const g = ctx.createLinearGradient(-6, 0, 6, 0); g.addColorStop(0, tone(col, 0.6)); g.addColorStop(0.4, tone(col, 1.3)); g.addColorStop(1, tone(col, 0.5));
+    const g = ctx.createLinearGradient(-6, 0, 6, 0); g.addColorStop(0, tint(col, 0.6)); g.addColorStop(0.4, tint(col, 1.3)); g.addColorStop(1, tint(col, 0.5));
     ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.fillStyle = g; ctx.strokeStyle = OL; ctx.lineWidth = 1.1;
     ctx.beginPath(); ctx.moveTo(-2.5, -8); ctx.lineTo(-2.5, -5); ctx.quadraticCurveTo(-8, -2, -7, 5); ctx.quadraticCurveTo(-6, 11, 0, 11); ctx.quadraticCurveTo(6, 11, 7, 5); ctx.quadraticCurveTo(8, -2, 2.5, -5); ctx.lineTo(2.5, -8); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
     ctx.fillStyle = '#8a6a44'; ctx.fillRect(-3.5, -12, 7, 4); ctx.strokeRect(-3.5, -12, 7, 4);
@@ -923,6 +923,7 @@ const ACHS = [
   ['colo', 'Nhà Vô Địch Bloodsand', 'Vượt qua thử thách ở Đấu Trường Bloodsand', () => S.coloDone],
   ['wraith', 'Rừng Thiêng Yên Nghỉ', 'Hạ Seluna trong Rừng Wraithwood', () => !!S.mb.wraith],
   ['map', 'Người Vẽ Bản Đồ', 'Đọc hết Bia Bản Đồ', () => S.frags.length >= MAP_FRAGS.length],
+  ['wilds', 'Chúa Tể Miền Hoang', 'Hạ Karkos, Veyl và Aurion ở hồ, bờ biển và sườn núi', () => S.mb.crabking && S.mb.admiral && S.mb.ramking],
   ['travel', 'Kẻ Lữ Hành', 'Tìm thấy 20 Ân Điển', () => S.discovered.length >= 20],
   ['level', 'Vững Như Đá', 'Đạt cấp 40', () => S.level >= 40],
   ['smith', 'Lưỡi Kiếm Tôi Luyện', 'Cường hóa một vũ khí lên +5', () => Object.values(S.wup).some(v => v >= 5)],

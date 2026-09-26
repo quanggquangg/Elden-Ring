@@ -113,8 +113,9 @@ function startSpell(moving, mx, my) {
   if (!id) { toast(cat.type === 'staff' ? 'Chưa ghi nhớ phép Trí Tuệ nào' : 'Chưa ghi nhớ phép Đức Tin nào'); return; }
   const sp = SPELLS[id];
   if (!reqMet(sp.req)) { toast('Không đủ chỉ số để dùng ' + sp.name); return; }
-  if (P.fp < sp.fp) { toast('Không đủ FP'); G.fpWarn = 1; return; }
-  P.fp -= sp.fp; P.state = 'cast'; P.t = 0; P.cast = false; P.spell = id; P.face = aimFace(moving, mx, my);
+  const fpCost = Math.ceil(sp.fp * (hasTal('pages') ? 0.85 : 1));
+  if (P.fp < fpCost) { toast('Không đủ FP'); G.fpWarn = 1; return; }
+  P.fp -= fpCost; P.state = 'cast'; P.t = 0; P.cast = false; P.spell = id; P.face = aimFace(moving, mx, my);
 }
 function castSpell(id) {
   const sp = SPELLS[id], a = P.face, base = 22 * spellMul(sp.school), hx = P.x + Math.cos(a) * 20, hy = P.y + Math.sin(a) * 20;
@@ -170,7 +171,7 @@ function useQuick(moving, mx, my) {
     case 'firepot': {
       const [tx, ty] = aimPoint(220), dd = Math.min(360, dist(P.x, P.y, tx, ty)), ex = P.x + Math.cos(a) * dd, ey = P.y + Math.sin(a) * dd;
       const life = Math.max(0.2, dd / 420);
-      projs.push({ x: P.x, y: P.y, vx: Math.cos(a) * dd / life, vy: Math.sin(a) * dd / life, r: 8, kind: 'fireball', friendly: true, life, boom: 70, parts: { fire: 85 }, poise: 40 });
+      projs.push({ x: P.x, y: P.y, vx: Math.cos(a) * dd / life, vy: Math.sin(a) * dd / life, r: 8, kind: 'fireball', friendly: true, life, boom: 70, parts: { fire: 85 * (hasTal('cinder') ? 1.35 : 1) }, poise: 40 });
       addMark(ex, ey, 70, life); P.state = 'throw'; P.t = 0; SFX.swing();
       break;
     }
@@ -225,7 +226,7 @@ function doAction(a, moving, mx, my) {
       const rt = rollType();
       if (rt === 'over') { toast('Quá tải! Không thể lăn'); return; }
       P.roll = moving ? ROLLS[rt] : ROLLS.back;
-      P.st = Math.max(0, P.st - P.roll.st); P.stDelay = 0.5; P.state = 'roll'; P.t = 0; P.atk = null;
+      P.st = Math.max(0, P.st - P.roll.st * (hasTal('plume') ? 0.8 : 1)); P.stDelay = 0.5; P.state = 'roll'; P.t = 0; P.atk = null;
       P.rollDir = moving ? Math.atan2(my, mx) : P.face + Math.PI; P.vx *= 0.3; P.vy *= 0.3; SFX.roll();
       break;
     }
@@ -276,12 +277,14 @@ function updatePlayer(dt) {
   for (const k in p.buffs) if (p.buffs[k] > 0) p.buffs[k] = Math.max(0, p.buffs[k] - dt);
   if (p.buffs.bless > 0) p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.006 * dt);
   if (hasTal('ashen')) p.hp = Math.min(p.maxHp, p.hp + 3 * dt);
+  if (hasTal('wispglow')) p.fp = Math.min(p.maxFp, p.fp + 1.5 * dt);
+  if (hasTal('tidelocket')) { p.hp = Math.min(p.maxHp, p.hp + 2 * dt); p.poisonB = 0; p.poisonT = 0; }
   if (p.ghostDelay > 0) p.ghostDelay -= dt; else p.ghost = Math.max(p.hp, p.ghost - p.maxHp * 0.5 * dt);
   if (p.ghost < p.hp) p.ghost = p.hp;
   p.fp = Math.min(p.maxFp, p.fp + 4 * (1 + armorBonus('fpRegen')) * dt);
   const pooled = !p.mounted && (inPool(p.x, p.y) || puddles.some(q => dist(q.x, q.y, p.x, p.y) < q.r));
   if (pooled) {
-    p.poisonB += 42 * dt;
+    p.poisonB += 42 * dt * poisonMul();
     if (Math.random() < dt * 12) addPart(p.x + rand(-10, 10), p.y + rand(-6, 6), 0, rand(-30, -10), 0.5, rand(2, 3.5), '#b58ac4');
   } else p.poisonB = Math.max(0, p.poisonB - 12 * dt);
   if (p.poisonB >= 100) { p.poisonB = 0; p.poisonT = 14; toast('Trúng độc!'); SFX.poison(); }
@@ -292,9 +295,9 @@ function updatePlayer(dt) {
   }
   const wet = inWater(p.x, p.y);
   if (wet && (p.mvx || p.mvy) && Math.random() < dt * 10) addPart(p.x + rand(-10, 10), p.y + rand(4, 8), rand(-20, 20), rand(-20, -5), 0.4, rand(2, 3), 'rgba(200,230,245,.7)');
-  const rt = rollType(), slow = (pooled ? 0.7 : 1) * (wet ? (p.mounted ? 0.75 : 0.62) : 1) * (rt === 'over' ? 0.6 : rt === 'heavy' ? 0.9 : 1);
+  const rt = rollType(), slow = (pooled ? 0.7 : 1) * (wet && !hasTal('houndfang') ? (p.mounted ? 0.75 : 0.62) : 1) * (rt === 'over' ? 0.6 : rt === 'heavy' ? 0.9 : 1);
   if (p.stDelay > 0) p.stDelay -= dt;
-  else if (p.state !== 'roll' && p.state !== 'attack') p.st = Math.min(p.maxSt, p.st + (p.state === 'drink' || p.state === 'guard' ? 16 : p.mounted ? 55 : 42) * (1 + armorBonus('stRegen')) * dt);
+  else if (p.state !== 'roll' && p.state !== 'attack') p.st = Math.min(p.maxSt, p.st + (p.state === 'drink' || p.state === 'guard' ? 16 : p.mounted ? 55 : 42) * (1 + armorBonus('stRegen') + (hasTal('collar') ? 0.15 : 0)) * dt);
   const ox = p.x, oy = p.y;
   if (p.vx || p.vy) {
     moveCircle(p, p.vx * dt, p.vy * dt, false);
@@ -320,7 +323,7 @@ function updatePlayer(dt) {
     if (moving) {
       moveCircle(p, mx * spd * dt, my * spd * dt, false);
       p.walk += dt * spd / 55;
-      if (sprint) { p.st -= 18 * dt; p.stDelay = 0.35; }
+      if (sprint) { p.st -= 18 * dt * (hasTal('wolffang') ? 0.65 : 1); p.stDelay = 0.35; }
       if (p.mounted && Math.random() < dt * 22) addPart(p.x - mx * 20 + rand(-6, 6), p.y - my * 20 + rand(-6, 6), rand(-10, 10), rand(-10, 10), 0.6, rand(3, 6), 'rgba(120,105,80,.5)', 'dot');
     }
     p.face = desiredFace(moving, mx, my, dt);
@@ -390,7 +393,7 @@ function updatePlayer(dt) {
         if (hit) {
           A.hits.add(e);
           if (A.critT) { critHit(e, A); continue; }
-          hitEnemy(e, A.parts, A.poise, p.x, p.y, A.kind === 'skill' ? 'heavy' : A.kind, { bleed: A.bleed });
+          hitEnemy(e, A.parts, A.poise * (A.kind === 'heavy' && hasTal('ramhorn') ? 1.3 : 1), p.x, p.y, A.kind === 'skill' ? 'heavy' : A.kind, { bleed: (A.bleed || 0) + (hasTal('venomfang') ? 7 : 0) || undefined });
         }
       }
     } else {
@@ -431,7 +434,7 @@ function hurtPlayer(dmg, fx, fy, heavy, src = null, kind = 'melee', dt = 'phys')
   const p = P;
   if (p.state === 'dead' || p.invuln > 0 || G.mode !== 'play') return false;
   dmg *= DIFF.dmg * regionMul(P.x, P.y) * absorb(dt) * (src && src.dm ? src.dm : 1);
-  if (p.state === 'roll' && p.t > p.roll.iframe[0] && p.t < p.roll.iframe[1]) return false; // khung bất tử khi lăn
+  if (p.state === 'roll' && p.t > p.roll.iframe[0] && p.t < p.roll.iframe[1] + (hasTal('spectral') ? 0.06 : 0)) return false; // khung bất tử khi lăn
   const from = Math.atan2(fy - p.y, fx - p.x);
   if (p.state === 'guard' && (dist(fx, fy, p.x, p.y) < 4 || Math.abs(angDiff(p.face, from)) < 1.5)) {
     // cầm khiên: chặn tốt và phản đòn được; cầm vũ khí hai tay: đỡ bằng thân vũ khí, chặn kém và không phản đòn được
@@ -525,6 +528,12 @@ function critHit(e, A) {
   if (!e.dead) { e.vx += Math.cos(P.face) * 260; e.vy += Math.sin(P.face) * 260; }
 }
 function die() {
+  // Xương Hộ Mệnh: trụ lại một lần với 1 máu, nạp lại khi nghỉ ở Ân Điển
+  if (hasTal('bonecharm') && !P.boneUsed && G.mode === 'play') {
+    P.boneUsed = true; P.hp = 1; P.invuln = 1; P.state = 'idle'; P.t = 0;
+    burst(P.x, P.y, 30, '#e0d8c2', 160, 3, 'dot', 0.8); floatText(P.x, P.y - 34, 'XƯƠNG HỘ MỆNH', '#e0d8c2', true); SFX.parry();
+    return;
+  }
   P.state = 'dead'; P.lock = null; P.mounted = false; G.mode = 'dead'; G.deathT = 0; S.deaths++; P.flameT = 0;
   SFX.death();
   S.lost = S.runes > 0 ? { x: P.x, y: P.y, amount: S.runes } : null;
@@ -561,6 +570,7 @@ function hitEnemy(e, dmgIn, poise, fx, fy, kind, opt = {}) {
     }
   }
   dmg = Math.max(1, Math.round(dmg * rand(0.94, 1.06)));
+  if (hasTal('batfang') && P.state !== 'dead') P.hp = Math.min(P.maxHp, P.hp + dmg * 0.03);
   e.hp -= dmg; e.hurtFlash = 0.12; e.lastHit = 0; e.lastParts = typeof dmgIn === 'number' ? null : dmgIn;
   const quiet = opt.quiet;
   if (!quiet) { G.hitStop = crit ? 0.14 : kind === 'heavy' ? 0.075 : 0.045; shake(crit ? 11 : kind === 'heavy' ? 6 : 3); }
@@ -605,7 +615,12 @@ function dropLoot(e) {
   const T = e.T, items = {};
   for (const [id, ch, n] of T.drops || []) if (Math.random() < ch) items[id] = (items[id] || 0) + n;
   if (Object.keys(items).length) loot.push({ x: e.x + rand(-8, 8), y: e.y + rand(-8, 8), loot: { items }, t: 0 });
-  if (T.rare && !S.armors.includes(T.rare.armor) && Math.random() < T.rare.chance) loot.push({ x: e.x + rand(-14, 14), y: e.y + rand(-14, 14), loot: { armor: T.rare.armor }, t: 0, rare: true });
+  // đồ hiếm: giáp, vũ khí hoặc bùa riêng của từng loại quái (đã có rồi thì không rơi nữa)
+  const R = T.rare;
+  if (R && Math.random() < R.chance) {
+    const [k, id, own] = R.armor ? ['armor', R.armor, S.armors] : R.weapon ? ['weapon', R.weapon, S.weapons] : ['tal', R.tal, S.tals];
+    if (!own.includes(id)) loot.push({ x: e.x + rand(-14, 14), y: e.y + rand(-14, 14), loot: { [k]: id }, t: 0, rare: true });
+  }
 }
 function killEnemy(e) {
   // bộ xương sụp xuống lần đầu nếu đòn cuối không phải lửa hay thánh
