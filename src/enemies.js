@@ -116,10 +116,11 @@ function punishHeal() {
   if (fb && G.finalFight && fb.state === 'chase' && Math.random() < 0.75) fb.cd = 0;
 }
 function startEnemyAtk(e, idx) {
+  if (Math.abs(e.x - P.x) < 900 && Math.abs(e.y - P.y) < 900) G.caster = { e, t: G.clock };
   e.state = 'atk'; e.atk = e.T.attacks[idx]; e.t = 0; e.atkHit = false; e.lunged = false; e.fired = false; e.glinted = false; e.fade = 0; e.landed = false;
 }
 function enemyShot(e, a, pr) {
-  projs.push({ x: e.x + Math.cos(a) * 22, y: e.y + Math.sin(a) * 22, vx: Math.cos(a) * pr.speed, vy: Math.sin(a) * pr.speed, r: pr.r, dmg: pr.dmg * e.dm, kind: pr.kind || 'orb', friendly: false, life: pr.life || 3, puddle: pr.puddle, homing: pr.homing, dt: PROJ_DT[pr.kind] || 'phys' });
+  projs.push({ x: e.x + Math.cos(a) * 22, y: e.y + Math.sin(a) * 22, vx: Math.cos(a) * pr.speed, vy: Math.sin(a) * pr.speed, r: pr.r, dmg: pr.dmg * e.dm, kind: pr.kind || 'orb', friendly: false, life: pr.life || 3, from: e, puddle: pr.puddle, homing: pr.homing, dt: PROJ_DT[pr.kind] || 'phys' });
 }
 function blinkBehind(e) {
   burst(e.x, e.y, 16, e.T.look ? e.T.look.trim : '#cfefff', 120, 3, 'dot', 0.5);

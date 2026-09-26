@@ -30,7 +30,7 @@ function bossChoose(d) {
   for (const o of opts) { if (o[0] === b.lastMove) o[1] *= 0.35; total += o[1]; }
   let r = Math.random() * total, k = opts[0][0];
   for (const o of opts) { r -= o[1]; if (r <= 0) { k = o[0]; break; } }
-  b.lastMove = k; b.atk = { steps: BOSS_MOVES[k](), i: 0, t: 0, hit: false, flag: 0, acc: 0 }; b.state = 'atk'; b.t = 0;
+  G.caster = { e: b, t: G.clock }; b.lastMove = k; b.atk = { steps: BOSS_MOVES[k](), i: 0, t: 0, hit: false, flag: 0, acc: 0 }; b.state = 'atk'; b.t = 0;
 }
 function bossAtk(dt, ang) {
   const b = boss, A = b.atk, s = A.steps[A.i], pt = A.t;
@@ -167,6 +167,7 @@ function startBossFight() {
   subtitle(boss.v === 2 ? '“Lại là ngươi... Lần này, ta sẽ không giấu mặt nữa.”' : '“Gravebound... ngươi không xứng đáng chạm tới Cây Aurum.”');
 }
 function bossDefeated() {
+  recordKill(boss.v === 2 ? 'varek2' : 'varek');
   const b = boss;
   G.bossFight = false; clearShades();
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.6); SFX.felled();
@@ -226,7 +227,7 @@ function dragonChoose(dd, rel) {
   for (const o of opts) { if (o[0] === d.lastMove) o[1] *= 0.35; total += o[1]; }
   let r = Math.random() * total, k = opts[0][0];
   for (const o of opts) { r -= o[1]; if (r <= 0) { k = o[0]; break; } }
-  d.lastMove = k; d.atk = { steps: DRAGON_MOVES[k](), i: 0, t: 0, hit: false, flag: 0, acc: 0, dir: Math.random() < 0.5 ? 1 : -1 }; d.state = 'atk'; d.t = 0;
+  G.caster = { e: d, t: G.clock }; d.lastMove = k; d.atk = { steps: DRAGON_MOVES[k](), i: 0, t: 0, hit: false, flag: 0, acc: 0, dir: Math.random() < 0.5 ? 1 : -1 }; d.state = 'atk'; d.t = 0;
 }
 function spawnFireball(x, y, tx, ty, dmg = 42, boom = 70, sp = 420) {
   const dd = Math.max(1, dist(x, y, tx, ty)), life = dd / sp;
@@ -365,6 +366,7 @@ function updateDragon(dt) {
   }
 }
 function dragonDefeated() {
+  recordKill('dragon');
   S.dragonDead = true; G.dragonFight = false;
   gainRunes(5000 * DIFF.runes, dragon.x, dragon.y);
   banner('felled', 'KẺ THÙ ĐÃ BỊ HẠ GỤC', '', 4.2); SFX.felled();
@@ -406,7 +408,7 @@ function finalChoose(d) {
   for (const o of opts) { if (o[0] === f.lastMove) o[1] *= 0.35; total += o[1]; }
   let r = Math.random() * total, k = opts[0][0];
   for (const o of opts) { r -= o[1]; if (r <= 0) { k = o[0]; break; } }
-  f.lastMove = k; f.atk = { steps: FINAL_MOVES[k](), i: 0, t: 0, hit: false, flag: 0, acc: 0, dir: Math.random() < 0.5 ? 1 : -1 }; f.state = 'atk'; f.t = 0;
+  G.caster = { e: f, t: G.clock }; f.lastMove = k; f.atk = { steps: FINAL_MOVES[k](), i: 0, t: 0, hit: false, flag: 0, acc: 0, dir: Math.random() < 0.5 ? 1 : -1 }; f.state = 'atk'; f.t = 0;
 }
 function finalHead(f) { const o = f.phase === 2 ? 52 : 34; return { x: f.x + Math.cos(f.face) * o, y: f.y + Math.sin(f.face) * o }; }
 function finalAtk(dt, ang) {
@@ -598,6 +600,7 @@ function finalTransform() {
   subtitle('“Ngươi... đã vượt qua ta. Nhưng Vòng Aurum vẫn còn đó.”', 3.5);
 }
 function finalDefeated() {
+  recordKill('final');
   S.finalDead = true; G.finalFight = false;
   submitRun();
   gainRunes(8000 * DIFF.runes, fb.x, fb.y);

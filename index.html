@@ -318,6 +318,17 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
 .slotlist .sn span{font-size:12.5px;color:var(--muted)}
 .slotlist .sn .empty{font:italic 500 15px var(--display);color:var(--muted)}
 .slotlist .row{gap:6px}
+.beasts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px}
+.beasts li{display:flex;gap:10px;align-items:flex-start;padding:8px;border:1px solid rgba(214,178,94,.2);background:linear-gradient(90deg,rgba(214,178,94,.07),rgba(214,178,94,.01))}
+.beasts li.boss{border-color:rgba(242,220,151,.55);box-shadow:inset 3px 0 0 var(--gold)}
+.beasts li.unk{opacity:.72}
+.beasts canvas{width:88px;height:88px;flex:none;background:radial-gradient(circle at 50% 45%,rgba(214,178,94,.14),rgba(0,0,0,.35) 70%);border:1px solid rgba(214,178,94,.25)}
+.beasts li div{display:grid;gap:2px;min-width:0}
+.beasts b{font:600 17px/1.15 var(--display);color:var(--gold-hi)}
+.beasts span{font-size:12px;color:var(--muted)}
+.beasts span.w{color:#9fdc8a}
+.beasts span.s{color:#f0a58f}
+.beasts p{margin:3px 0 0;font:italic 500 14px/1.35 "Cormorant Garamond",Georgia,serif;color:var(--parch)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -410,23 +421,23 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
       <header><p class="eyebrow">Hướng dẫn</p><h2>Điều khiển</h2></header>
       <div class="scroll">
       <dl class="controls">
-        <div><dt>Di chuyển</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd></div>
-        <div><dt>Lăn né / chạy nhanh</dt><dd><kbd>Space</kbd> nhấn / giữ</dd></div>
+        <div><dt>Di chuyển</dt><dd><kbd data-k="up">W</kbd> <kbd data-k="left">A</kbd> <kbd data-k="down">S</kbd> <kbd data-k="right">D</kbd></dd></div>
+        <div><dt>Lăn né / chạy nhanh</dt><dd><kbd data-k="roll">Space</kbd> nhấn / giữ</dd></div>
         <div><dt>Đánh thường</dt><dd>chuột trái</dd></div>
         <div><dt>Đánh mạnh</dt><dd><kbd>Shift</kbd> + chuột trái</dd></div>
         <div><dt>Đỡ / phản đòn</dt><dd>giữ chuột phải</dd></div>
         <div><dt>Niệm phép (tay trái cầm gậy / ấn)</dt><dd>giữ chuột phải</dd></div>
         <div><dt>Kỹ năng vũ khí</dt><dd><kbd>Shift</kbd> + chuột phải</dd></div>
-        <div><dt>Dùng đồ / đổi đồ</dt><dd><kbd>R</kbd> / <kbd>↓</kbd></dd></div>
-        <div><dt>Đổi phép</dt><dd><kbd>↑</kbd></dd></div>
-        <div><dt>Tương tác, mở rương, đọc bia</dt><dd><kbd>E</kbd></dd></div>
-        <div><dt>Khóa mục tiêu</dt><dd><kbd>Q</kbd> / chuột giữa</dd></div>
-        <div><dt>Đổi vũ khí</dt><dd><kbd>←</kbd> <kbd>→</kbd></dd></div>
-        <div><dt>Gọi ngựa</dt><dd><kbd>F</kbd></dd></div>
-        <div><dt>Bản đồ (bấm để đặt dấu)</dt><dd><kbd>G</kbd></dd></div>
-        <div><dt>Hành trang</dt><dd><kbd>I</kbd> / <kbd>Tab</kbd></dd></div>
+        <div><dt>Dùng đồ / đổi đồ</dt><dd><kbd data-k="item">R</kbd> / <kbd data-k="itemnext">↓</kbd></dd></div>
+        <div><dt>Đổi phép</dt><dd><kbd data-k="spellnext">↑</kbd></dd></div>
+        <div><dt>Tương tác, mở rương, đọc bia</dt><dd><kbd data-k="interact">E</kbd></dd></div>
+        <div><dt>Khóa mục tiêu</dt><dd><kbd data-k="lock">Q</kbd> / chuột giữa</dd></div>
+        <div><dt>Đổi vũ khí</dt><dd><kbd data-k="eqprev">←</kbd> <kbd data-k="eqnext">→</kbd></dd></div>
+        <div><dt>Gọi ngựa</dt><dd><kbd data-k="mount">F</kbd></dd></div>
+        <div><dt>Bản đồ (bấm để đặt dấu)</dt><dd><kbd data-k="map">G</kbd></dd></div>
+        <div><dt>Hành trang</dt><dd><kbd data-k="inv">I</kbd> / <kbd>Tab</kbd></dd></div>
         <div><dt>Tạm dừng</dt><dd><kbd>Esc</kbd></dd></div>
-        <div><dt>Chỉ dùng bàn phím</dt><dd><kbd>J</kbd> <kbd>K</kbd> <kbd>X</kbd> <kbd>C</kbd></dd></div>
+        <div><dt>Chỉ dùng bàn phím</dt><dd><kbd data-k="light">J</kbd> <kbd data-k="heavy">K</kbd> <kbd data-k="guard">X</kbd> <kbd data-k="skill">C</kbd></dd></div>
       </dl>
       <p class="fine">Tay cầm (giống Elden Ring): R1 đánh · R2 đánh mạnh · L1 đỡ / niệm phép · L2 kỹ năng · ○/B lăn (giữ để chạy) · □/X dùng đồ · △/Y tương tác · ×/A ngựa · R3 khóa · ←→ vũ khí · ↑ phép · ↓ đồ · Share/Back bản đồ</p>
       <p class="fine">Trên điện thoại, cần điều khiển ảo và các nút bấm tự hiện ra.</p>
@@ -439,13 +450,13 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
     <div class="panel center">
       <header><p class="eyebrow" id="pauseEyebrow">Tạm dừng</p><h2>Hơi thở giữa trận</h2></header>
       <dl class="controls">
-        <div><dt>Lăn / chạy</dt><dd><kbd>Space</kbd> nhấn / giữ</dd></div>
+        <div><dt>Lăn / chạy</dt><dd><kbd data-k="roll">Space</kbd> nhấn / giữ</dd></div>
         <div><dt>Đánh / đánh mạnh</dt><dd>chuột trái / <kbd>Shift</kbd>+trái</dd></div>
         <div><dt>Đỡ hoặc niệm phép / kỹ năng</dt><dd>chuột phải / <kbd>Shift</kbd>+phải</dd></div>
-        <div><dt>Dùng đồ / tương tác</dt><dd><kbd>R</kbd> <kbd>E</kbd></dd></div>
-        <div><dt>Đổi đồ / đổi phép</dt><dd><kbd>↓</kbd> <kbd>↑</kbd></dd></div>
-        <div><dt>Khóa / ngựa</dt><dd><kbd>Q</kbd> <kbd>F</kbd></dd></div>
-        <div><dt>Vũ khí / bản đồ / hành trang</dt><dd><kbd>←</kbd><kbd>→</kbd> <kbd>G</kbd> <kbd>I</kbd></dd></div>
+        <div><dt>Dùng đồ / tương tác</dt><dd><kbd data-k="item">R</kbd> <kbd data-k="interact">E</kbd></dd></div>
+        <div><dt>Đổi đồ / đổi phép</dt><dd><kbd data-k="itemnext">↓</kbd> <kbd data-k="spellnext">↑</kbd></dd></div>
+        <div><dt>Khóa / ngựa</dt><dd><kbd data-k="lock">Q</kbd> <kbd data-k="mount">F</kbd></dd></div>
+        <div><dt>Vũ khí / bản đồ / hành trang</dt><dd><kbd data-k="eqprev">←</kbd><kbd data-k="eqnext">→</kbd> <kbd data-k="map">G</kbd> <kbd data-k="inv">I</kbd></dd></div>
       </dl>
       <div class="row">
         <button id="btnResume" class="pbtn">Tiếp tục</button>
@@ -502,6 +513,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
         <button class="tab" role="tab" id="tabSpell" aria-selected="false">Phép</button>
         <button class="tab" role="tab" id="tabFlask" aria-selected="false">Bình</button>
         <button class="tab" role="tab" id="tabTravel" aria-selected="false">Dịch chuyển</button>
+        <button class="tab" role="tab" id="tabBeast" aria-selected="false">Sổ tay</button>
       </div>
       <div id="paneLevel" class="scroll" style="display:grid;gap:14px">
         <div class="lvtop">
@@ -518,6 +530,10 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
       <div id="paneInv" class="scroll" hidden><div id="invWrap"></div></div>
       <div id="paneSpell" class="scroll" hidden><div id="spellWrap"></div></div>
       <div id="paneFlask" hidden><div id="flaskWrap"></div></div>
+      <div id="paneBeast" class="scroll" hidden>
+        <p class="note" id="beastNote"></p>
+        <ul class="beasts" id="beastList"></ul>
+      </div>
       <div id="paneTravel" class="scroll" hidden>
         <p class="note" id="travelNote"></p>
         <ul class="travel" id="travelList"></ul>
@@ -602,6 +618,7 @@ kbd{background:linear-gradient(180deg,#3a3122,#16120c);border-color:#e2c26c;box-
 <script src="src/systems.js"></script>
 <script src="src/render.js"></script>
 <script src="src/hud.js"></script>
+<script src="src/bestiary.js"></script>
 <script src="src/settings.js"></script>
 <script src="src/leaderboard.js"></script>
 </body>

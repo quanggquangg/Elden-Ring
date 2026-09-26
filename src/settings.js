@@ -5,13 +5,6 @@ const BIND_LABEL = {
   spell: 'Niệm phép', skill: 'Kỹ năng vũ khí', item: 'Dùng đồ', interact: 'Tương tác', mount: 'Gọi ngựa', lock: 'Khóa mục tiêu', map: 'Bản đồ', inv: 'Hành trang',
   itemnext: 'Đổi đồ', spellnext: 'Đổi phép', eqprev: 'Vũ khí trước', eqnext: 'Vũ khí sau',
 };
-// tên phím dễ đọc từ mã phím của trình duyệt
-function keyName(c) {
-  if (!c) return '—';
-  if (c.startsWith('Key')) return c.slice(3);
-  if (c.startsWith('Digit')) return c.slice(5);
-  return { Space: 'Space', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', ShiftLeft: 'Shift', ShiftRight: 'Shift P', ControlLeft: 'Ctrl', AltLeft: 'Alt', Tab: 'Tab', Enter: 'Enter', Backspace: '⌫', CapsLock: 'Caps' }[c] || c.replace('Numpad', 'Num ');
-}
 function applyTextSize() { document.documentElement.style.setProperty('--uiz', SET.text); }
 function applyVolumes() {
   if (AC && master) master.gain.setTargetAtTime(0.62 * SET.sfx, AC.currentTime, 0.05);
@@ -31,7 +24,7 @@ function finishRebind(code) {
     // phím đã dùng cho việc khác thì đổi chỗ cho nhau, không để hai việc trùng một phím
     const other = Object.keys(SET.binds).find(k => k !== a && SET.binds[k] === code);
     if (other) SET.binds[other] = SET.binds[a];
-    SET.binds[a] = code; rebuildKeymap(); saveSet();
+    SET.binds[a] = code; rebuildKeymap(); saveSet(); refreshKbd();
   }
   renderBinds();
 }
@@ -44,8 +37,8 @@ $('setSfx').oninput = e => { SET.sfx = e.target.value / 100; applyVolumes(); sav
 $('setShake').onclick = e => { const b = e.target.closest('button'); if (!b) return; SET.shake = b.dataset.v === '1'; if (!SET.shake) G.shake = 0; saveSet(); renderSettings(); };
 $('setText').onclick = e => { const b = e.target.closest('button'); if (!b) return; SET.text = +b.dataset.v; applyTextSize(); saveSet(); renderSettings(); };
 $('bindList').onclick = e => { const b = e.target.closest('button[data-bind]'); if (!b) return; G.rebind = b.dataset.bind; renderBinds(); };
-$('setResetKeys').onclick = () => { SET.binds = Object.assign({}, BINDS_DEFAULT); rebuildKeymap(); saveSet(); renderBinds(); };
-applyTextSize();
+$('setResetKeys').onclick = () => { SET.binds = Object.assign({}, BINDS_DEFAULT); rebuildKeymap(); saveSet(); renderBinds(); refreshKbd(); };
+applyTextSize(); refreshKbd();
 // ───────────────────────── cài như ứng dụng (PWA) ─────────────────────────
 // chỉ chạy khi game được mở qua http(s), ví dụ GitHub Pages; mở trong khung nhúng hay tệp cục bộ thì bỏ qua
 let installEvt = null;

@@ -290,6 +290,7 @@ function updatePlayer(dt) {
   if (p.poisonB >= 100) { p.poisonB = 0; p.poisonT = 14; toast('Trúng độc!'); SFX.poison(); }
   if (p.poisonT > 0) {
     p.poisonT -= dt; p.hp -= 4.5 * dt; p.ghostDelay = 0.3;
+    if (p.hp <= 0) P.lastFoe = { id: 'poison', name: 'Chất độc', t: G.clock };
     if (Math.random() < dt * 6) addPart(p.x + rand(-8, 8), p.y + rand(-8, 8), 0, -25, 0.8, 2.5, '#a86fc0');
     if (p.hp <= 0) { p.hp = 0; die(); return; }
   }
@@ -430,9 +431,13 @@ function updatePlayer(dt) {
   }
   p.mvx = (p.x - ox) / dt; p.mvy = (p.y - oy) / dt;
 }
+// ghi nhớ kẻ vừa gây sát thương để màn chết nói ai đã hạ ngươi
+const foeId = e => (e.isBoss ? (e.v === 2 ? 'varek2' : 'varek') : e.isDragon ? 'dragon' : e.isFinal ? 'final' : e.type);
+function noteFoe(e) { if (e && e.name) P.lastFoe = { id: foeId(e), name: e.name, t: G.clock }; }
 function hurtPlayer(dmg, fx, fy, heavy, src = null, kind = 'melee', dt = 'phys') {
   const p = P;
   if (p.state === 'dead' || p.invuln > 0 || G.mode !== 'play') return false;
+  noteFoe(src || (G.caster && G.clock - G.caster.t < 5 ? G.caster.e : null));
   dmg *= DIFF.dmg * regionMul(P.x, P.y) * absorb(dt) * (src && src.dm ? src.dm : 1);
   if (p.state === 'roll' && p.t > p.roll.iframe[0] && p.t < p.roll.iframe[1] + (hasTal('spectral') ? 0.06 : 0)) return false; // khung bất tử khi lăn
   const from = Math.atan2(fy - p.y, fx - p.x);
@@ -534,6 +539,7 @@ function die() {
     burst(P.x, P.y, 30, '#e0d8c2', 160, 3, 'dot', 0.8); floatText(P.x, P.y - 34, 'XƯƠNG HỘ MỆNH', '#e0d8c2', true); SFX.parry();
     return;
   }
+  G.killer = P.lastFoe && G.clock - P.lastFoe.t < 8 ? P.lastFoe : null;
   P.state = 'dead'; P.lock = null; P.mounted = false; G.mode = 'dead'; G.deathT = 0; S.deaths++; P.flameT = 0;
   SFX.death();
   S.lost = S.runes > 0 ? { x: P.x, y: P.y, amount: S.runes } : null;
@@ -632,6 +638,7 @@ function killEnemy(e) {
     return;
   }
   e.dead = true; e.state = 'dead'; e.t = 0; e.hp = 0;
+  if (!e.isBoss && !e.isDragon && !e.isFinal) recordKill(e.type);
   if (P.lock === e) P.lock = null;
   burst(e.x, e.y, 24, 'rgba(60,55,45,.8)', 80, 5, 'dot', 1);
   if (e.isBoss) { bossDefeated(); return; }

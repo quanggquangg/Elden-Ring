@@ -263,7 +263,7 @@ function drawHUD() {
   const qn = q === 'flask' ? P.flasks : q === 'fpflask' ? P.fpflasks : S.inv[q] || 0;
   ctx.font = `700 13px ${FONT_U}`; ctx.textAlign = 'right'; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.lineWidth = 3;
   ctx.strokeText(String(qn), fx + fs - 3, fy + fs - 4); ctx.fillStyle = qn > 0 ? '#f4ead0' : '#9a8a70'; ctx.fillText(String(qn), fx + fs - 3, fy + fs - 4); ctx.textAlign = 'left';
-  if (!G.touch) { keycap(fx + 1, fy + fs + 5, 'R', 14); ctx.font = `500 10px ${FONT_U}`; ctx.fillStyle = 'rgba(236,227,204,.55)'; ctx.fillText('đổi ↓', fx + 19, fy + fs + 16); }
+  if (!G.touch) { keycap(fx + 1, fy + fs + 5, keyOf('item'), 14); ctx.font = `500 10px ${FONT_U}`; ctx.fillStyle = 'rgba(236,227,204,.55)'; ctx.fillText('đổi', fx + 19, fy + fs + 16); ctx.fillText(' ' + keyOf('itemnext'), fx + 19 + ctx.measureText('đổi').width, fy + fs + 16); }
   // vũ khí tay phải và tay trái
   const wx = fx + fs + 10, Wp = WEAPONS[S.equipped], off = offDef(), cat = catalyst();
   box(wx, fy, fs);
@@ -526,6 +526,15 @@ function wrapText(str, cx, y, maxW, lh, font, col) {
   if (line) lines.push(line);
   lines.forEach((l, i) => textC(l, cx, y + i * lh - (lines.length - 1) * lh, font, col, 0.9));
 }
+// như wrapText nhưng các dòng xếp từ trên xuống, bắt đầu ở y
+function wrapDown(str, cx, y, maxW, lh, font, col) {
+  ctx.font = font; str = tr(str);
+  const words = str.split(' '), lines = [];
+  let line = '';
+  for (const w of words) { const test = line ? line + ' ' + w : w; if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test; }
+  if (line) lines.push(line);
+  lines.forEach((l, i) => textC(l, cx, y + i * lh, font, col, 0.9));
+}
 function drawBanner(b) {
   const a = Math.min(1, b.t * 2, (b.dur - b.t) * 1.2), cy = CH * 0.42, small = CW < 520;
   ctx.globalAlpha = a;
@@ -557,13 +566,21 @@ function drawDeath() {
   const a = Math.min(1, (t - 0.8) * 1.2) * Math.min(1, (4.6 - t) * 1.5);
   ctx.globalAlpha = a;
   const cy = CH * 0.45;
-  const band = ctx.createLinearGradient(0, cy - 80, 0, cy + 80);
-  band.addColorStop(0, 'rgba(0,0,0,0)'); band.addColorStop(0.5, 'rgba(0,0,0,.85)'); band.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = band; ctx.fillRect(0, cy - 80, CW, 160);
+  const bh = G.killer ? 130 : 80, band = ctx.createLinearGradient(0, cy - 80, 0, cy + bh);
+  band.addColorStop(0, 'rgba(0,0,0,0)'); band.addColorStop(0.35, 'rgba(0,0,0,.85)'); band.addColorStop(0.75, 'rgba(0,0,0,.8)'); band.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = band; ctx.fillRect(0, cy - 80, CW, 80 + bh);
   const sc = 1 + (t - 0.8) * 0.03;
   ctx.save(); ctx.translate(CW / 2, cy); ctx.scale(sc, sc);
   goldText('BẠN ĐÃ CHẾT', 0, 18, spacedFont(CW < 520 ? 44 : 72, 700), 0.5, ['#e0503c', '#a3201c', '#5a0c08']);
   ctx.restore();
+  // ai đã hạ ngươi, kèm mẹo đối phó lấy từ Sổ tay quái vật
+  const K = G.killer;
+  if (K && t > 1.4) {
+    ctx.globalAlpha = a * Math.min(1, (t - 1.4) * 2);
+    textC('Bị hạ bởi ' + K.name, CW / 2, cy + 58, `600 ${CW < 520 ? 14 : 16}px ${FONT_U}`, '#e8d8c0');
+    const hint = K.id === 'poison' ? 'Mang theo Thuốc Giải Độc, và đừng đứng lâu trong vũng độc.' : BEAST_HINT[K.id];
+    if (hint) wrapDown(hint, CW / 2, cy + 84, Math.min(CW - 60, 620), 21, `500 italic ${CW < 520 ? 15 : 17}px ${FONT_I}`, '#cdbf9f');
+  }
   ctx.globalAlpha = 1;
 }
 
@@ -776,8 +793,8 @@ $('invWrap').addEventListener('click', e => {
   renderGrace();
 });
 $('flaskWrap').addEventListener('click', e => { const b = e.target.closest('[data-flask]'); if (b) { flaskAlloc(-(+b.dataset.flask)); renderGrace(); } });
-const TABS = ['level', 'gear', 'inv', 'spell', 'flask', 'travel'];
-function selectTab(which) { graceTab = which; renderGraceTabsOnly(); }
+const TABS = ['level', 'gear', 'inv', 'spell', 'flask', 'travel', 'beast'];
+function selectTab(which) { graceTab = which; renderGraceTabsOnly(); if (which === 'beast') renderBeast(); }
 function renderGraceTabsOnly() {
   for (const t of TABS) {
     const id = t[0].toUpperCase() + t.slice(1);
@@ -870,18 +887,18 @@ $('btnLore').onclick = () => openInfo(UI.lore, UI.title);
 // [mã, điều kiện, tiêu đề, phím trên máy tính, cách làm trên điện thoại]
 const HINTS = [
   ['fight', () => enemies.some(e => !e.dead && e.state === 'chase' && dist(e.x, e.y, P.x, P.y) < 260), 'Kẻ địch đang lao tới',
-    '<kbd>Chuột trái</kbd> đánh · <kbd>Shift</kbd>+<kbd>Chuột trái</kbd> đánh mạnh · <kbd>Space</kbd> lăn né', 'Chạm nút Đánh để tấn công, nút Lăn để né'],
+    '<kbd>Chuột trái</kbd> đánh · <kbd>Shift</kbd>+<kbd>Chuột trái</kbd> đánh mạnh · <kbd data-k="roll">Space</kbd> lăn né', 'Chạm nút Đánh để tấn công, nút Lăn để né'],
   ['guard', () => S.tips.fight && enemies.some(e => !e.dead && e.state === 'atk' && dist(e.x, e.y, P.x, P.y) < 130), 'Đỡ đòn',
     'Giữ <kbd>Chuột phải</kbd> để giơ khiên; giơ đúng lúc đòn chạm tới sẽ phản đòn', 'Giữ nút Đỡ để chặn đòn'],
   ['riposte', () => enemies.some(e => !e.dead && e.state === 'broken' && dist(e.x, e.y, P.x, P.y) < 140), 'Kẻ địch mất thế',
     'Lại gần và bấm <kbd>Chuột trái</kbd> để tung đòn chí mạng', 'Lại gần và chạm nút Đánh để tung đòn chí mạng'],
-  ['heal', () => P.hp < P.maxHp * 0.5 && P.flasks > 0, 'Máu còn một nửa', 'Nhấn <kbd>R</kbd> để uống Bình Máu', 'Chạm nút Dùng đồ để uống Bình Máu'],
+  ['heal', () => P.hp < P.maxHp * 0.5 && P.flasks > 0, 'Máu còn một nửa', 'Nhấn <kbd data-k="item">R</kbd> để uống Bình Máu', 'Chạm nút Dùng đồ để uống Bình Máu'],
   ['stamina', () => P.st < P.maxSt * 0.2, 'Sắp hết thể lực', 'Hết thể lực thì không lăn hay đánh được. Lùi lại một nhịp cho thể lực hồi', 'Hết thể lực thì không lăn hay đánh được. Lùi lại một nhịp cho thể lực hồi'],
-  ['grace', () => !!nearGrace() && S.discovered.length >= 2, 'Ân Điển', 'Nhấn <kbd>E</kbd> để nghỉ: hồi máu, nạp bình và lên cấp', 'Chạm nút Tương tác để nghỉ: hồi máu, nạp bình và lên cấp'],
-  ['level', () => S.runes >= levelCost(), 'Đủ rune để lên cấp', 'Nghỉ ở Ân Điển (<kbd>E</kbd>) để tăng chỉ số', 'Nghỉ ở Ân Điển để tăng chỉ số'],
+  ['grace', () => !!nearGrace() && S.discovered.length >= 2, 'Ân Điển', 'Nhấn <kbd data-k="interact">E</kbd> để nghỉ: hồi máu, nạp bình và lên cấp', 'Chạm nút Tương tác để nghỉ: hồi máu, nạp bình và lên cấp'],
+  ['level', () => S.runes >= levelCost(), 'Đủ rune để lên cấp', 'Nghỉ ở Ân Điển (<kbd data-k="interact">E</kbd>) để tăng chỉ số', 'Nghỉ ở Ân Điển để tăng chỉ số'],
   ['lost', () => !!S.lost, 'Rune đã rơi', 'Rune rơi lại nơi ngươi chết. Quay lại chạm vào đốm sáng xanh để lấy lại; chết lần nữa là mất hẳn', 'Rune rơi lại nơi ngươi chết. Quay lại chạm vào đốm sáng xanh để lấy lại'],
-  ['inv', () => S.weapons.length + S.armors.length + S.tals.length > (G.gear0 || 99), 'Có trang bị mới', 'Nhấn <kbd>I</kbd> để mở hành trang và trang bị', 'Chạm nút Hành trang để trang bị'],
-  ['map', () => S.frags.length > 0, 'Bản đồ', 'Nhấn <kbd>G</kbd> để xem bản đồ; bấm lên bản đồ để đặt dấu', 'Chạm nút Bản đồ để xem; chạm lên bản đồ để đặt dấu'],
+  ['inv', () => S.weapons.length + S.armors.length + S.tals.length > (G.gear0 || 99), 'Có trang bị mới', 'Nhấn <kbd data-k="inv">I</kbd> để mở hành trang và trang bị', 'Chạm nút Hành trang để trang bị'],
+  ['map', () => S.frags.length > 0, 'Bản đồ', 'Nhấn <kbd data-k="map">G</kbd> để xem bản đồ; bấm lên bản đồ để đặt dấu', 'Chạm nút Bản đồ để xem; chạm lên bản đồ để đặt dấu'],
 ];
 let hintCur = null, hintT = 0;
 function updateHints(dt) {
@@ -897,7 +914,7 @@ function updateHints(dt) {
     let ok = false; try { ok = test(); } catch (e) { ok = false; }
     if (!ok) continue;
     S.tips[id] = 1; hintCur = id; hintT = 6;
-    $('tutText').textContent = title; $('tutKeys').innerHTML = G.touch ? touch : pc; $('tut').hidden = false;
+    $('tutText').textContent = title; $('tutKeys').innerHTML = G.touch ? touch : pc; refreshKbd($('tutKeys')); $('tut').hidden = false;
     SFX.glint(); return;
   }
 }
@@ -923,6 +940,7 @@ const ACHS = [
   ['colo', 'Nhà Vô Địch Bloodsand', 'Vượt qua thử thách ở Đấu Trường Bloodsand', () => S.coloDone],
   ['wraith', 'Rừng Thiêng Yên Nghỉ', 'Hạ Seluna trong Rừng Wraithwood', () => !!S.mb.wraith],
   ['map', 'Người Vẽ Bản Đồ', 'Đọc hết Bia Bản Đồ', () => S.frags.length >= MAP_FRAGS.length],
+  ['bestiary', 'Nhà Nghiên Cứu Quái Vật', 'Ghi chép 30 loài trong Sổ tay quái vật', () => Object.keys(S.kills || {}).filter(k => BEAST_ORDER.includes(k)).length >= 30],
   ['wilds', 'Chúa Tể Miền Hoang', 'Hạ Karkos, Veyl và Aurion ở hồ, bờ biển và sườn núi', () => S.mb.crabking && S.mb.admiral && S.mb.ramking],
   ['travel', 'Kẻ Lữ Hành', 'Tìm thấy 20 Ân Điển', () => S.discovered.length >= 20],
   ['level', 'Vững Như Đá', 'Đạt cấp 40', () => S.level >= 40],

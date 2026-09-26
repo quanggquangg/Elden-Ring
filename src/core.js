@@ -24,7 +24,8 @@ const $ = id => document.getElementById(id);
 
 // ───────────────────────── canvas ─────────────────────────
 const canvas = $('game');
-const ctx = canvas.getContext('2d');
+// bảng vẽ chính; sổ tay quái vật tạm đổi sang canvas nhỏ để vẽ chân dung bằng cùng các hàm vẽ
+let ctx = canvas.getContext('2d');
 // hệ số phóng từ tọa độ thế giới ra điểm ảnh thật của canvas
 let WZ = 1;
 let DPR = 1, CW = 800, CH = 600, ZOOM = 1, VIGNETTE = null;
@@ -35,10 +36,23 @@ let FX_LOW = (() => {
 })();
 const lightCanvas = document.createElement('canvas'), lctx = lightCanvas.getContext('2d');
 let LSCALE = 0.25;
+// độ phân giải động cho màn hình mật độ cao (điện thoại, máy Retina): khung hình tụt thì bớt điểm ảnh, không bao giờ thấp hơn 1:1
+const RES_STEPS = [1, 0.8, 0.66];
+const RES = { i: 0, acc: 0, n: 0, good: 0, ups: 0 };
+function resWatch(ms) {
+  if (G.mode !== 'play' || ms > 250 || document.hidden || Math.min(window.devicePixelRatio || 1, 2) <= 1) { RES.acc = RES.n = 0; return; }
+  RES.acc += ms; RES.n++;
+  if (RES.acc < 3000) return;
+  const fps = RES.n * 1000 / RES.acc; RES.acc = RES.n = 0;
+  if (fps < 42 && RES.i < RES_STEPS.length - 1) { RES.i++; RES.good = 0; resize(); }
+  else if (fps >= 57 && RES.i > 0 && RES.ups < 1 && ++RES.good >= 7) { RES.i--; RES.ups++; RES.good = 0; resize(); }
+  else if (fps < 57) RES.good = 0;
+}
 function resize() {
   // kích thước bố cục (không tính phép xoay của chế độ xoay ngang)
   CW = Math.max(1, canvas.clientWidth); CH = Math.max(1, canvas.clientHeight);
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const d = Math.min(window.devicePixelRatio || 1, 2);
+  DPR = d > 1 ? Math.max(1, d * RES_STEPS[RES.i]) : d;
   canvas.width = Math.round(CW * DPR); canvas.height = Math.round(CH * DPR);
   ZOOM = clamp(Math.sqrt(CW * CH) / 720, 0.66, 1.6);
   WZ = DPR * ZOOM;

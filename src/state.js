@@ -16,7 +16,7 @@ function defaultSave() {
     ashes: [], ash: {}, inv: {}, quick: 0, arrows: 0, arrowMax: 40, dragonDead: false, finalDead: false, chests: [],
     fortOpen: false, statues: [], glade: false, illusory: [], coloDone: false, mb: {}, explored: '', frags: [],
     gr: [], greatOpen: false, acadOpen: false, levers: [], dg: {}, bought: [], name: '', submitted: false, runId: null, marker: null,
-    readN: [], tips: {}, diff: 'normal', inv: {}, parries: 0,
+    readN: [], tips: {}, diff: 'normal', inv: {}, parries: 0, kills: {},
   };
 }
 let S = defaultSave();

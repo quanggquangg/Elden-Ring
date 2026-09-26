@@ -14,6 +14,16 @@ const SET = (() => {
   try { const s = JSON.parse(localStorage.getItem(SET_KEY) || 'null'); if (s) { Object.assign(d, s); d.binds = Object.assign({}, BINDS_DEFAULT, s.binds || {}); } } catch (e) { /* bỏ qua */ }
   return d;
 })();
+// tên phím dễ đọc từ mã phím của trình duyệt
+function keyName(c) {
+  if (!c) return '—';
+  if (c.startsWith('Key')) return c.slice(3);
+  if (c.startsWith('Digit')) return c.slice(5);
+  return { Space: 'Space', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', ShiftLeft: 'Shift', ShiftRight: 'Shift P', ControlLeft: 'Ctrl', AltLeft: 'Alt', Tab: 'Tab', Enter: 'Enter', Backspace: '⌫', CapsLock: 'Caps' }[c] || c.replace('Numpad', 'Num ');
+}
+const keyOf = a => keyName(SET.binds[a]);
+// mọi <kbd data-k="việc"> trong trang hiện phím đang gán cho việc đó
+function refreshKbd(root = document) { for (const k of root.querySelectorAll('kbd[data-k]')) k.textContent = keyOf(k.dataset.k); }
 function saveSet() { try { localStorage.setItem(SET_KEY, JSON.stringify(SET)); } catch (e) { /* bỏ qua */ } }
 const KEYMAP = {};
 const MOVE_ACTS = ['up', 'down', 'left', 'right', 'roll', 'guard'];

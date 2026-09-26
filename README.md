@@ -50,8 +50,10 @@ And **Varek**, the masked gatekeeper, swore that no Gravebound would ever touch 
   - Red Gravebound who invade your world.
   - Bosses that call for help.
   - Messages from yourself on a previous run.
-- **25 achievements**, a **shared leaderboard** per difficulty, and **3 save slots**.
-- **Settings:** music and effects volume, screen shake, text size, and fully rebindable keys.
+- **26 achievements**, a **shared leaderboard** per difficulty, and **3 save slots**.
+- **Bestiary:** every species you defeat gets a page with a portrait, where it lives, weaknesses, rare drops and a tip. The death screen tells you what killed you and how to beat it next time.
+- **Settings:** music and effects volume, screen shake, text size, and fully rebindable keys (on-screen hints follow your keys).
+- **Runs smoothly on phones:** on high-density screens the game lowers its render resolution on its own when the frame rate drops.
 
 ![Karkos, the Crystal Crab King](media/boss-crab.jpg)
 
@@ -142,8 +144,10 @@ Và **Varek**, kẻ gác cổng đeo mặt nạ, đã thề không một Gravebo
   - Gravebound Đỏ xâm nhập thế giới của ngươi.
   - Boss gọi thêm tay sai.
   - Lời nhắn từ chính ngươi ở lần chơi trước.
-- **25 thành tựu**, **bảng xếp hạng chung** chia theo độ khó và **3 ô lưu**.
-- **Cài đặt:** âm lượng nhạc và hiệu ứng, rung màn hình, cỡ chữ, đổi được mọi phím bấm.
+- **26 thành tựu**, **bảng xếp hạng chung** chia theo độ khó và **3 ô lưu**.
+- **Sổ tay quái vật:** mỗi loài đã hạ có một trang riêng với chân dung, nơi sống, điểm yếu, đồ hiếm và mẹo đánh. Màn hình chết cho biết ai đã hạ ngươi và cách thắng lần sau.
+- **Cài đặt:** âm lượng nhạc và hiệu ứng, rung màn hình, cỡ chữ, đổi được mọi phím bấm (chữ hướng dẫn hiện đúng phím đã gán).
+- **Mượt trên điện thoại:** trên màn hình mật độ cao, game tự hạ độ phân giải khi khung hình tụt.
 
 ![Bản đồ](media/map.jpg)
 

@@ -40,6 +40,7 @@ function updateProjs(dt) {
         }
       }
     } else if (!dead && dist(q.x, q.y, P.x, P.y) < q.r + P.r) {
+      if (q.from) noteFoe(q.from);
       if (hurtPlayer(q.dmg, q.x - q.vx * 0.05, q.y - q.vy * 0.05, q.kind === 'comet', null, 'proj', q.dt || 'phys')) dead = true;
     }
     if (dead) {
@@ -230,7 +231,7 @@ function worldChecks(dt) {
     }
   }
   firstSightTips();
-  const key = G.touch ? '' : 'E', gp = gatePrompt();
+  const key = G.touch ? '' : keyOf('interact'), gp = gatePrompt();
   let nd;
   if (nearGrace()) G.prompt = { key, text: 'Nghỉ ngơi tại Ân Điển' };
   else if ((nd = nearNpc())) G.prompt = { key, text: 'Nói chuyện với ' + nd.name };
@@ -316,6 +317,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 function step(now) {
+  resWatch(now - last);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   pollPad();
   updateAmbient(dt);

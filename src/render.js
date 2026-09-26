@@ -1789,7 +1789,7 @@ function drawInteractHints() {
     ctx.globalAlpha = a;
     if (close) {
       // phím bấm nổi trên đầu vật đang có thể tương tác
-      const k = G.touch ? '!' : 'E', s = 22;
+      const k = G.touch ? '!' : keyOf('interact'), s = 22;
       ctx.fillStyle = `rgba(${h.col},.25)`; ctx.beginPath(); ctx.arc(sx, by - s / 2, s * 0.9, 0, TAU); ctx.fill();
       keycap(sx - s / 2, by - s, k, s);
     } else {
