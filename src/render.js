@@ -161,13 +161,7 @@ function drawHumanoid(x, y, face, L, wAng, o = {}) {
   ctx.strokeStyle = tint(L.cloak, 0.62); ctx.lineWidth = 1.3 * s;
   ctx.beginPath(); ctx.moveTo(-6 * s, -6 * s); ctx.quadraticCurveTo(-13 * s, -5 * s + wave, -17 * s, -2 * s + wave);
   ctx.moveTo(-6 * s, 6 * s); ctx.quadraticCurveTo(-13 * s, 7 * s - wave, -18 * s, 5 * s - wave); ctx.stroke();
-  if (o.trail) {
-    const R = (L.wlen + 4) * s;
-    ctx.strokeStyle = o.trailCol || 'rgba(255,244,210,.35)'; ctx.lineWidth = 9 * s;
-    ctx.beginPath(); ctx.arc(3 * s, 8 * s, R * 0.8, o.trail[0], o.trail[1], o.trail[1] < o.trail[0]); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5 * s;
-    ctx.beginPath(); ctx.arc(3 * s, 8 * s, R * 0.97, o.trail[0], o.trail[1], o.trail[1] < o.trail[0]); ctx.stroke();
-  }
+  if (o.trail) smear(3 * s, 8 * s, (L.wlen + 4) * s, o.trail[0], o.trail[1], (L.wlen * (o.hot ? 0.62 : 0.5) + 4) * s, o.trailCol || 'rgba(255,244,210,.35)', o.hot);
   drawWeapon(L, s, wAng, o);
   if (o.stab) {
     ctx.strokeStyle = 'rgba(255,244,210,.45)'; ctx.lineWidth = 4 * s; ctx.lineCap = 'round';
@@ -342,7 +336,7 @@ function drawPlayer() {
   const th = twoHanded(), cat = catalyst(), off = offDef();
   if (th && p.state === 'guard') wAng = -1.1;
   const o = { anim: p.walk, trail, thrust, stab, charge, flash: p.invuln > 0.25 && !(p.atk && p.atk.critT), shield: th || cat ? 0 : p.state === 'guard' ? 2 : 1, kite: off.id === 'kite', cat: cat ? cat.type : null, castK, twoHand: th && !p.mounted };
-  if (p.state === 'attack' && p.atk && p.atk.kind === 'heavy') o.trailCol = 'rgba(255,220,150,.45)';
+  if (trail) { const hv = p.atk && p.atk.kind === 'heavy'; o.trailCol = playerTrailCol(hv); o.hot = hv || P.buffs.flame > 0 || P.buffs.holy > 0; }
   if (p.state === 'roll' && p.roll.back) {
     // nhảy lùi: không lộn người, chỉ hơi thu mình
     const k = p.t / p.roll.dur, s = 1 - Math.sin(k * Math.PI) * 0.08;
@@ -1602,6 +1596,7 @@ function drawArrowShape(x, y, a, kind, col) {
 function drawProjs() {
   for (const q of projs) {
     if (!inView(q.x, q.y, 40)) continue;
+    drawProjTrail(q);
     const a = Math.atan2(q.vy, q.vx);
     if (q.kind === 'parrow' || q.kind === 'knife') {
       if (q.kind === 'knife') { drawArrowShape(q.x, q.y, a, 'knife', '#e8e2d0'); }
@@ -1703,6 +1698,17 @@ function drawParts() {
       ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, 3.4, 1.6, 0, 0, TAU); ctx.fill(); ctx.restore();
     } else if (p.kind === 'ash') {
       ctx.globalAlpha = Math.min(1, p.life) * 0.7; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size);
+    } else if (p.kind === 'rune' || p.kind === 'cinder') {
+      // đốm sáng cộng màu: rune vàng có vệt đuôi, tro tàn lập lòe
+      ctx.globalCompositeOperation = 'lighter';
+      const fl = p.kind === 'cinder' ? 0.6 + 0.4 * Math.sin(G.clock * 18 + p.x) : 1;
+      ctx.globalAlpha = Math.min(1, p.life * 2, k * 3) * fl;
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU); ctx.fill();
+      if (p.kind === 'rune') { ctx.strokeStyle = p.color; ctx.lineWidth = p.size * 1.1; ctx.lineCap = 'round'; ctx.globalAlpha *= 0.55; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035); ctx.stroke(); ctx.lineCap = 'butt'; }
+      ctx.globalCompositeOperation = 'source-over';
+    } else if (p.kind === 'puff') {
+      ctx.globalAlpha = k * 0.42; ctx.fillStyle = `rgb(${p.color})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (1 + (1 - k) * 1.6), 0, TAU); ctx.fill();
     } else if (p.kind === 'fire') {
       ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = k * 0.75;
       ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (1.5 - k * 0.6), 0, TAU); ctx.fill();
@@ -1817,6 +1823,7 @@ function render() {
   if (gx1 > gx0 && gy1 > gy0) ctx.drawImage(GC, (gx0 - ox) / 2, (gy0 - oy) / 2, (gx1 - gx0) / 2, (gy1 - gy0) / 2, gx0, gy0, gx1 - gx0, gy1 - gy0);
   drawGroundDetail();
   drawDecals();
+  drawFxGround();
   drawWater();
   drawGrass();
   for (const o of OBST) if (o.kind === 'rock' && inView(o.x, o.y, 40)) drawRock(o);
@@ -1841,7 +1848,7 @@ function render() {
     ctx.fillStyle = 'rgba(255,255,255,.85)';
     for (let k = 0; k < 4; k++) { const a = rot + k * Math.PI / 2, cx = l.x + Math.cos(a) * pr, cy = y + Math.sin(a) * pr; ctx.save(); ctx.translate(cx, cy); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(-3.5, 0); ctx.lineTo(2, -2.2); ctx.lineTo(2, 2.2); ctx.closePath(); ctx.fill(); ctx.restore(); }
   }
-  drawProjs(); drawAoeFx(); drawParts(); drawCanopies(); drawBarrier();
+  drawProjs(); drawAoeFx(); drawParts(); drawFxTop(); drawCanopies(); drawBarrier();
   if (dragon && (dragon.z || 0) > 40) drawDragon();
   if (fb && (fb.z || 0) > 40) drawFinal();
   drawGraceBeams();
@@ -1859,6 +1866,7 @@ function render() {
   const [, , , , tr, tg, tb, ta] = G.amb;
   if (ta > 0.01 && !FX_LOW) { ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = `rgba(${tr | 0},${tg | 0},${tb | 0},${ta})`; ctx.fillRect(0, 0, CW, CH); ctx.globalCompositeOperation = 'source-over'; }
   drawGodRays();
+  drawScreenFx();
   const top = ctx.createLinearGradient(0, 0, 0, CH * 0.5);
   top.addColorStop(0, `rgba(255,205,110,${cam.y < 400 && !inst ? 0.14 : 0.06})`); top.addColorStop(1, 'rgba(255,205,110,0)');
   ctx.fillStyle = top; ctx.fillRect(0, 0, CW, CH * 0.5);
@@ -1932,9 +1940,11 @@ function collectLights() {
     else if (a.kind === 'mark') light(a.x, a.y, a.r * 1.3, 0.25 + 0.3 * a.t / a.dur, '255,110,60');
     else if (a.kind === 'arc') light(a.x + Math.cos(a.face) * 60, a.y + Math.sin(a.face) * 60, 140, 1 - a.t / a.dur, '170,210,255');
   }
+  for (const f of FX) if (f.k === 'impact') light(f.x, f.y, f.big ? 120 : 70, 0.9 * (1 - f.t / f.dur), f.col);
   let n = 0;
   for (const p of parts) {
     if (p.kind === 'fire' && (n++ % 5 === 0)) light(p.x, p.y, 70, 0.5 * p.life / p.max, '255,140,50');
+    else if ((p.kind === 'cinder' || p.kind === 'rune') && (n++ % 4 === 0)) light(p.x, p.y, 36, 0.4 * Math.min(1, p.life), p.kind === 'rune' ? '255,214,120' : '255,220,150');
     else if (p.kind === 'firefly') light(p.x, p.y, 34, 0.5 * (0.45 + 0.55 * Math.sin(t * 5 + p.seed)), p.color === '#9ff5e6' ? '140,255,230' : '210,240,120');
   }
   if (S.lost) light(S.lost.x, S.lost.y, 110, 0.9, '150,255,180');

@@ -53,6 +53,7 @@ And **Varek**, the masked gatekeeper, swore that no Gravebound would ever touch 
 - **26 achievements**, a **shared leaderboard** per difficulty, and **3 save slots**.
 - **Bestiary:** every species you defeat gets a page with a portrait, where it lives, weaknesses, rare drops and a tip. The death screen tells you what killed you and how to beat it next time.
 - **Settings:** music and effects volume, screen shake, text size, and fully rebindable keys (on-screen hints follow your keys).
+- **Combat effects:** crescent sword trails tinted by element (fire, holy, magic, blood), impact flashes, blood that stains the ground, foes that crumble into golden embers while their runes stream back to you, glowing spell trails, dust and water ripples under your feet, rain and lightning over the swamp and coast, and a heartbeat vignette when you are close to death.
 - **Runs smoothly on phones:** on high-density screens the game lowers its render resolution on its own when the frame rate drops.
 
 ![Karkos, the Crystal Crab King](media/boss-crab.jpg)
@@ -147,6 +148,7 @@ Và **Varek**, kẻ gác cổng đeo mặt nạ, đã thề không một Gravebo
 - **26 thành tựu**, **bảng xếp hạng chung** chia theo độ khó và **3 ô lưu**.
 - **Sổ tay quái vật:** mỗi loài đã hạ có một trang riêng với chân dung, nơi sống, điểm yếu, đồ hiếm và mẹo đánh. Màn hình chết cho biết ai đã hạ ngươi và cách thắng lần sau.
 - **Cài đặt:** âm lượng nhạc và hiệu ứng, rung màn hình, cỡ chữ, đổi được mọi phím bấm (chữ hướng dẫn hiện đúng phím đã gán).
+- **Hiệu ứng chiến đấu:** vệt chém hình lưỡi liềm đổi màu theo nguyên tố (lửa, thánh, phép, máu), tia sáng khi đòn trúng, máu vương trên đất, quái ngã xuống tan thành tro vàng và rune bay về phía ngươi, đuôi sáng của phép, bụi và gợn nước dưới chân, mưa và sấm sét ở đầm lầy và bờ biển, viền tối đập theo nhịp tim khi sắp chết.
 - **Mượt trên điện thoại:** trên màn hình mật độ cao, game tự hạ độ phân giải khi khung hình tụt.
 
 ![Bản đồ](media/map.jpg)

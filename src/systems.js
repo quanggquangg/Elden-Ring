@@ -16,7 +16,7 @@ function updateProjs(dt) {
     }
     q.x += q.vx * dt; q.y += q.vy * dt;
     const tc = PTRAIL[q.kind];
-    if (tc && Math.random() < 0.8) addPart(q.x, q.y, rand(-10, 10), rand(-10, 10), 0.3, q.kind === 'comet' ? 5 : q.kind === 'dagger' ? 2 : 3, tc);
+    if (tc && Math.random() < 0.35) addPart(q.x + rand(-3, 3), q.y + rand(-3, 3), rand(-28, 28), rand(-28, 28), rand(0.2, 0.4), q.kind === 'comet' ? 4 : q.kind === 'dagger' ? 1.5 : 2, tc);
     if ((q.kind === 'gwave' || q.kind === 'hwave' || q.kind === 'cwave') && Math.random() < 0.6) addPart(q.x, q.y, rand(-20, 20), rand(-20, 20), 0.4, 3, q.kind === 'cwave' ? '#cfefff' : '#ffe39a', 'mote');
     if (q.kind === 'fireball') {
       if (q.friendly) {
@@ -84,6 +84,19 @@ function updateParts(dt) {
     else if (p.kind === 'firefly') { p.vx = clamp(p.vx + rand(-60, 60) * dt, -25, 25); p.vy = clamp(p.vy + rand(-60, 60) * dt, -25, 25); }
     else if (p.kind === 'leaf') p.vx = Math.sin(p.life * 2 + p.seed) * 22;
     if (p.kind === 'mote') p.vx += Math.sin((p.life + p.x) * 3) * 6 * dt;
+    else if (p.kind === 'cinder') { p.vx += Math.sin((p.life * 5 + p.y) * 0.7) * 30 * dt; p.vy *= Math.exp(-0.6 * dt); }
+    else if (p.kind === 'puff') { const f = Math.exp(-5 * dt); p.vx *= f; p.vy *= f; }
+    else if (p.kind === 'rune') {
+      // bung ra một nhịp rồi lượn về người chơi, càng lúc càng nhanh
+      const age = p.max - p.life;
+      if (age < p.delay) { const f = Math.exp(-4 * dt); p.vx *= f; p.vy *= f; }
+      else {
+        const dx = P.x - p.x, dy = P.y - 8 - p.y, d = Math.hypot(dx, dy) || 1, acc = 900 + (age - p.delay) * 2600;
+        p.vx += dx / d * acc * dt; p.vy += dy / d * acc * dt;
+        const f = Math.exp(-2.6 * dt); p.vx *= f; p.vy *= f;
+        if (d < 14 || P.state === 'dead') { p.life = 0; if (Math.random() < 0.35) addPart(P.x + rand(-6, 6), P.y - 8 + rand(-6, 6), 0, -20, 0.25, 6, '#fff0b8', 'glint'); }
+      }
+    }
   }
 }
 
@@ -293,7 +306,7 @@ function update(dt) {
   G.expT = (G.expT || 0) + dt;
   if (G.expT > 0.25 && P.state !== 'dead') { G.expT = 0; explore(P.x, P.y, 380); }
   mouse.wx = cam.x + (mouse.x - CW / 2) / ZOOM; mouse.wy = cam.y + (mouse.y - CH / 2) / ZOOM;
-  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateTraps(dt); updateInvasions(); updateLoot(dt); updateParts(dt);
+  updatePlayer(dt); updateEnemies(dt); updateBoss(dt); updateDragon(dt); updateFinal(dt); updateProjs(dt); updateAoes(dt); updatePuddles(dt); updateColo(dt); updateTraps(dt); updateInvasions(); updateLoot(dt); updateParts(dt); updateFx(dt);
   updateCam(dt); worldChecks(dt); ambient(dt);
   for (let i = G.timers.length - 1; i >= 0; i--) { const tm = G.timers[i]; tm.t -= dt; if (tm.t <= 0) { G.timers.splice(i, 1); tm.fn(); } }
   if (G.mode === 'dead') { G.deathT += dt; if (G.deathT > 4.6) { G.mode = 'play'; respawnAt(S.lastGrace); } }

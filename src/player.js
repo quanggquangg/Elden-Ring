@@ -227,7 +227,7 @@ function doAction(a, moving, mx, my) {
       if (rt === 'over') { toast('Quá tải! Không thể lăn'); return; }
       P.roll = moving ? ROLLS[rt] : ROLLS.back;
       P.st = Math.max(0, P.st - P.roll.st * (hasTal('plume') ? 0.8 : 1)); P.stDelay = 0.5; P.state = 'roll'; P.t = 0; P.atk = null;
-      P.rollDir = moving ? Math.atan2(my, mx) : P.face + Math.PI; P.vx *= 0.3; P.vy *= 0.3; SFX.roll();
+      P.rollDir = moving ? Math.atan2(my, mx) : P.face + Math.PI; P.vx *= 0.3; P.vy *= 0.3; SFX.roll(); puff(P.x, P.y + 6, FX_LOW ? 3 : 6);
       break;
     }
     case 'light': case 'heavy': {
@@ -420,8 +420,8 @@ function updatePlayer(dt) {
     if (moving) moveCircle(p, mx * 55 * slow * dt, my * 55 * slow * dt, false);
     if (!p.drank && p.t >= 0.6) {
       p.drank = true;
-      if (p.drinkFp) { const n = fpFlaskAmt(); p.fp = Math.min(p.maxFp, p.fp + n); burst(p.x, p.y, 22, '#6a9aff', 70, 3, 'dot', 0.8); floatText(p.x, p.y - 26, '+' + n + ' FP', '#9fc0ff'); }
-      else { const heal = flaskHeal(); p.hp = Math.min(p.maxHp, p.hp + heal); p.ghost = Math.max(p.ghost, p.hp); burst(p.x, p.y, 22, '#ff6a5a', 70, 3, 'dot', 0.8); floatText(p.x, p.y - 26, '+' + heal, '#ff8f80'); }
+      if (p.drinkFp) { const n = fpFlaskAmt(); p.fp = Math.min(p.maxFp, p.fp + n); burst(p.x, p.y, 22, '#6a9aff', 70, 3, 'dot', 0.8); healGlow(p.x, p.y, '130,170,255'); floatText(p.x, p.y - 26, '+' + n + ' FP', '#9fc0ff'); }
+      else { const heal = flaskHeal(); p.hp = Math.min(p.maxHp, p.hp + heal); p.ghost = Math.max(p.ghost, p.hp); burst(p.x, p.y, 22, '#ff6a5a', 70, 3, 'dot', 0.8); healGlow(p.x, p.y, '255,190,120'); floatText(p.x, p.y - 26, '+' + heal, '#ff8f80'); }
     }
     if (p.t >= 1.0) { p.state = 'idle'; p.t = 0; }
   } else if (p.state === 'hurt') {
@@ -469,6 +469,7 @@ function hurtPlayer(dmg, fx, fy, heavy, src = null, kind = 'melee', dt = 'phys')
   const hyper = (p.state === 'attack' && p.atk && p.atk.hyper && p.t < p.atk.wind + p.atk.act) || (!heavy && dmg < armorDef().poise);
   SFX.hurt(); shake(heavy ? 9 : 5); G.hitStop = 0.06; G.flash = 0.35;
   burst(p.x, p.y, 12, '#8e1512', 150, 3, 'dot', 0.5, a);
+  impact(p.x - Math.cos(a) * 6, p.y - Math.sin(a) * 6, a, '255,120,90', heavy); splat(p.x + Math.cos(a) * 5, p.y + Math.sin(a) * 5 + 4, a, '#5e0e0c', heavy ? 6 : 4);
   if (!hyper) {
     p.vx += Math.cos(a) * (heavy ? 360 : 220); p.vy += Math.sin(a) * (heavy ? 360 : 220);
     if (p.mounted && (heavy || dmg >= 40)) { p.mounted = false; toast('Bị hất khỏi ngựa!'); }
@@ -498,6 +499,7 @@ function parry(src) {
   aoes.push({ kind: 'flash', x: (p.x + src.x) / 2, y: (p.y + src.y) / 2, r: 60, t: 0, dur: 0.3 });
   const mx = (p.x + src.x) / 2, my = (p.y + src.y) / 2;
   burst(mx, my, 18, '#fff1c4', 280, 2.5, 'spark', 0.3);
+  impact(mx, my, Math.atan2(src.y - p.y, src.x - p.x), '200,225,255', true);
   addPart(mx, my - 6, 0, 0, 0.4, 18, '#fff6d8', 'glint');
   floatText(p.x, p.y - 34, 'PHẢN ĐÒN', '#f2dc97', true);
   p.st = Math.min(p.maxSt, p.st + 10);
@@ -582,7 +584,14 @@ function hitEnemy(e, dmgIn, poise, fx, fy, kind, opt = {}) {
   if (!quiet) { G.hitStop = crit ? 0.14 : kind === 'heavy' ? 0.075 : 0.045; shake(crit ? 11 : kind === 'heavy' ? 6 : 3); }
   const a = Math.atan2(e.y - fy, e.x - fx);
   burst(e.x, e.y, crit ? 26 : quiet ? 3 : 10, e.isBoss || e.isFinal ? '#e8c25e' : e.isDragon ? '#5a3a2a' : e.T && (e.T.id === 'crystal' || e.T.id === 'minerg') ? '#cfefff' : e.T && e.T.blood ? e.T.blood : '#7c1210', crit ? 220 : 150, 3, 'dot', 0.5, a);
-  if (!quiet) burst(e.x, e.y, 5, '#fff3c4', 260, 2, 'spark', 0.2, a);
+  if (!quiet) {
+    burst(e.x, e.y, 5, '#fff3c4', 260, 2, 'spark', 0.2, a);
+    // tia sáng ở điểm chạm và máu vương xuống đất theo hướng đòn
+    const col = typeof dmgIn === 'object' ? (dmgIn.fire ? '255,150,60' : dmgIn.holy ? '255,220,130' : dmgIn.magic ? '160,200,255' : '255,236,200') : '255,236,200';
+    impact(e.x - Math.cos(a) * e.r * 0.45, e.y - Math.sin(a) * e.r * 0.45, a, col, crit);
+    const bc = e.isBoss || e.isFinal || (e.T && (e.T.ghost || e.T.id === 'crystal' || e.T.id === 'minerg')) ? null : e.isDragon ? '#3a2418' : e.T && e.T.blood ? e.T.blood : '#5e0e0c';
+    if (bc && e.T && !(e.T.look && e.T.look.bones)) splat(e.x + Math.cos(a) * 6, e.y + Math.sin(a) * 6 + 4, a, bc, crit ? 8 : kind === 'heavy' ? 6 : 4);
+  }
   floatText(e.x, e.y - e.r - 12, String(dmg), crit ? '#ffd36b' : '#f1e6c8', crit);
   if (crit) { SFX.crit(); floatText(e.x, e.y - e.r - 40, label, '#ffd36b', true); } else if (!quiet) SFX.hit();
   if (e.isDragon && (e.state === 'sleep' || e.state === 'return')) wakeDragon();
@@ -615,7 +624,7 @@ function friendlyBlast(x, y, r, parts, poise) {
 function gainRunes(n, x, y) {
   n = Math.round(n * (hasTal('gold') ? 1.2 : 1) * (hasTal('crown') ? 1.3 : 1));
   S.runes += n; G.runeGain += n; G.runeGainT = 2.6;
-  for (let i = 0; i < 10; i++) addPart(x + rand(-10, 10), y + rand(-10, 10), rand(-30, 30), rand(-60, -20), rand(0.6, 1.2), rand(2, 3.5), '#f3d27a', 'mote');
+  runeStream(n, x, y);
 }
 function dropLoot(e) {
   const T = e.T, items = {};
@@ -641,6 +650,7 @@ function killEnemy(e) {
   if (!e.isBoss && !e.isDragon && !e.isFinal) recordKill(e.type);
   if (P.lock === e) P.lock = null;
   burst(e.x, e.y, 24, 'rgba(60,55,45,.8)', 80, 5, 'dot', 1);
+  dissolve(e, e.T && e.T.ghost ? '#cfefff' : e.invader ? '#ff8a6a' : '#f3cf6e');
   if (e.isBoss) { bossDefeated(); return; }
   if (e.isDragon) { dragonDefeated(); return; }
   if (e.isFinal) { finalDefeated(); return; }
