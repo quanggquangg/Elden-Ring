@@ -1,0 +1,19 @@
+{
+  "name": "Gravebound",
+  "short_name": "Gravebound",
+  "description": "A fan-made 2D souls-like epic inspired by Elden Ring. Play in your browser on desktop, phone or controller.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#0b0a08",
+  "theme_color": "#0b0a08",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -46,3 +46,18 @@ $('setText').onclick = e => { const b = e.target.closest('button'); if (!b) retu
 $('bindList').onclick = e => { const b = e.target.closest('button[data-bind]'); if (!b) return; G.rebind = b.dataset.bind; renderBinds(); };
 $('setResetKeys').onclick = () => { SET.binds = Object.assign({}, BINDS_DEFAULT); rebuildKeymap(); saveSet(); renderBinds(); };
 applyTextSize();
+// ───────────────────────── cài như ứng dụng (PWA) ─────────────────────────
+// chỉ chạy khi game được mở qua http(s), ví dụ GitHub Pages; mở trong khung nhúng hay tệp cục bộ thì bỏ qua
+let installEvt = null;
+const standalone = () => matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.top === window) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => { /* không cài được thì chơi bình thường */ }));
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('btnInstall').hidden = false; });
+window.addEventListener('appinstalled', () => { installEvt = null; $('btnInstall').hidden = true; toast('Đã cài Gravebound như một ứng dụng'); });
+if (isIOS() && !standalone() && window.top === window) $('btnInstall').hidden = false;
+$('btnInstall').onclick = async () => {
+  if (installEvt) { installEvt.prompt(); try { await installEvt.userChoice; } catch (e) { /* bỏ qua */ } installEvt = null; $('btnInstall').hidden = true; return; }
+  toast('Trên iPhone/iPad: bấm nút Chia sẻ của Safari rồi chọn “Thêm vào Màn hình chính”', 7);
+};
