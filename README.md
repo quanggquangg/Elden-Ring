@@ -4,7 +4,7 @@
 
 **▶ Chơi ngay:** https://quanggquangg.github.io/Gravebound/
 
-Chơi được trên máy tính, điện thoại và tay cầm. Không cần cài đặt. Có tiếng Việt và tiếng Anh (English), đổi ở màn hình chính hoặc menu tạm dừng.
+Chơi được trên máy tính, điện thoại và tay cầm. Không cần cài đặt. Mặc định là tiếng Anh; chuyển sang tiếng Việt ở góc trên màn hình chính hoặc trong menu tạm dừng.
 
 > Game do người hâm mộ tự làm, lấy cảm hứng từ Elden Ring.
 
